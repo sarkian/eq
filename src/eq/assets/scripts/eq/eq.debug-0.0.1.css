@@ -1,0 +1,72 @@
+#eq_debug-root-left, #eq_debug-root-right {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    background: transparent;
+    z-index: 99999999;
+    unicode-bidi: embed;
+    white-space: pre-wrap;
+}
+
+#eq_debug-root-left {
+    left: 0;
+}
+
+#eq_debug-root-right {
+    right: 0;
+}
+
+.eq_debug-message {
+    max-width: 600px;
+    padding: 4px 6px 5px 6px;
+    background: transparent;
+    line-height: 14px;
+    margin-top: 1px;
+    opacity: 0.3;
+    -webkit-transition: opacity 0.2s ease-in-out;
+    -moz-transition: opacity 0.2s ease-in-out;
+    -ms-transition: opacity 0.2s ease-in-out;
+    -o-transition: opacity 0.2s ease-in-out;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.eq_debug-message-error {
+    background-color: #ff7a7a;
+}
+
+.eq_debug-message-warning {
+    background-color: #e0e07a;
+}
+
+.eq_debug-message-info {
+    background-color: #60a5ff;
+}
+
+.eq_debug-message:hover:not(.eq_debug-fadeout) {
+    opacity: 1;
+}
+
+.eq_debug-message-name, .eq_debug-message-text {
+    background: transparent;
+    font-family: monospace;
+    font-size: 12px;
+    color: #000;
+    line-height: 12px;
+}
+
+.eq_debug-message-name {
+    font-weight: bold;
+}
+
+.eq_debug-message-text {
+
+}
+
+.eq_debug-fadeout {
+    opacity: 0;
+    -webkit-transition: opacity 0.2s ease-in-out;
+    -moz-transition: opacity 0.2s ease-in-out;
+    -ms-transition: opacity 0.2s ease-in-out;
+    -o-transition: opacity 0.2s ease-in-out;
+    transition: opacity 0.2s ease-in-out;
+}

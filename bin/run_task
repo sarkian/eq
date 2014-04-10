@@ -1,0 +1,22 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Last Change: 2014 Mar 14, 15:12
+ */
+
+if($argc < 3)
+    die("Wrong arguments\n");
+
+$config_file = realpath($argv[1]);
+if(!$config_file)
+    die("Config file not found: ".$config_file."\n");
+
+$config = unserialize(file_get_contents($config_file));
+if(!is_array($config))
+    die("Cant load config file: ".$config_file."\n");
+
+require_once __DIR__."/../src/EQ.php";
+
+EQ::init(realpath(dirname($config_file)."/.."));
+$app = new eq\task\TaskApp($config);
+exit($app->run());
