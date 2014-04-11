@@ -1,7 +1,9 @@
 <?php
 /**
- * Last Change: 2014 Apr 10, 14:22
+ * Last Change: 2014 Apr 10, 21:35
  */
+
+define("OS_WIN", strstr(PHP_OS, "WIN") ? true : false);
 
 define("EQROOT", realpath(__DIR__."/.."));
 
@@ -37,16 +39,6 @@ abstract class EQ extends \eq\base\AppBase
             EQROOT."/src",
         ], [], APPROOT."/runtime/loader.cache");
         spl_autoload_register(["eq\base\Loader", "loadClass"]);
-    }
-
-    public static function powered()
-    {
-        return "Powered by EQ Framework ".self::version();
-    }
-
-    public static function version()
-    {
-        
     }
 
 }

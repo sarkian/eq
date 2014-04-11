@@ -1,12 +1,13 @@
 <?php
 /**
- * Last Change: 2014 Apr 10, 12:45
+ * Last Change: 2014 Apr 10, 22:25
  */
 
 namespace eq\base;
 
 use eq\helpers\Str;
 use eq\helpers\Arr;
+use eq\helpers\Git;
 
 abstract class AppBase extends ModuleAbstract
 {
@@ -183,6 +184,19 @@ abstract class AppBase extends ModuleAbstract
     public static final function app()
     {
         return static::$_app;
+    }
+
+    public static function powered()
+    {
+        return "Powered by EQ Framework ".self::version();
+    }
+
+    public static function version()
+    {
+        $fname = EQROOT."/version";
+        if($version = @file_get_contents($fname))
+            return "v".$version;
+        return "(commit: ".Git::lastCommit().")";
     }
 
     public static final function __callStatic($name, $args)
