@@ -9,7 +9,7 @@ html, body {
     padding: 0;
 }
 
-html {
+body {
     background-color: #333;
     color: #f0f0f0;
     font-family: verdana, arial;
@@ -17,6 +17,7 @@ html {
 }
 
 html, body, .container {
+    width: 100%;
     height: 100%;
 }
 

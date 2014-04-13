@@ -3,7 +3,7 @@
     use \eq\web\html\Html;
     use \eq\dev\DevPath;
 ?>
-<h3><?= $etype ?></h3>
+<h3 class="etype"><?= $etype ?></h3>
 <hr />
 <table class="main-info">
     <? if($e->getCode()): ?>

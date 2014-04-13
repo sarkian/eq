@@ -23,7 +23,7 @@ trait TEvent
         return $this;
     }
 
-    public function unbind($event, $callable = null)
+    public function unbind($events, $callable = null)
     {
         if(!is_array($events))
             $events = [$events];

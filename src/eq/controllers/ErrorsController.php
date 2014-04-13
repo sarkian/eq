@@ -3,6 +3,7 @@
 namespace eq\controllers;
 
 use EQ;
+use eq\modules\clog\Clog;
 
 class ErrorsController extends \eq\web\Controller
 {
@@ -12,12 +13,12 @@ class ErrorsController extends \eq\web\Controller
     public function actionDefault()
     {
         $e = EQ::app()->http_exception;
-        $messsages = $this->messages();
+        $messages = $this->messages();
         $status = $e->getStatus();
         if((EQ_DBG || $status < 500) && $e->getMessage())
             $message = $e->getMessage();
         elseif(isset($messages[$status]))
-            $message = $messages[$status];
+            $message = EQ::t($messages[$status]);
         else
             $message = "Unknown Error";
         if($this->findViewFile("errors/$status"))
@@ -35,7 +36,9 @@ class ErrorsController extends \eq\web\Controller
 
     protected function messages()
     {
-        return [];
+        return [
+            404 => "Page not found",
+        ];
     }
 
 }

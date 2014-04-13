@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 10, 22:22
+ * Last Change: 2014 Apr 11, 15:50
  */
 
 namespace eq\helpers;
@@ -24,10 +24,10 @@ class Git
     {
         if(!self::isRepo() || !self::findBinary())
             return "";
+        chdir(EQROOT);
         $res = exec(self::$binary
             ." log -1 --pretty=format:'%h - %s (%cd)' --date=short", $out, $ret);
         return $ret === 0 ? $res : "";
-        // return "";
     }
 
     public static function findBinary()
