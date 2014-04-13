@@ -405,5 +405,30 @@ class Git
 	}
 	throw new \Exception(sprintf('no such branch: %s', $branch));
     }
+
+
+    // ------
+
+    public function getBranches()
+    {
+        $dir = $this->dir."/refs/heads";
+        $branches = array();
+        foreach(scandir($dir) as $file) {
+            if($file === "." || $file === ".." || !is_file($dir."/".$file))
+                continue;
+            $hash = file_get_contents($dir."/".$file);
+            if($hash)
+                $branches[] = $file;
+        }
+        return $branches;
+    }
+
+    public function getCurrentBranch()
+    {
+        $ref = trim(file_get_contents($this->dir."/HEAD"), " \r\n\t");
+        $parts = explode("/", $ref);
+        return array_pop($parts);
+    }
+
 }
 
