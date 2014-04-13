@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 10, 22:25
+ * Last Change: 2014 Apr 13, 15:04
  */
 
 namespace eq\base;
@@ -196,7 +196,13 @@ abstract class AppBase extends ModuleAbstract
         $fname = EQROOT."/version";
         if($version = @file_get_contents($fname))
             return "v".$version;
-        return "(commit: ".Git::lastCommit().")";
+        $repo = new \glip\Git(EQROOT."/.git");
+        $bname = $repo->getCurrentBranch();
+        $branch = $repo->getTip($bname);
+        $commit = $repo->getObject($branch);
+        $hash = substr(\glip\Binary::sha1_hex($branch), 0, 7);
+        return "($bname: $hash - ".$commit->summary
+            ." (".date("y-m-d", $commit->committer->time)."))";
     }
 
     public static final function __callStatic($name, $args)

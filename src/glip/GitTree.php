@@ -35,7 +35,7 @@ class GitTree extends GitObject
 	$start = 0;
 	while ($start < strlen($data))
 	{
-	    $node = new stdClass;
+	    $node = new \stdClass;
 
 	    $pos = strpos($data, "\0", $start);
 	    list($node->mode, $node->name) = explode(' ', substr($data, $start, $pos-$start), 2);
