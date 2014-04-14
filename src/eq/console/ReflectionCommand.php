@@ -3,102 +3,51 @@
 namespace eq\console;
 
 use EQ;
-use eq\base\LoaderException;
-use eq\base\console\CommandException;
 use eq\helpers\Str;
+use eq\cgen\base\docblock\Docblock;
 
 class ReflectionCommand extends \ReflectionClass
 {
 
-    private $instance = null;
+    protected $docblock;
 
-    public function __construct($command)
+    protected $_actions = [];
+
+    public function __construct($argument)
     {
-        $cbasename = Str::cmd2method($command).'Command';
-        try {
-            $cname = '\eq\commands\\'.$cbasename;
-            $this->instance = new $cname($this);
-        }
-        catch(LoaderException $e) {}
-        try {
-            $cname = EQ::app()->app_namespace.'\commands\\'.$cbasename;
-            $this->instance = new $cname($this);
-        }
-        catch(LoaderException $e) {}
-        if($this->instance)
-            parent::__construct($this->instance);
+        parent::__construct($argument);
+        $this->docblock = new Docblock($this->getDocComment());
     }
 
-    public function exists()
+    public function getActions()
     {
-        return !\is_null($this->instance);
-    }
-
-    public function getActions($docstr = false)
-    {
-        $methods = \get_class_methods($this->instance);
-        $actions  = [];
-        foreach($methods as $method) {
-            if(\strlen($method) > 6 && \substr($method, 0, 6) === 'action') {
-                $actname = Str::method2cmd(\substr($method, 6));
-                if($docstr) {
-                    $action = new ReflectionAction($this->instance, $method);
-                    $params = $action->getParamsDoc();
-                    $descr = $action->getDescription();
-                    if($params) $actname .= " $params";
-                    if($descr) $actname.= " - $descr";
-                }
-                $actions[] = $actname;
-            }
+        $actions = [];
+        foreach($this->getMethods() as $method) {
+            if(preg_match("/^action([A-Z][a-zA-Z]+)/", $method->name, $matches))
+                $actions[Str::method2cmd($matches[1])] 
+                        = $this->getAction($method->name);
         }
         return $actions;
     }
 
-    public function getAction($action)
+    public function getAction($name)
     {
-        $method = 'action'.Str::cmd2method($action);
-        if(!\method_exists($this->instance, $method))
-            return false;
-        return new ReflectionAction($this->instance, $method);
+        if(!preg_match("/^action/", $name))
+            $name = "action".Str::cmd2method($name);
+        if(!isset($this->_actions[$name]))
+            $this->_actions[$name] = new ReflectionAction($this->name, $name);
+        return $this->_actions[$name];
     }
 
-    public function getDefaultAction()
+    public function getShortDescription()
     {
-        // TODO Implement
+        return $this->docblock->shortDescription();
     }
 
-    public static function getCommands()
+    public function actionExists($name)
     {
-        $app_files = [];
-        foreach(EQ::app()->config("system.src_dirs", []) as $dir) {
-            $app_files = array_merge($app_files, 
-                array_filter(glob(EQ::getAlias("$dir/*/commands/*Command.php")), "is_file"));
-        }
-        $app_commands = self::scanCommandFiles($app_files, EQ::app()->app_namespace.'\commands');
-        $eq_files = array_filter(glob(EQROOT."/src/eq/commands/*Command.php"), "is_file");
-        $eq_commands = self::scanCommandFiles($eq_files, 'eq\commands');
-        return array_merge($app_commands, $eq_commands);
-    }
-
-    public function getDocDescription()
-    {
-        $comment = $this->getDocComment();
-        if(!$comment) return '';
-        $lines = \preg_split("/[\r\n]+/", $comment);
-        return isset($lines[1]) ? preg_replace("/[\s\t]*\*[\s\t]+/", '', $lines[1]) : '';
-    }
-
-    private static function scanCommandFiles($files, $namespace)
-    {
-        $commands = [];
-        foreach($files as $file) {
-            $cbasename = preg_replace('/\.php$/', '', basename($file));
-            $cname = $namespace.'\\'.$cbasename;
-            require_once $file;
-            if(class_exists($cname, false) && is_subclass_of($cname, 'eq\console\Command'))
-                $commands[] = Str::method2cmd(preg_replace('/Command$/', '', $cbasename));
-        }
-        return $commands;
+        $method = "action".Str::cmd2method($name);
+        return $this->hasMethod($method);
     }
 
 }

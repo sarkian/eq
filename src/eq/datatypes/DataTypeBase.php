@@ -12,6 +12,9 @@ abstract class DataTypeBase
 
     public static final function getClass($type)
     {
+        if(Loader::classExists($type) 
+                && isset(class_parents($type)[get_called_class()]))
+            return $type;
         $cbasename = Str::var2method($type);
         $cname = "\\".EQ::app()->app_namespace."\datatypes\\$cbasename";
         if(Loader::classExists($cname))
@@ -21,6 +24,18 @@ abstract class DataTypeBase
             return $cname;
         else
             throw new DataTypeException("Data type class not found: $cname");
+    }
+
+    public static final function getTypeForValue($val)
+    {
+        $types = [
+            'boolean' => "bool",
+            'integer' => "int",
+            'double' => "float",
+            'string' => "str",
+        ];
+        $type = gettype($val);
+        return isset($types[$type]) ? $types[$type] : "str";
     }
 
     public static final function c()

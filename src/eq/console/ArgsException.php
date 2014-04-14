@@ -2,7 +2,7 @@
 
 namespace eq\console;
 
-class InvalidOptionException extends \eq\base\ExceptionBase
+class ArgsException extends \eq\base\ExceptionBase
 {
 
     protected $type = "InvalidOptionException";

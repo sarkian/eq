@@ -7,7 +7,7 @@ class Str extends DataTypeBase
 
     public static function validate($value)
     {
-        if(\is_string($value) || \is_int($value) || \is_float($value))
+        if(is_string($value) || is_int($value) || is_float($value))
             return true;
         return false;
     } 

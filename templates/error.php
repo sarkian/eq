@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
 <title><?= EQ::app()->client_script->title ?></title>
 <style type="text/css">
 
@@ -75,7 +76,7 @@ body > .container {
 }
 
 .powered {
-    margin: 0 100px;
+    margin: 0 3%;
     padding: 0 2px;
     border-top: 1px #666 solid;
     text-align: right;

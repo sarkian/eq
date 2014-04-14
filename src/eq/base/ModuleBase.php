@@ -1,6 +1,22 @@
 <?php
 /**
- * Last Change: 2014 Apr 08, 23:56
+ * Last Change: 2014 Apr 14, 11:26
+ *
+ * TODO структура модуля:
+ *
+ * modules/example/
+ *      /controllers/
+ *          ExampleController.php
+ *          ...
+ *      /actions/
+ *          ExampleAction.php
+ *          ...
+ *      /ExampleModule.php          *
+ *      /ExampleComponent.php       (можно юзать ExampleModule (или нет?))
+ *      /route.eqrt                 (все роуты из этого файла - с префиксом)
+ *
+ * иначе порядка в модулях не будет никогда
+ *
  */
 
 namespace eq\base;
@@ -22,6 +38,15 @@ abstract class ModuleBase extends ModuleAbstract
             return;
         $inst = new $cname($config);
         self::$_instances[$cname] = $inst;
+    }
+
+    public static final function location()
+    {
+        $cname = get_called_class();
+        $fname = Loader::classLocation($cname);
+        if(!$fname)
+            throw new ModuleException("Unable to get module location: $cname");
+        return dirname($fname);
     }
 
     public static final function enabled($cname = null)

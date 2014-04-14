@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 08, 22:58
+ * Last Change: 2014 Apr 14, 11:23
  */
 
 namespace eq\base;
@@ -57,12 +57,22 @@ class Loader
         if(!$fname)
             return false;
         require_once $fname;
-        return class_exists($cname, false);
+        if(!class_exists($cname, false))
+            return false;
+        self::$cache[$cname] = $fname;
+        return true;
+    }
+
+    public static function classLocation($cname)
+    {
+        return isset(self::$cache[$cname]) ? self::$cache[$cname] : null;
     }
 
     public static function autofindClass($name, $ns_prefix,
                                 $postfix = null, $namespaces = [])
     {
+        // header("Content-type: text/plain");
+        // echo $name."\n";
         if(!strncmp($name, '\\', 1))
             return self::classExists($name) ? $name : false;
         if(is_null($postfix)) {
@@ -78,9 +88,11 @@ class Loader
         $cbasename = implode('\\', $parts);
         foreach($namespaces as $ns) {
             $cname = trim($ns, '\\').'\\'.$cbasename;
+            // echo $cname."\n";
             if(self::classExists($cname))
                 return $cname;
         }
+        // exit;
         return false;
     }
 
@@ -167,7 +179,9 @@ class Loader
     {
         if(!self::$cache_file)
             return;
-        $file = fopen(self::$cache_file, "w");
+        $file = @fopen(self::$cache_file, "w");
+        if($file === false)
+            return;
         foreach(self::$cache as $cname => $fname)
             fwrite($file, $cname."\n".$fname."\n");
         fclose($file);

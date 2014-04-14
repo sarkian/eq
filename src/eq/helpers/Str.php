@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 09, 14:59
+ * Last Change: 2014 Apr 14, 11:42
  */
 
 namespace eq\helpers;
@@ -72,6 +72,13 @@ class Str
             return " ".($ucfirst_all ? ucfirst($m[1]) : $m[1]);
         }, $method);
         return $ucfirst ? ucfirst($label) : $label;
+    }
+
+    public static function classNamespace($classname)
+    {
+        $parts = explode("\\", $classname);
+        array_pop($parts);
+        return implode("\\", $parts);
     }
 
     public static function classBasename($classname)

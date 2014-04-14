@@ -1,13 +1,18 @@
 <?php
 /**
- * Last Change: 2014 Apr 08, 00:54
+ * Last Change: 2014 Apr 14, 11:43
  */
 
 namespace eq\modules\cron;
 
+use EQ;
+
 class CronModule extends \eq\base\ModuleBase
 {
 
-    // TODO write me
+    public function __construct($config = [])
+    {
+
+    }
 
 }

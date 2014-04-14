@@ -3,59 +3,79 @@
 namespace eq\console;
 
 use EQ;
+use eq\cgen\base\docblock\Docblock;
 
 class ReflectionAction extends \ReflectionMethod
 {
 
-    private $command;
-    private $method;
+    protected $command;
+    protected $method;
+    protected $docblock;
+
+    protected $_params = [];
+    protected $_opts = [];
+
+    use \eq\base\TObject;
 
     public function __construct($command, $method)
     {
         $this->command = $command;
         $this->method = $method;
         parent::__construct($this->command, $method);
+        $this->docblock = new Docblock($this->getDocComment());
     }
 
-    public function run()
+    public function getDocblock()
     {
-        $required = [];
-        $optional = [];
-        foreach($this->getParameters() as $param) {
-            if($param->isDefaultValueAvailable())
-                $optional[$param->name] = $param->getDefaultValue();
-            else
-                $required[] = $param->name;
+        return $this->docblock;
+    }
+
+    public function getShortDescription()
+    {
+        return $this->docblock->shortDescription();
+    }
+
+    public function getParameters()
+    {
+        $params = [];
+        foreach(parent::getParameters() as $param) {
+            $params[] = $this->getParameter($param->name);
         }
-        list($args, $opts) = EQ::app()->parseCmd($required, $optional);
-        return \call_user_func_array([$this->command, $this->method], $args);
+        return $params;
     }
 
-    public function getDescription()
+    public function getParameter($name)
     {
-        $comment = $this->getDocComment();
-        if(!$comment) return '';
-        $lines = \preg_split("/[\r\n]+/", $comment);
-        $descr = isset($lines[1]) ? preg_replace("/^[\s\t]*\*[\s\t]+/", '', $lines[1]) : '';
-        if(substr($descr, 0, 1) === '@') $descr = '';
-        return $descr;
+        if(!isset($this->_params[$name]))
+            $this->_params[$name] = new ReflectionActionParameter($this, $name);
+        return $this->_params[$name];
     }
 
-    public function getParamsDoc()
+    public function getParametersStr()
     {
-        $doc = '';
-        $required = [];
-        $optional = [];
-        foreach($this->getParameters() as $param) {
-            if($param->isDefaultValueAvailable())
-                $optional[] = "[, <{$param->name}>";
-            else
-                $required[] = "<{$param->name}>";
+        return implode(" ", $this->parameters);
+    }
+
+    public function getOptions()
+    {
+        $opts = [];
+        foreach($this->docblock->tag("option")->wsecondAll() as $name) {
+            $opts[] = $this->getOption($name);
         }
-        $doc = \implode(' ', $required);
-        if($optional)
-            $doc .= ' '.\implode(' ', $optional).\str_pad(']', count($optional), ']');
-        return $doc;
+        return $opts;
+    }
+
+    public function getOption($name)
+    {
+        $name = preg_replace("/^\\$/", "", $name);
+        if(!isset($this->_opts[$name]))
+            $this->_opts[$name] = new ReflectionActionOption($this, $name);
+        return $this->_opts[$name];
+    }
+
+    public function getOptionsStr()
+    {
+        return implode(" ", $this->options);
     }
 
 }

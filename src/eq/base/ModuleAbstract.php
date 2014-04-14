@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 08, 21:08
+ * Last Change: 2014 Apr 13, 20:06
  */
 
 namespace eq\base;
@@ -15,6 +15,11 @@ abstract class ModuleAbstract
     }
 
     protected function registerStaticMethod($name, $method)
+    {
+        
+    }
+
+    protected function registerCommand($command, $class)
     {
         
     }

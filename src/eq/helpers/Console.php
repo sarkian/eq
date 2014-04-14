@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2013 Dec 27, 20:37
+ * Last Change: 2014 Apr 14, 15:43
  */
 
 namespace eq\helpers;
@@ -15,12 +15,12 @@ class Console
 
     public static function stdout($str)
     {
-        return fwrite(STDOUT, $str);
+        return fwrite(STDOUT, $str."\n");
     }
 
     public static function stderr($str)
     {
-        return fwrite(STDERR, $str);
+        return fwrite(STDERR, $str."\n");
     }
 
 }

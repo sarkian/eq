@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 10, 21:35
+ * Last Change: 2014 Apr 14, 11:04
  */
 
 define("OS_WIN", strstr(PHP_OS, "WIN") ? true : false);
@@ -16,6 +16,7 @@ defined("EQ_STRICT") or define("EQ_STRICT", true);
 require_once EQROOT."/src/eq/base/ExceptionBase.php";
 require_once EQROOT."/src/eq/base/LoaderException.php";
 require_once EQROOT."/src/eq/helpers/Str.php";
+require_once EQROOT."/src/eq/helpers/FileSystem.php";
 require_once EQROOT."/src/eq/base/Loader.php";
 require_once EQROOT."/src/eq/base/TObject.php";
 require_once EQROOT."/src/eq/base/Object.php";
@@ -32,6 +33,7 @@ abstract class EQ extends \eq\base\AppBase
     {
         define("APPROOT", realpath($approot));
         self::setAlias("@eq", EQROOT);
+        self::setAlias("@eqsrc", EQROOT.DIRECTORY_SEPARATOR."src");
         self::setAlias("@app", APPROOT);
         self::setAlias("@runtime", APPROOT.DIRECTORY_SEPARATOR."runtime");
         self::setAlias("@log", APPROOT.DIRECTORY_SEPARATOR."log");

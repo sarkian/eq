@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 13, 15:04
+ * Last Change: 2014 Apr 14, 11:16
  */
 
 namespace eq\base;
@@ -8,6 +8,7 @@ namespace eq\base;
 use eq\helpers\Str;
 use eq\helpers\Arr;
 use eq\helpers\Git;
+use eq\helpers\FileSystem;
 
 abstract class AppBase extends ModuleAbstract
 {
@@ -31,6 +32,7 @@ abstract class AppBase extends ModuleAbstract
     protected $system_components = [];
     protected $registered_components = [];
     protected $dummy_components = [];
+    protected $loaded_modules = [];
 
     protected $locale = "en_US";
 
@@ -41,9 +43,12 @@ abstract class AppBase extends ModuleAbstract
 
     public function __construct($config)
     {
+        foreach($this->directories() as $path => $mode)
+            FileSystem::mkdir($path, $mode);
         $this->bind("exception", [$this, "__onException"]);
         self::$_app = $this;
         $this->processConfig($config);
+        self::setAlias("@appsrc", APPROOT."/src/".$this->app_namespace);
         foreach($this->config("system.src_dirs", []) as $dir)
             Loader::addDir(realpath(self::getAlias($dir)));
         set_error_handler(['\eq\base\ErrorHandler', 'onError']);
@@ -60,6 +65,7 @@ abstract class AppBase extends ModuleAbstract
             foreach($this->config("modules", []) as $mod => $conf) {
                 $cname = ModuleBase::getClass($mod);
                 $cname::init($conf);
+                $this->loaded_modules[$mod] = $cname;
             }
             $this->trigger("ready");
         }
@@ -122,6 +128,11 @@ abstract class AppBase extends ModuleAbstract
     {
         return Str::method2cmd(
             preg_replace("/^.*\\\|App$/", "", get_called_class()));
+    }
+
+    public function getLoadedModules()
+    {
+        return $this->loaded_modules;
     }
 
     public function getClassname()
@@ -201,8 +212,8 @@ abstract class AppBase extends ModuleAbstract
         $branch = $repo->getTip($bname);
         $commit = $repo->getObject($branch);
         $hash = substr(\glip\Binary::sha1_hex($branch), 0, 7);
-        return "($bname: $hash - ".$commit->summary
-            ." (".date("y-m-d", $commit->committer->time)."))";
+        return "[$bname: $hash - ".$commit->summary
+            ." (".date("y-m-d", $commit->committer->time).")]";
     }
 
     public static final function __callStatic($name, $args)
@@ -253,6 +264,13 @@ abstract class AppBase extends ModuleAbstract
             throw new ComponentException("Method is not callable: $name");
         static::$static_methods[$name] = $method;
         return $this;
+    }
+
+    protected function directories()
+    {
+        return [
+            "@app/runtime" => 0775,
+        ];
     }
 
     protected function dummyComponents()

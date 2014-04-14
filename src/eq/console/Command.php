@@ -2,36 +2,49 @@
 
 namespace eq\console;
 
-/**
- * Базовый класс для консольных команд. 
- * 
- * @author Sarkian <root@dustus.org> 
- * @doc TO_DO Write documentation
- * @test TO_DO Write test
- */
+use eq\helpers\Str;
+
 class Command
 {
 
-    private $reflection;
+    private static $_instances = [];
+    private static $_reflections = [];
 
-    public function __construct($reflection)
+    private final function __construct()
     {
-        $this->reflection = $reflection;
+        $this->init();
     }
 
-    /**
-     * Выводит справку по комманде. 
-     * 
-     * @return void
-     */
-    protected function getCommandHelp()
+    public static final function className()
     {
-        // TO_DO Implement
+        return get_called_class();
     }
 
-    protected function getActionHelp()
+    public static final function commandName()
     {
-        // TO_DO Implement
+        $cname = Str::classBasename(get_called_class());
+        return Str::method2cmd(preg_replace("/Command$/", "", $cname));
+    }
+
+    public static final function inst()
+    {
+        $cname = get_called_class();
+        if(!isset(self::$_instances[$cname]))
+            self::$_instances[$cname] = new $cname();
+        return self::$_instances[$cname];
+    }
+
+    public static final function reflect()
+    {
+        $cname = get_called_class();
+        if(!isset(self::$_reflections[$cname]))
+            self::$_reflections[$cname] = new ReflectionCommand($cname);
+        return self::$_reflections[$cname];
+    }
+
+    protected function init()
+    {
+        
     }
 
 }

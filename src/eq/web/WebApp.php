@@ -179,6 +179,7 @@ class WebApp extends \eq\base\AppBase
 
     protected function systemComponents()
     {
+        // TODO Move "user" component into module
         $user_class = $this->app_namespace."\models\Users";
         if(!Loader::classExists($user_class))
             $user_class = "eq\models\Users";
