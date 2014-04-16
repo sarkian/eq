@@ -1,8 +1,11 @@
 #!/usr/bin/env php
 <?php
 /**
- * Last Change: 2014 Apr 10, 21:47
+ * Last Change: 2014 Apr 14, 21:57
  */
 
-$res = exec("git log -1 --pretty=format:'%h - %s (%ci)'");
-var_dump($res);
+array_shift($argv);
+foreach($argv as $arg) {
+    echo "    [$arg]\n";
+}
+echo "\n";

@@ -1,9 +1,14 @@
 <?php
 /**
- * Last Change: 2014 Apr 14, 17:23
+ * Last Change: 2014 Apr 15, 20:59
  */
 
 namespace eq\modules\cron\commands;
+
+use eq\modules\cron\Crontab;
+use eq\modules\cron\CrontabTaskCommand;
+use eq\modules\cron\CrontabTaskTime;
+use eq\helpers\Shell;
 
 /**
  * Base cron command
@@ -11,6 +16,14 @@ namespace eq\modules\cron\commands;
 class CronCommand extends \eq\console\Command
 {
 
+    public function actionTest()
+    {
+        
+    }
 
+    public function actionAddTask($taskname)
+    {
+        
+    }
 
 }

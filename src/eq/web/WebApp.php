@@ -179,13 +179,6 @@ class WebApp extends \eq\base\AppBase
 
     protected function systemComponents()
     {
-        // TODO Move "user" component into module
-        $user_class = $this->app_namespace."\models\Users";
-        if(!Loader::classExists($user_class))
-            $user_class = "eq\models\Users";
-        if(!isset(class_implements($user_class)["eq\web\IIdentity"]))
-            throw new ComponentException(
-                "User class must be implements eq\web\IIdentity");
         return array_merge(parent::systemComponents(), [
             'request' => [
                 'class' => 'eq\web\Request',
@@ -209,18 +202,20 @@ class WebApp extends \eq\base\AppBase
             'jsdata' => [
                 'class' => 'eq\web\JSData',
             ],
-            'user' => [
-                'class' => $user_class,
-                'config' => null,
-            ],
         ]);
     }
 
-    protected function dummyComponents()
+    protected function defaultComponents()
     {
+        $user_class = $this->app_namespace."\models\Users";
+        if(!Loader::classExists($user_class))
+            $user_class = "eq\models\Users";
+        if(!isset(class_implements($user_class)["eq\web\IIdentity"]))
+            throw new ComponentException(
+                "User class must be implements eq\web\IIdentity");
         return [
             'user' => [
-                'class' => "eq\models\Users",
+                'class' => $user_class,
                 'config' => null,
             ],
         ];

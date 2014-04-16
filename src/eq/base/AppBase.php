@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 14, 11:16
+ * Last Change: 2014 Apr 16, 13:54
  */
 
 namespace eq\base;
@@ -22,7 +22,7 @@ abstract class AppBase extends ModuleAbstract
 
     protected static $_app = null;
     protected static $static_methods = [];
-    protected static $dummy_static_methods = [];
+    protected static $default_static_methods = [];
 
     protected $_config;
     protected $_app_namespace;
@@ -31,7 +31,7 @@ abstract class AppBase extends ModuleAbstract
 
     protected $system_components = [];
     protected $registered_components = [];
-    protected $dummy_components = [];
+    protected $default_components = [];
     protected $loaded_modules = [];
 
     protected $locale = "en_US";
@@ -54,8 +54,8 @@ abstract class AppBase extends ModuleAbstract
         set_error_handler(['\eq\base\ErrorHandler', 'onError']);
         set_exception_handler(['\eq\base\ErrorHandler', 'onException']);
         register_shutdown_function(['\eq\base\ErrorHandler', 'onShutdown']);
-        $this->dummy_components = $this->dummyComponents();
-        static::$dummy_static_methods = self::dummyStaticMethods();
+        $this->default_components = $this->defaultComponents();
+        static::$default_static_methods = self::defaultStaticMethods();
         $this->system_components = $this->systemComponents();
         foreach($this->system_components as $name => $component) {
             if(Arr::getItem($component, "preload", false))
@@ -220,15 +220,15 @@ abstract class AppBase extends ModuleAbstract
     {
         if(isset(static::$static_methods[$name]))
             $method = static::$static_methods[$name];
-        elseif(isset(static::$dummy_static_methods[$name]))
-            $method = static::$dummy_static_methods[$name];
+        elseif(isset(static::$default_static_methods[$name]))
+            $method = static::$default_static_methods[$name];
         else
             throw new InvalidCallException(
                 "Static method does not exists: $name");
         return call_user_func_array($method, $args);
     }
 
-    protected static function dummyStaticMethods()
+    protected static function defaultStaticMethods()
     {
         return [
             't' => function($text) { return $text; },
@@ -273,7 +273,7 @@ abstract class AppBase extends ModuleAbstract
         ];
     }
 
-    protected function dummyComponents()
+    protected function defaultComponents()
     {
         return [];
     }
@@ -297,8 +297,8 @@ abstract class AppBase extends ModuleAbstract
             $config = $this->system_components[$name];
         elseif(isset($this->registered_components[$name]))
             $config = $this->registered_components[$name];
-        elseif(isset($this->dummy_components[$name]))
-            $config = $this->dummy_components[$name];
+        elseif(isset($this->default_components[$name]))
+            $config = $this->default_components[$name];
         else
             throw new ComponentException("Undefined component: $name");
         if(!is_array($config))

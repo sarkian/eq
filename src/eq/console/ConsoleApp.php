@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Last Change: 2014 Apr 14, 17:21
+ * Last Change: 2014 Apr 14, 17:48
  */
 
 namespace eq\console;
@@ -22,6 +22,7 @@ class ConsoleApp extends \eq\base\AppBase
 
     protected $argc;
     protected $argv;
+    protected $executable;
     protected $command_name;
     protected $action_name;
     protected $action_options = [];
@@ -32,6 +33,7 @@ class ConsoleApp extends \eq\base\AppBase
     {
         $this->argc = Arr::getItem($_SERVER, "argc", 0);
         $this->argv = Arr::getItem($_SERVER, "argv", []);
+        $this->executable = realpath($this->argv[0]);
         parent::$_app = $this;
         parent::__construct($config);
     }
@@ -44,6 +46,11 @@ class ConsoleApp extends \eq\base\AppBase
     public function getArgv()
     {
         return $this->argv;
+    }
+
+    public function getExecutable()
+    {
+        return $this->executable;
     }
 
     public function getCommandName()

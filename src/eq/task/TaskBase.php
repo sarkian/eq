@@ -1,23 +1,24 @@
 <?php
 /**
- * Last Change: 2014 Mar 14, 15:09
+ * Last Change: 2014 Apr 15, 21:09
  */
 
 namespace eq\task;
 
+use EQ;
+use eq\base\Loader;
 use eq\base\FileSystemException;
 use eq\base\InvalidParamException;
 use eq\helpers\Path;
 use eq\helpers\FileSystem;
 use eq\helpers\System;
-use EQ;
+use eq\helpers\Shell;
 
 abstract class TaskBase
 {
 
     /**
-     * @const int Не запускать задачу,
-     * если она уже запущена с такими аргументами
+     * @const int Не запускать задачу, если она уже запущена с такими аргументами
      */
     const R_ONCE            = 0;
 
@@ -29,13 +30,12 @@ abstract class TaskBase
     /**
      * @const int Перезапустить задачу (прибивает по kill -9)
      */
-    const R_RESTART         = 2; // перезапуск
+    const R_RESTART         = 2;
 
     /**
-     * @const int Добавить в очередь,
-     * если задача с такими аргументами уже выполняется
+     * @const int Добавить в очередь, если задача с такими аргументами уже выполняется
      */
-    const R_QUEUE           = 3; // добавить в очередь
+    const R_QUEUE           = 3;
 
     /**
      * @property eq\task\TaskQueue $queue Очередь
@@ -50,6 +50,16 @@ abstract class TaskBase
      * @return int
      */
     abstract protected function __run(array $args = []);
+
+    public static final function className()
+    {
+        return get_called_class();
+    }
+
+    public static final function getClass($taskname)
+    {
+        return Loader::autofindClass($taskname, "tasks");
+    }
 
     /**
      * Запускает задачу синхронно с аргументами $args
@@ -99,6 +109,8 @@ abstract class TaskBase
             $errlog = EQ::getAlias($errlog);
             FileSystem::mkdir(dirname($errlog));
         }
+        else
+            $errlog = "&1";
         self::normalizeArgs($args);
         switch($run) {
             case self::R_ONCE:
@@ -125,11 +137,12 @@ abstract class TaskBase
                     "Parameter 'run' must be one of TaskBase::R_* constants");
         }
         FileSystem::fputs("@runtime/config.s", serialize(EQ::app()->config()));
-        exec("exec nohup setsid ".self::getRunCommand($args)
-            ." > ".$outlog." 2>".$errlog." &");
+        $cmd = "exec nohup setsid ".self::getRunCommand($args)
+            ." > ".$outlog." 2>".$errlog." &";
+        Shell::exec($cmd);
     }
 
-    public static function waitForComplete(array $args = [])
+    public static function waitForComplete(array $args = [], $limit = 0)
     {
         // TODO implement
     }
@@ -211,6 +224,17 @@ abstract class TaskBase
             self::killByPid($pid);
     }
 
+    public static function getRunCommand(array $args = [])
+    {
+        return implode(" ", [
+            "php",
+            Path::join([EQROOT, "bin", "run_task"]),
+            EQ::getAlias("@runtime/config.s"),
+            escapeshellarg(get_called_class()),
+            escapeshellarg(serialize($args)),
+        ]);
+    }
+
     protected static function killByPid($pid)
     {
         System::procKill($pid);
@@ -242,16 +266,6 @@ abstract class TaskBase
         return Path::join([
             self::getRunDir(),
             str_replace("\\", ".", $cname).":*",
-        ]);
-    }
-
-    protected static function getRunCommand(array $args)
-    {
-        return implode(" ", [
-            Path::join([EQROOT, "bin", "run_task"]),
-            EQ::getAlias("@runtime/config.s"),
-            escapeshellarg(get_called_class()),
-            escapeshellarg(serialize($args)),
         ]);
     }
 

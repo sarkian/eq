@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 14, 11:26
+ * Last Change: 2014 Apr 16, 13:36
  *
  * TODO структура модуля:
  *
@@ -82,6 +82,26 @@ abstract class ModuleBase extends ModuleAbstract
     public function getDepends()
     {
         return [];
+    }
+
+    public final function getName()
+    {
+        $cname = Str::classBasename(get_called_class());
+        return preg_replace("/Module$/", "", $cname);
+    }
+
+    public function getNamespace()
+    {
+        return Str::classNamespace(get_called_class());
+    }
+
+    public function findClass($classname)
+    {
+        $name = trim(str_replace(".", "\\", $classname), "\\");
+        $cname = $this->getNamespace()."\\".$name;
+        if(!Loader::classExists($cname))
+            throw new ModuleException("Class not found: $classname");
+        return $cname;
     }
 
     protected function registerComponent($name, $class,
