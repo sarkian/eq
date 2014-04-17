@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Mar 16, 14:40
+ * Last Change: 2014 Apr 17, 13:55
  */
 
 namespace eq\helpers;
@@ -50,6 +50,20 @@ class Arr
                 return $default;
         }
         return $val;
+    }
+
+    public static function setItem(&$src, $key, $value)
+    {
+        $val = &$src;
+        $keys = self::keyarr($key);
+        if(!$keys)
+            throw new InvalidCallException("Invalid key: ".self::keystr($key));
+        foreach($keys as $k) {
+            if(!isset($val[$k]) || !is_array($val[$k]))
+                $val[$k] = [];
+            $val = &$val[$k];
+        }
+        $val = $value;
     }
 
     protected static function keystr($key)

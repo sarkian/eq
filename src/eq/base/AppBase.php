@@ -1,13 +1,12 @@
 <?php
 /**
- * Last Change: 2014 Apr 16, 13:54
+ * Last Change: 2014 Apr 17, 21:30
  */
 
 namespace eq\base;
 
 use eq\helpers\Str;
 use eq\helpers\Arr;
-use eq\helpers\Git;
 use eq\helpers\FileSystem;
 
 abstract class AppBase extends ModuleAbstract
@@ -32,6 +31,7 @@ abstract class AppBase extends ModuleAbstract
     protected $system_components = [];
     protected $registered_components = [];
     protected $default_components = [];
+    protected $config_permissions = [];
     protected $loaded_modules = [];
 
     protected $locale = "en_US";
@@ -55,14 +55,21 @@ abstract class AppBase extends ModuleAbstract
         set_exception_handler(['\eq\base\ErrorHandler', 'onException']);
         register_shutdown_function(['\eq\base\ErrorHandler', 'onShutdown']);
         $this->default_components = $this->defaultComponents();
-        static::$default_static_methods = self::defaultStaticMethods();
+        static::$default_static_methods = static::defaultStaticMethods();
         $this->system_components = $this->systemComponents();
         foreach($this->system_components as $name => $component) {
             if(Arr::getItem($component, "preload", false))
                 $this->loadComponent($name);
         }
+        $this->config_permissions = static::configPermissions();
         try {
-            foreach($this->config("modules", []) as $mod => $conf) {
+            $modules = $this->config("modules", []);
+            foreach($modules as $mod => $conf) {
+                $cname = ModuleBase::getClass($mod);
+                $this->config_permissions['modules'][$mod] = $cname::configPermissions();
+            }
+            $this->processConfigPermissions();
+            foreach($modules as $mod => $conf) {
                 $cname = ModuleBase::getClass($mod);
                 $cname::init($conf);
                 $this->loaded_modules[$mod] = $cname;
@@ -192,6 +199,39 @@ abstract class AppBase extends ModuleAbstract
         return Arr::getItem($this->_config, $key, $default);
     }
 
+    public function configWrite($key, $value)
+    {
+        if(!$this->configWritable($key))
+            return false;
+        Arr::setItem($this->_config, $key, $value);
+        return true;
+    }
+
+    public function configConcat($key, $value)
+    {
+        if(!$this->configContatenable($key))
+            return false;
+        $val = $this->config($key, []);
+        if(is_array($value))
+            $val = array_merge($val, $value);
+        else
+            $val[] = $value;
+        Arr::setItem($this->_config, $key, $val);
+        return true;
+    }
+
+    public function configWritable($key)
+    {
+        $val = $this->configPermissionsValue($key);
+        return $val === "write" || $val === "all" ? true : false;
+    }
+
+    public function configContatenable($key)
+    {
+        $val = $this->configPermissionsValue($key);
+        return $val === "concat" || $val === "all" ? true : false;
+    }
+
     public static final function app()
     {
         return static::$_app;
@@ -233,6 +273,7 @@ abstract class AppBase extends ModuleAbstract
         return [
             't' => function($text) { return $text; },
             'k' => function($key)  { return $key;  },
+            // 'log' => function($msg) {  },
         ];
     }
 
@@ -364,6 +405,44 @@ abstract class AppBase extends ModuleAbstract
     protected function assertConfigValue($config, $value)
     {
         
+    }
+
+    protected function configPermissionsValue($key, $default = false)
+    {
+        $val = $default;
+        if(isset($this->config_permissions[$key])) {
+            $val = $this->config_permissions[$key];
+        }
+        else {
+            foreach($this->config_permissions as $name => $value) {
+                if(fnmatch($name, $key)) {
+                    $val = $value;
+                    break;
+                }
+            }
+        }
+        return $val;
+    }
+
+    protected function processConfigPermissions()
+    {
+        $config = $this->configKeysRecursive($this->config_permissions);
+        $this->config_permissions = $config;
+    }
+
+    protected function configKeysRecursive($config, $prefix = "")
+    {
+        $res = [];
+        if($prefix)
+            $prefix .= ".";
+        foreach($config as $name => $value) {
+            if(is_array($value))
+                $res = array_merge($res, $this->configKeysRecursive(
+                    $value, $prefix.$name));
+            else
+                $res[$prefix.$name] = $value;
+        }
+        return $res;
     }
 
 }

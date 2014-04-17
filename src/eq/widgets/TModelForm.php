@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 09, 15:01
+ * Last Change: 2014 Apr 17, 15:02
  */
 
 namespace eq\widgets;
@@ -16,7 +16,7 @@ trait TModelForm
 
     protected $model;
 
-    public function __construct(Model $model)
+    public function __construct($model)
     {
         $this->model = $model;
     }

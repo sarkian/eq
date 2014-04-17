@@ -1,9 +1,9 @@
 <?php
 /**
- * Last Change: 2014 Mar 16, 17:26
+ * Last Change: 2014 Apr 17, 14:15
  */
 
-namespace favto\datatypes;
+namespace eq\datatypes;
 
 class Invite extends \eq\datatypes\DataTypeBase
 {

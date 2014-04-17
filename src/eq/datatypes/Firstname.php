@@ -1,9 +1,9 @@
 <?php
 /**
- * Last Change: 2014 Mar 15, 20:44
+ * Last Change: 2014 Apr 17, 14:14
  */
 
-namespace favto\datatypes;
+namespace eq\datatypes;
 
 class Firstname extends \eq\datatypes\DataTypeBase
 {

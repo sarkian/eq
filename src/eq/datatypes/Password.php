@@ -1,9 +1,9 @@
 <?php
 /**
- * Last Change: 2014 Apr 09, 13:35
+ * Last Change: 2014 Apr 17, 14:15
  */
 
-namespace favto\datatypes;
+namespace eq\datatypes;
 
 class Password extends \eq\datatypes\DataTypeBase
 {

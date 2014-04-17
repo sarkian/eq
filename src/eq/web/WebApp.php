@@ -10,12 +10,39 @@ use eq\base\UncaughtExceptionException;
 use eq\base\AppException;
 use eq\base\InvalidConfigException;
 use eq\base\ComponentException;
+use eq\base\InvalidParamException;
 use eq\base\Loader;
 
 defined("EQ_ASSETS_DBG") or define("EQ_ASSETS_DBG", false);
 
 class WebApp extends \eq\base\AppBase
 {
+
+    public static function widget($name)
+    {
+        $args = func_get_args();
+        array_shift($args);
+        $cname = Loader::autofindClass($name, "widgets", "");
+        if(!$cname)
+            throw new InvalidParamException("Widget class not found: $name");
+        $reflect = new \ReflectionClass($cname);
+        return $reflect->newInstanceArgs($args);
+    }
+
+    protected static function defaultStaticMethods()
+    {
+        return [
+            'widget' => ["eq\web\WebApp", "widget"],
+        ];
+    }
+
+    protected static function configPermissions()
+    {
+        return [
+            'site.*' => "all",
+        ];
+    }
+
 
     protected $controller_name;
     protected $action_name;

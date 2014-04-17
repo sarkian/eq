@@ -1,9 +1,9 @@
 <?php
 /**
- * Last Change: 2014 Mar 15, 22:00
+ * Last Change: 2014 Apr 17, 14:15
  */
 
-namespace favto\datatypes;
+namespace eq\datatypes;
 
 class Phone extends \eq\datatypes\DataTypeBase
 {

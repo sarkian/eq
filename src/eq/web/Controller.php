@@ -9,7 +9,8 @@ use eq\helpers\Str;
 abstract class Controller
 {
 
-    protected $template = null;
+    use \eq\base\TObject;
+
     protected $page_title = '';
     protected $head_content = '{{$HEAD_CONTENT}}';
     protected $body_begin_content = '{{$BODY_BEGIN_CONTENT}}';
@@ -37,6 +38,11 @@ abstract class Controller
             ." $cname.{action}";
     }
 
+    public function getTemplate()
+    {
+        return null;
+    }
+
     public function actionDefault() {}
 
     public function useActionResult($result) {}
@@ -49,9 +55,9 @@ abstract class Controller
     protected function permissions()
     {
         return [
-            'guest' => ['allow', 'all'],
-            'user' => ['allow', 'all'],
-            'admin' => ['allow', 'all'],
+            'guest' => ["allow", "all"],
+            'user' => ['allow', "all"],
+            'admin' => ["allow", "all"],
         ];
     }
 
@@ -60,22 +66,36 @@ abstract class Controller
     protected function processPermissions()
     {
         $perms = $this->permissions();
-        $action = \EQ::app()->action_name;
-        if(isset(\EQ::app()->user) && \EQ::app()->user->isAuth()) {
-            if(\EQ::app()->user->isAdmin())
+        $action = EQ::app()->action_name;
+        $default = ["allow", "all"];
+        if(isset(EQ::app()->user) && EQ::app()->user->isAuth()) {
+            if(EQ::app()->user->isAdmin())
                 $perms = isset($perms['admin']) ? $perms['admin'] : $default;
             else $perms = isset($perms['user']) ? $perms['user'] : $default;
         }
-        else $perms = isset($perms['guest']) ? $perms['guest'] : $default;
-        if(!isset($perms[0], $perms[1])) throw new ControllerException('Invalid permissions');
-        if($perms[0] === 'allow') {
-            if($perms[1] === 'all') return;
-            if(!in_array(\EQ::app()->action_name, explode(',', $perms[1]))) $perms[2]();
+        else
+            $perms = isset($perms['guest']) ? $perms['guest'] : $default;
+        if(!isset($perms[0], $perms[1]))
+            throw new ControllerException("Invalid permissions");
+        $callback = isset($perms[2]) ? $perms[2] : 404;
+        if(!is_callable($callback)) {
+            $status = $callback;
+            $callback = function() use($status) {
+                throw new HttpException($status);
+            };
+        }
+        if($perms[0] === "allow") {
+            if($perms[1] === "all")
+                return;
+            if(!in_array(EQ::app()->action_name, explode(',', $perms[1])))
+                $callback();
             //exit;
         }
-        if($perms[0] === 'deny') {
-            if($perms[1] === 'all') $perms[2]();
-            elseif(in_array(\EQ::app()->action_name, explode(',', $perms[1]))) $perms[2]();
+        if($perms[0] === "deny") {
+            if($perms[1] === "all")
+                $callback();
+            elseif(in_array(EQ::app()->action_name, explode(",", $perms[1])))
+                $callback();
             //exit;
         }
     }
@@ -94,11 +114,11 @@ abstract class Controller
     {
         EQ::app()->trigger("beforeRender");
         self::$__view_vars__ = $view_vars;
-        $view = $this->findViewFile($view);
-        if(!$view)
+        $view_file = $this->findViewFile($view);
+        if(!$view_file)
             throw new ControllerException("View file not found: $view");
         ob_start();
-        $content = ViewRenderer::renderFile($view, $view_vars);
+        $content = ViewRenderer::renderFile($view_file, $view_vars);
         $this->renderingEnd($content);
         $out = ob_get_clean();
         EQ::app()->trigger("beforeEcho");
@@ -116,7 +136,10 @@ abstract class Controller
 
     protected function findViewFile($view_file)
     {
-        if(strpos($view_file, '/') === false) $view_file = EQ::app()->controller_name.'/'.$view_file;
+        if(strpos($view_file, '/') === false)
+            $view_file = EQ::app()->controller_name.'/'.$view_file;
+        if(file_exists($view_file))
+            return $view_file;
         $view_file_path = APPROOT."/views/$view_file.php";
         file_exists($view_file_path) or $view_file_path = EQROOT."/views/$view_file.php";
         return file_exists($view_file_path) ? $view_file_path : false;

@@ -1,9 +1,11 @@
 <?php
 /**
- * Last Change: 2014 Apr 16, 14:10
+ * Last Change: 2014 Apr 17, 21:43
  */
 
 namespace eq\modules\user\models;
+
+use EQ;
 
 class Users
 {
@@ -19,9 +21,17 @@ class Users
     const ACC_INVALID   = 1;
     const ACC_OK        = 2;
 
+    private static $_fields;
+
     public function getFields()
     {
-        return [
+        if(self::$_fields)
+            return self::$_fields;
+
+        $fields = EQ::app()->config("modules.user.fields", []);
+        EQ::clog($fields);
+
+        self::$_fields = [
             'id'                => "uintp",
             'name'              => "username",
             'email'             => "email",
@@ -32,6 +42,7 @@ class Users
             'pass_confirm'      => "password",
             'invite'            => "invite",
         ];
+        return self::$_fields;
     }
 
     public function getVisibleFields()

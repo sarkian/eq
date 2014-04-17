@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 14, 11:23
+ * Last Change: 2014 Apr 17, 17:17
  */
 
 namespace eq\base;
@@ -71,8 +71,6 @@ class Loader
     public static function autofindClass($name, $ns_prefix,
                                 $postfix = null, $namespaces = [])
     {
-        // header("Content-type: text/plain");
-        // echo $name."\n";
         if(!strncmp($name, '\\', 1))
             return self::classExists($name) ? $name : false;
         if(is_null($postfix)) {
@@ -84,11 +82,16 @@ class Loader
         ], $namespaces));
         $parts = explode('\\', trim(str_replace(".", '\\', $name), '.\\'));
         array_push($parts, Str::cmdvar2method(array_pop($parts)).$postfix);
+        $cparts = $parts;
+        $ns = array_shift($cparts);
+        array_unshift($cparts, $ns_prefix);
+        $cname = $ns.'\\'.implode('\\', $cparts);
+        if(self::classExists($cname))
+            return $cname;
         array_unshift($parts, $ns_prefix);
         $cbasename = implode('\\', $parts);
         foreach($namespaces as $ns) {
             $cname = trim($ns, '\\').'\\'.$cbasename;
-            // echo $cname."\n";
             if(self::classExists($cname))
                 return $cname;
         }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 10, 13:29
+ * Last Change: 2014 Apr 17, 13:16
  */
 
 namespace eq\modules\clog;
@@ -36,6 +36,10 @@ class ClogModule extends \eq\base\ModuleBase
             EQ::getAlias($this->config['project_root']));
         $this->config['url'] = "/".trim($this->config['url'], "/")."/";
         EQ::app()->registerComponent("clog", $this);
+        EQ::app()->registerStaticMethod("clog", function() {
+            list($file, $line) = $this->getLocation(4);
+            $this->addMsg("log", func_get_args(), $file, $line);
+        });
         $this->autobind();
     }
 
@@ -162,24 +166,8 @@ class ClogModule extends \eq\base\ModuleBase
     {
         if(!is_array($msg))
             $msg = [$msg];
-        if(!$file) {
-            $trace = debug_backtrace();
-            // header("Content-type: text/plain");
-            // print_r($trace);
-            // exit;
-            if(isset($trace[1]['file'])) {
-                $file = $trace[1]['file'];
-                $line = $trace[1]['line'];
-            }
-            else {
-                foreach(array_reverse($trace) as $call) {
-                    if(isset($call['file'])) {
-                        $file = $call['file'];
-                        $line = $call['line'];
-                    }
-                }
-            }
-        }
+        if(!$file)
+            list($file, $line) = $this->getLocation();
         ob_start();
         foreach($msg as $m) {
             print_r($m);
@@ -198,6 +186,27 @@ class ClogModule extends \eq\base\ModuleBase
         ];
     }
 
+    protected function getLocation($skip = 2)
+    {
+        $trace = debug_backtrace();
+        $file = "";
+        $line = 0;
+        if(isset($trace[$skip]['file'])) {
+            $file = $trace[$skip]['file'];
+            $line = $trace[$skip]['line'];
+        }
+        else {
+            foreach(array_reverse($trace) as $call) {
+                if(isset($call['file'])) {
+                    $file = $call['file'];
+                    $line = $call['line'];
+                    break;
+                }
+            }
+        }
+        return [$file, $line];
+    }
+
     protected function relativePath($file)
     {
         return preg_replace(
@@ -208,6 +217,15 @@ class ClogModule extends \eq\base\ModuleBase
     protected function createIdeLink($file, $line = 1)
     {
         
+    }
+
+    protected static function configPermissions()
+    {
+        return [
+            'testw' => "write",
+            'testc' => "concat",
+            'testwc' => "all",
+        ];
     }
 
 }

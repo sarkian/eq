@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 16, 14:01
+ * Last Change: 2014 Apr 17, 14:47
  */
 
 namespace eq\modules\user;
@@ -15,10 +15,8 @@ class UserModule extends \eq\base\ModuleBase
 
     public function __construct($config = [])
     {
-        $this->config = Arr::extend($config, [
-
-        ]);
         $this->registerComponent("user", $this->findClass("models.Users"));
+        EQ::app()->route->register("*", "/user/{action}", $this->findClass("controllers.UserController"));
     }
 
 }

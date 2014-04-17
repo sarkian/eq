@@ -1,15 +1,20 @@
 <?php
 /**
- * Last Change: 2014 Apr 16, 13:36
+ * Last Change: 2014 Apr 17, 21:35
  *
  * TODO структура модуля:
  *
  * modules/example/
+ *      /actions/
+ *          ExampleAction.php
+ *          ...
  *      /controllers/
  *          ExampleController.php
  *          ...
- *      /actions/
- *          ExampleAction.php
+ *      /models/
+ *          Examples.php
+ *          ...
+ *      /src/
  *          ...
  *      /ExampleModule.php          *
  *      /ExampleComponent.php       (можно юзать ExampleModule (или нет?))
@@ -71,6 +76,11 @@ abstract class ModuleBase extends ModuleAbstract
         throw new ModuleException("Module class not found: $name");
     }
 
+    protected static function configPermissions()
+    {
+        return [];
+    }
+
 
     protected $config;
 
@@ -87,7 +97,7 @@ abstract class ModuleBase extends ModuleAbstract
     public final function getName()
     {
         $cname = Str::classBasename(get_called_class());
-        return preg_replace("/Module$/", "", $cname);
+        return Str::method2var(preg_replace("/Module$/", "", $cname));
     }
 
     public function getNamespace()
@@ -102,6 +112,12 @@ abstract class ModuleBase extends ModuleAbstract
         if(!Loader::classExists($cname))
             throw new ModuleException("Class not found: $classname");
         return $cname;
+    }
+
+    public function config($key = null, $default = null)
+    {
+        $key = implode(".", ["modules", $this->name, $key]);
+        return EQ::app()->config($key, $default);
     }
 
     protected function registerComponent($name, $class,
