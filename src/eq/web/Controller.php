@@ -100,6 +100,11 @@ abstract class Controller
         }
     }
 
+    protected function redir($url, $status = null)
+    {
+        EQ::app()->redirect($url, $status);
+    }
+
     protected function setTitle($title)
     {
         EQ::app()->client_script->setTitle($title);

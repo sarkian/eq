@@ -1,0 +1,2 @@
+GET     /items/{id<[a-z]>}/okay/<.+>/some/{var}     items.view
+# GET <[0-9]+> some.test

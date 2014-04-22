@@ -100,6 +100,13 @@ class WebApp extends \eq\base\AppBase
         return $this->route->createUrl($path, $vars, $get_vars);
     }
 
+    public function redirect($url, $status = null)
+    {
+        $this->header("Location", $url);
+        $this->trigger("beforeEcho");
+        exit;
+    }
+
     public function run()
     {
         $this->trigger("request");

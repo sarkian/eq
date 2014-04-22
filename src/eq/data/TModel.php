@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 16, 14:12
+ * Last Change: 2014 Apr 19, 18:46
  */
 
 namespace eq\data;
@@ -38,8 +38,10 @@ trait TModel
     public function __construct($scenario = null)
     {
         $this->db = EQ::app()->db($this->db_name);
-        foreach($this->defaults as $name => $value)
-            $this->data[$name] = $value;
+        foreach($this->fields as $name => $field) {
+            if(isset($field['default']))
+                $this->data[$name] = $field['default'];
+        }
         if($scenario)
             $this->setScenario($scenario);
     }
@@ -87,14 +89,14 @@ trait TModel
         return isset($this->fields[$name]);
     }
 
-    public function getVisibleFields()
+    public function getLoadedFields()
     {
-        return $this->getFields();
-    }
-
-    public function getLabels()
-    {
-        return [];
+        $fields = [];
+        foreach($this->fields as $name => $field) {
+            if(isset($field['load']) && $field['load'])
+                $fields[$name] = $field;
+        }
+        return $fields;
     }
 
     public function getDbName()
@@ -115,21 +117,6 @@ trait TModel
     public function getMessages()
     {
         return [];
-    }
-
-    public function getDefaults()
-    {
-        return [];
-    }
-
-    public function getLoadedFields()
-    {
-        return $this->fields;
-    }
-
-    public function getSavedFields()
-    {
-        return $this->fields;
     }
 
     public function getScenario()
@@ -337,13 +324,14 @@ trait TModel
 
     public function isVisible($field)
     {
-        return in_array($field, $this->visible_fieldnames);
+        return isset($this->fields[$field]['show'])
+            ? $this->fields[$field]['show'] : false;
     }
 
     public function fieldLabel($name)
     {
-        if(isset($this->labels[$name]))
-            return $this->labels[$name];
+        if(isset($this->fields[$name]['label']))
+            return $this->fields[$name]['label'];
         $name = preg_replace_callback("/_([a-zA-Z])/", function($m) {
             return " ".strtoupper($m[1]);
         }, $name);
@@ -354,7 +342,9 @@ trait TModel
     {
         if(!isset($this->fields[$fieldname]))
             throw new InvalidParamException("Unknown field: $fieldname");
-        return DataTypeBase::getClass($this->fields[$fieldname]);
+        $field = $this->fields[$fieldname];
+        $type = isset($field['type']) ? $field['type'] : "str";
+        return DataTypeBase::getClass($type);
     }
 
     public function typeIsEmpty($fieldname, $value)

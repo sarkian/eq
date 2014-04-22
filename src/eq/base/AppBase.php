@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 17, 21:30
+ * Last Change: 2014 Apr 19, 19:17
  */
 
 namespace eq\base;
@@ -67,12 +67,12 @@ abstract class AppBase extends ModuleAbstract
             foreach($modules as $mod => $conf) {
                 $cname = ModuleBase::getClass($mod);
                 $this->config_permissions['modules'][$mod] = $cname::configPermissions();
+                $this->loaded_modules[$mod] = $cname;
             }
             $this->processConfigPermissions();
             foreach($modules as $mod => $conf) {
                 $cname = ModuleBase::getClass($mod);
                 $cname::init($conf);
-                $this->loaded_modules[$mod] = $cname;
             }
             $this->trigger("ready");
         }
@@ -140,6 +140,11 @@ abstract class AppBase extends ModuleAbstract
     public function getLoadedModules()
     {
         return $this->loaded_modules;
+    }
+
+    public function hasModule($name)
+    {
+        return isset($this->loaded_modules[$name]);
     }
 
     public function getClassname()

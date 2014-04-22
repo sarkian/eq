@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 17, 21:35
+ * Last Change: 2014 Apr 19, 23:11
  *
  * TODO структура модуля:
  *
@@ -19,6 +19,9 @@
  *      /ExampleModule.php          *
  *      /ExampleComponent.php       (можно юзать ExampleModule (или нет?))
  *      /route.eqrt                 (все роуты из этого файла - с префиксом)
+ *
+ * каждый модуль регистрирует алиас вида @module.example
+ * класс ExampleModule может содержать методы типа webInit(), где web - тип приложения
  *
  * иначе порядка в модулях не будет никогда
  *

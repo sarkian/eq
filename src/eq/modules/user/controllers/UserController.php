@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 17, 22:26
+ * Last Change: 2014 Apr 19, 18:53
  */
 
 namespace eq\modules\user\controllers;
@@ -29,10 +29,17 @@ class UserController extends \eq\web\ModuleController
     {
         $this->createTitle(EQ::t("Login"));
         $model = new Users("login");
-        $widget = $this->config("login_form_widget", "eq.BootstrapModelForm");
+        $form = EQ::widget(
+            $this->config("login_form_widget", "eq.BootstrapModelForm"), $model);
+        if(EQ::app()->request->isPost()) {
+            EQ::app()->header("Content-type", "text/plain");
+            $data = $form->getData();
+            $this->redir("/");
+            return;
+        }
         $this->render("login", [
             'model' => $model,
-            'widget' => $widget,
+            'form' => $form,
         ]);
     }
 
@@ -43,7 +50,14 @@ class UserController extends \eq\web\ModuleController
 
     public function actionRegister()
     {
-        
+        $this->createTitle(EQ::t("Register"));
+        $model = new Users("register");
+        $form = EQ::widget(
+            $this->config("register_form_widget", "eq.BootstrapModelForm"), $model);
+        $this->render("register", [
+            'model' => $model,
+            'form' => $form,
+        ]);
     }
 
     public function actionTest()

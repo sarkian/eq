@@ -28,4 +28,9 @@ class Float extends DataTypeBase
         return (float) $value;
     }
 
+    public static function defaultValue()
+    {
+        return 0.0;
+    }
+
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 17, 21:43
+ * Last Change: 2014 Apr 19, 18:53
  */
 
 namespace eq\modules\user\models;
@@ -17,19 +17,91 @@ class Users
     const ROLE_USER     = 1;
     const ROLE_ADMIN    = 2;
     
-    const ACC_NOCHECK   = 0;
-    const ACC_INVALID   = 1;
-    const ACC_OK        = 2;
-
     private static $_fields;
 
     public function getFields()
     {
+        return [
+            'id' => [
+                'type' => "uintp",
+                'show' => false,
+                'load' => true,
+                'save' => false,
+            ],
+            'name' => [
+                'type' => "username",
+                'show' => true,
+                'label' => EQ::t("Username"),
+                'default' => "",
+                'load' => true,
+                'save' => true,
+            ],
+            'email' => [
+                'type' => "email",
+                'show' => true,
+                'label' => EQ::t("Email"),
+                'load' => true,
+                'save' => true,
+            ],
+            'firstname' => [
+                'type' => "firstname",
+                'show' => true,
+                'label' => EQ::t("Firstname"),
+                'load' => true,
+                'save' => true,
+            ],
+            'phone' => [
+                'type' => "phone",
+                'show' => true,
+                'label' => EQ::t("Phone"),
+                'load' => true,
+                'save' => true,
+            ],
+            'role' => [
+                'type' => "uintp",
+                'show' => false,
+                'load' => true,
+                'save' => true,
+            ],
+            'pass' => [
+                'type' => "password",
+                'show' => true,
+                'label' => EQ::t("Password"),
+                'load' => true,
+                'save' => true,
+            ],
+            'pass_confirm' => [
+                'type' => "password",
+                'show' => true,
+                'label' => EQ::t("Password confirmation"),
+                'load' => false,
+                'save' => false,
+            ],
+            'invite' => [
+                'type' => "invite",
+                'show' => true,
+                'label' => EQ::t("Invite"),
+                'load' => false,
+                'save' => false,
+            ],
+        ];
+    }
+
+    public function _getFields()
+    {
         if(self::$_fields)
             return self::$_fields;
 
-        $fields = EQ::app()->config("modules.user.fields", []);
-        EQ::clog($fields);
+        $fields = EQ::app()->config("modules.user.fields", [
+            'name' => "username",
+            'email' => "email",
+            'pass' => "password",
+            'pass_confirm' => "password",
+        ]);
+        self::$_fields = array_merge([
+            'id' => "uintp",
+        ], $fields);
+        EQ::clog(self::$_fields);
 
         self::$_fields = [
             'id'                => "uintp",
@@ -45,46 +117,14 @@ class Users
         return self::$_fields;
     }
 
-    public function getVisibleFields()
+    public function getDbName()
     {
-        $fields = $this->getFields();
-        unset($fields['id']);
-        unset($fields['role']);
-        return $fields;
+        return EQ::app()->config("modules.user.db_name", "main");
     }
 
-    public function getLabels()
+    public function getTableName()
     {
-        return [
-            'name' => EQ::t("Username"),
-            'email' => EQ::t("Email"),
-            'firstname' => EQ::t("Firstname"),
-            'lastname' => EQ::t("Lastname"),
-            'phone' => EQ::t("Phone"),
-            'pass' => EQ::t("Password"),
-            'pass_confirm' => EQ::t("Password confirmation"),
-            'invite' => EQ::t("Invite"),
-        ];
-    }
-
-    public function getDefaults()
-    {
-        return [
-            'role' => 0,
-        ];
-    }
-
-    public function getLoadedFields()
-    {
-        $fields = $this->getFields();
-        unset($fields['pass_confirm']);
-        unset($fields['invite']);
-        return $fields;
-    }
-
-    public function getSavedFields()
-    {
-        return $this->loaded_fields;
+        return EQ::app()->config("modules.user.table_name", "users");
     }
 
     public function getRules()
@@ -115,6 +155,17 @@ class Users
     public function getMessages()
     {
         return [];
+    }
+
+    public function login($data)
+    {
+        if(!$this->load(['name' => $data['name']]))
+            return false;
+    }
+
+    public function verifyPassword($pass)
+    {
+        return $this->pass === md5(sha1($this->id).sha1($pass));
     }
 
     public function isAuth()

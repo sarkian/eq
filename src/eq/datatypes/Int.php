@@ -33,4 +33,9 @@ class Int extends DataTypeBase
         return (int) $value;
     }
 
+    public static function defaultValue()
+    {
+        return 0;
+    }
+
 }

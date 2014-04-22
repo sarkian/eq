@@ -98,4 +98,9 @@ abstract class DataTypeBase
         return [];
     }
 
+    public static function defaultValue()
+    {
+        return null;
+    }
+
 }

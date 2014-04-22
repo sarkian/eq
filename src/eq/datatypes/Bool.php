@@ -43,4 +43,9 @@ class Bool extends DataTypeBase
         return (bool) $value;
     }
 
+    public static function defaultValue()
+    {
+        return false;
+    }
+
 }

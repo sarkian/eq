@@ -1,11 +1,11 @@
 <?php
 /**
- * Last Change: 2014 Apr 17, 14:15
+ * Last Change: 2014 Apr 19, 16:58
  */
 
 namespace eq\datatypes;
 
-class Invite extends \eq\datatypes\DataTypeBase
+class Invite extends Str
 {
 
     public static function validate($value)

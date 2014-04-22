@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 09, 00:22
+ * Last Change: 2014 Apr 22, 21:57
  */
 
 namespace eq\helpers;
@@ -34,6 +34,24 @@ class FileSystem
                 (is_dir($path) ? "Directory" : "File")
                 ." is not writable: ".$path
             );
+    }
+
+    public static function exists($path)
+    {
+        $path = EQ::getAlias($path);
+        return file_exists($path);
+    }
+
+    public static function isFile($path)
+    {
+        $path = EQ::getAlias($path);
+        return is_file($path);
+    }
+
+    public static function isDir($path)
+    {
+        $path = EQ::getAlias($path);
+        return is_file($path);
     }
 
     public static function mkdir($path, $mode = 0775, $recursive = true)
@@ -76,6 +94,12 @@ class FileSystem
         if($data === false)
             throw new FileSystemException("Unable to read file: ".$fname);
         return $as_array ? explode("\n", $data) : $data;
+    }
+
+    public static function filemtime($fname)
+    {
+        $fname = EQ::getAlias($fname);
+        return filemtime($fname);
     }
 
     public static function copy($src, $dst, $force = false)

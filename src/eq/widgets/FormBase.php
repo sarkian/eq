@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 09, 14:55
+ * Last Change: 2014 Apr 19, 18:32
  */
 
 namespace eq\widgets;
@@ -26,6 +26,11 @@ class FormBase extends \eq\web\WidgetBase
         if(!$this->_id)
             $this->createId();
         return $this->_id;
+    }
+
+    public function getMethod()
+    {
+        return "POST";
     }
 
     public function setValues($values)
@@ -152,7 +157,7 @@ class FormBase extends \eq\web\WidgetBase
     protected function formOptions()
     {
         return [
-            'method' => "POST",
+            'method' => $this->medhod,
             'action' => "",
         ];
     }

@@ -1,11 +1,12 @@
 <?php
 /**
- * Last Change: 2014 Apr 09, 02:43
+ * Last Change: 2014 Apr 19, 18:34
  */
 
 namespace eq\web;
 
 use EQ;
+use eq\helpers\Arr;
 
 class Request extends \eq\base\Object
 {
@@ -53,6 +54,21 @@ class Request extends \eq\base\Object
     public function getRoot()
     {
         return $this->root;
+    }
+
+    public function isPost()
+    {
+        return $this->method === "POST";
+    }
+
+    public function get($name, $default = null)
+    {
+        return Arr::getItem($_GET, $name, $default);
+    }
+
+    public function post($name, $default = null)
+    {
+        return Arr::getItem($_POST, $name, $default);
     }
 
 }

@@ -29,4 +29,9 @@ class Str extends DataTypeBase
         return (string) $value;
     }
 
+    public static function defaultValue()
+    {
+        return "";
+    }
+
 }
