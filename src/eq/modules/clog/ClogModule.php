@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 17, 13:16
+ * Last Change: 2014 Apr 24, 02:01
  */
 
 namespace eq\modules\clog;

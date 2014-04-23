@@ -115,42 +115,20 @@ class WebApp extends \eq\base\AppBase
             if($this->route->found) {
                 $this->controller_name = $this->route->controller_name;
                 $this->action_name = $this->route->action_name;
-                if($this->route->controller_inst) {
-                    $controller = $this->route->controller_inst;
-                }
-                else {
-                    $cname = $this->route->controller_class
-                        ? $this->route->controller_class
-                        : Loader::autofindClass($this->route->controller, "controllers", "");
-                    if(!$cname) {
-                        if($this->route->dynamic_controller)
-                            throw new HttpException(404, "Page not found");
-                        else
-                            throw new ControllerException(
-                                "Controller not found: {$this->controller_name}");
-                    }
-                    $controller = new $cname();
-                }
-                $actname = $this->route->action;
-                if(!method_exists($controller, $actname))
-                    if($this->route->dynamic_action)
-                        throw new HttpException(404, "Page not found");
-                    else
-                        throw new ControllerException(
-                            "Action not found: {$this->controller_name}."
-                            .$this->action_name);
+                $cname = $this->route->controller_class;
+                $method = $this->route->action_method;
+                $controller = new $cname();
+                $action = new ReflectionAction($controller, $method);
                 ob_start();
-                $action = new ReflectionAction($controller, $actname);
                 $result = $action->call($this->route->vars);
-                // $result = $controller->{$actname}();
                 if(!is_null($result))
-                    $controller->useActionResult($result);
+                    $controller->useActionResult();
                 $out = ob_get_clean();
                 $this->trigger("beforeEcho");
                 echo $out;
             }
             else {
-                throw new HttpException(404, "Page not found");
+                throw new HttpException(404);
             }
         }
         catch(HttpException $e_http) {
@@ -213,6 +191,9 @@ class WebApp extends \eq\base\AppBase
 
     protected function systemComponents()
     {
+        $route_conf = $this->config("web.route", []);
+        $route_files = array_combine($route_conf, 
+            array_fill(0, count($route_conf), ["", ""]));
         return array_merge(parent::systemComponents(), [
             'request' => [
                 'class' => 'eq\web\Request',
@@ -227,8 +208,8 @@ class WebApp extends \eq\base\AppBase
                 'preload' => true,
             ],
             'route' => [
-                'class' => 'eq\web\Route',
-                'config' => $this->config("web.route", []),
+                'class' => 'eq\web\route\Route',
+                'config' => $route_files,
             ],
             'client_script' => [
                 'class' => 'eq\web\ClientScript',

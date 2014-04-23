@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 19, 23:11
+ * Last Change: 2014 Apr 24, 02:02
  *
  * TODO структура модуля:
  *
@@ -82,6 +82,11 @@ abstract class ModuleBase extends ModuleAbstract
     protected static function configPermissions()
     {
         return [];
+    }
+
+    protected static function urlPrefix()
+    {
+        return "";
     }
 
 

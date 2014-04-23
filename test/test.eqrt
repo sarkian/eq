@@ -1,4 +1,5 @@
 GET     /items/{id<[a-z]>}/okay/<.+>/some/{var}     items.view
-GET     /{controller}/{action}                      {controller}.{action}
+GET     /main/test                                  main.test
+# GET     /{controller}/{action}                      {controller}.{action}
 
 # GET <[0-9]+> some.test

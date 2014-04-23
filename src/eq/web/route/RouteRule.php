@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 00:21
+ * Last Change: 2014 Apr 24, 01:57
  */
 
 namespace eq\web\route;
@@ -28,6 +28,7 @@ class RouteRule
     protected $_action_name = null;
     protected $_dynamic_controller = null;
     protected $_dynamic_action = null;
+    protected $_url_mask = null;
 
     public function __construct($line = null, $fname = null, $lnum = null,
                 $url_prefix = "", $path_prefix = "")
@@ -70,6 +71,16 @@ class RouteRule
             ? $this->path->dynamic_action : $this->_dynamic_action;
     }
 
+    public function getUrlMask()
+    {
+        return is_null($this->_url_mask) ? $this->url->mask : $this->_url_mask;
+    }
+
+    public function getPathname()
+    {
+        return $this->controller_name.".".$this->action_name;
+    }
+
     public function setMethod($method_)
     {
         $method = strtoupper(trim($method_, " \r\n\t"));
@@ -91,6 +102,7 @@ class RouteRule
             'method' => $this->method,
             'url_reg' => $this->url_reg,
             'url_vars' => $this->url_vars,
+            'url_mask' => $this->url_mask,
             'controller_name' => $this->controller_name,
             'action_name' => $this->action_name,
             'dynamic_controller' => $this->dynamic_controller,
@@ -104,10 +116,41 @@ class RouteRule
         $this->method = $data['method'];
         $this->_url_reg  = $data['url_reg'];
         $this->_url_vars = $data['url_vars'];
+        $this->_url_mask = $data['url_mask'];
         $this->_controller_name = $data['controller_name'];
         $this->_action_name = $data['action_name'];
         $this->_dynamic_controller = $data['dynamic_controller'];
         $this->_dynamic_action = $data['dynamic_action'];
+    }
+
+    public function createUrl($path, $vars = [])
+    {
+        $parts = array_merge(array_diff(preg_split("/[\\\.]/", $this->pathname), [""]));
+        $parts_p = array_merge(array_diff(preg_split("/[\\\.]/", $path), [""]));
+        if(count($parts) !== count($parts_p))
+            return false;
+        foreach($parts as $i => $part) {
+            if(preg_match_all("/\{([^\{\}]*)\}/", $part, $matches)) {
+                foreach($matches[1] as $var) {
+                    $val = $parts_p[$i];
+                    $vars[$var] = $val;
+                }
+            }
+            elseif($part !== $parts_p[$i])
+                return false;
+        }
+        $url = [];
+        foreach($this->url_mask as $part) {
+            if($part[0]) {
+                $name = $part[1];
+                if(!isset($vars[$name]))
+                    throw new RouteException("Missed variable: $name");
+                $url[] = $vars[$name];
+            }
+            else
+                $url[] = $part[1];
+        }
+        return implode("", $url);
     }
 
     public function parse($line, $fname, $lnum, $url_prefix = "", $path_prefix = "")

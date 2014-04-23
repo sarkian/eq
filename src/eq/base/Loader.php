@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 17, 17:17
+ * Last Change: 2014 Apr 24, 01:00
  */
 
 namespace eq\base;

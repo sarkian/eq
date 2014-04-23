@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 00:05
+ * Last Change: 2014 Apr 24, 01:43
  */
 
 namespace eq\web\route;
@@ -23,6 +23,7 @@ class RouteRuleUrl
 
     protected $reg = "";
     protected $vars = [];
+    protected $mask = [];
 
     public function __construct($url, $fname, $lnum, $prefix = "")
     {
@@ -40,6 +41,11 @@ class RouteRuleUrl
     public function getVars()
     {
         return $this->vars;
+    }
+
+    public function getMask()
+    {
+        return $this->mask;
     }
 
     public function parse($url)
@@ -154,7 +160,8 @@ class RouteRuleUrl
 
     protected function processTokens()
     {
-        $this->reg = "/".preg_quote($this->prefix, "/");
+        $this->reg = "/^".preg_quote($this->prefix, "/");
+        $this->mask[] = [false, $this->prefix];
         $this->vars = [];
         $var_reg = "";
         $var_type = "str";
@@ -163,6 +170,7 @@ class RouteRuleUrl
             $str = $token['str'];
             if($type === "str") {
                 $this->reg .= preg_quote($str, "/");
+                $this->mask[] = [false, $str];
             }
             elseif($type === "reg") {
                 if($this->flag("var"))
@@ -181,6 +189,7 @@ class RouteRuleUrl
                 if(isset($this->vars[$var_name]))
                     $this->except("Variable already used: $var_name");
                 $this->vars[$var_name] = $var_type;
+                $this->mask[] = [true, $var_name];
             }
             elseif($type === "var_end") {
                 $this->flag("var", 0);
@@ -194,7 +203,7 @@ class RouteRuleUrl
                 $this->except("Unknown token: $str");
             }
         }
-        $this->reg .= "/";
+        $this->reg .= "$/";
     }
 
     protected function flag($name, $value = null)

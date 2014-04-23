@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 23, 22:52
+ * Last Change: 2014 Apr 24, 01:58
  */
 
 namespace eq\base;
@@ -56,7 +56,6 @@ class Cache
             $fname = $this->filePath($name);
             $strdata = "<?php\nreturn ".PhpValue::create($data)->render().";\n";
             FileSystem::fputs($fname, $strdata);
-            echo "$name saved\n";
         }
     }
 

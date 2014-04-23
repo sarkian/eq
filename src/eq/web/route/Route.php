@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 00:43
+ * Last Change: 2014 Apr 24, 01:43
  */
 
 namespace eq\web\route;
@@ -35,6 +35,7 @@ class Route
     public function __construct($files)
     {
         foreach($files as $fname => $fdata) {
+            $fname = EQ::getAlias($fname);
             if(!is_array($fdata))
                 $fdata = [];
             $url_prefix = isset($fdata[0]) ? $fdata[0] : "";
@@ -65,6 +66,55 @@ class Route
         }
     }
 
+    public function getFound()
+    {
+        return $this->found;
+    }
+
+    public function getControllerName()
+    {
+        return $this->controller_name;
+    }
+
+    public function getActionName()
+    {
+        return $this->action_name;
+    }
+
+    public function getControllerClass()
+    {
+        return $this->controller_class;
+    }
+
+    public function getActionMethod()
+    {
+        return $this->action_method;
+    }
+
+    public function getVars()
+    {
+        return $this->vars;
+    }
+
+    public function createUrl($path, $vars = [], $url_vars = [])
+    {
+        if(is_array($path))
+            $path = implode(".", $path);
+        foreach($this->rules as $rule) {
+            $url = $rule->createUrl($path, $vars);
+            if(!$url)
+                continue;
+            if($url_vars) {
+                $uvars = [];
+                foreach($url_vars as $name => $value)
+                    $uvars[] = $name."=".urlencode($value);
+                $url .= "?".implode("&", $uvars);
+            }
+            return $url;
+        }
+        // throw new RouteException("Unable to create URL for path: $path");
+    }
+
     public function processRequest()
     {
         $url = explode("?", $_SERVER['REQUEST_URI'])[0];
@@ -81,10 +131,14 @@ class Route
                     $this->controller_name = preg_replace_callback(
                         $ex, [$this, "dynCallback"], $rule->controller_name);
                 }
+                else
+                    $this->controller_name = $rule->controller_name;
                 if($rule->dynamic_action) {
                     $this->action_name = preg_replace_callback(
                         $ex, [$this, "dynCallback"], $rule->action_name);
                 }
+                else
+                    $this->action_name = $rule->action_name;
                 if($this->findPath()) {
                     $this->found = true;
                     return;
@@ -111,6 +165,7 @@ class Route
         }
         $this->controller_class = $cname;
         $this->action_method = $method;
+        return true;
     }
 
     protected function findController()
