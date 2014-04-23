@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 22, 22:40
+ * Last Change: 2014 Apr 24, 00:41
  */
 
 namespace eq\web\route;
@@ -16,9 +16,7 @@ class RouteRulePath
     protected $prefix;
 
     protected $controller_name;
-    protected $controller_class;
     protected $action_name;
-    protected $action_method;
 
     protected $dynamic_controller = false;
     protected $dynamic_action = false;
@@ -59,6 +57,16 @@ class RouteRulePath
     public function parse($path)
     {
         $this->preprocess($path);
+    }
+
+    public function validateVariables($vars)
+    {
+        $path = $this->controller_name.".".$this->action_name;
+        preg_match_all("/\{([^\{\}]*)\}/", $path, $matches);
+        foreach($matches[1] as $var) {
+            if(!isset($vars[$var]))
+                $this->except("Undefined variable in path: $var");
+        }
     }
 
     protected function preprocess($path)

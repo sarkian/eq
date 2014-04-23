@@ -1,12 +1,14 @@
 <?php
 /**
- * Last Change: 2014 Apr 22, 22:38
+ * Last Change: 2014 Apr 24, 00:43
  */
 
 namespace eq\web\route;
 
 use EQ;
 use eq\helpers\FileSystem;
+use eq\helpers\Str;
+use eq\base\Loader;
 
 class Route
 {
@@ -21,10 +23,20 @@ class Route
 
     protected $rules = [];
 
+    protected $found = false;
+    protected $controller_name;
+    protected $action_name;
+    protected $dynamic_controller;
+    protected $dynamic_action;
+    protected $vars = [];
+    protected $controller_class;
+    protected $action_method;
+
     public function __construct($files)
     {
         foreach($files as $fname => $fdata) {
-            $fname = EQ::getAlias($fname);
+            if(!is_array($fdata))
+                $fdata = [];
             $url_prefix = isset($fdata[0]) ? $fdata[0] : "";
             $path_prefix = isset($fdata[1]) ? $fdata[1] : "";
             $this->files[$fname] = [
@@ -34,73 +46,94 @@ class Route
             ];
         }
         if($this->isModified()) {
-            $this->loadFiles();
-            $this->cacheSave();
-            $this->fcacheSave();
+            foreach($this->files as $fname => $fdata) {
+                $file = new RouteFile($fname, $fdata[0], $fdata[1]);
+                $this->rules = array_merge($this->rules, $file->rules);
+            }
+            EQ::cache("route.files", $this->files);
+            $rcache = [];
+            foreach($this->rules as $rule)
+                $rcache[] = $rule->saveData();
+            EQ::cache("route.rules", $rcache);
         }
         else {
-            $this->cacheLoad();
+            foreach(EQ::cache("route.rules") as $data) {
+                $rule = new RouteRule();
+                $rule->loadData($data);
+                $this->rules[] = $rule;
+            }
         }
+    }
+
+    public function processRequest()
+    {
+        $url = explode("?", $_SERVER['REQUEST_URI'])[0];
+        foreach($this->rules as $rule) {
+            if(!$rule->matchMethod($_SERVER['REQUEST_METHOD']))
+                continue;
+            $vars = $rule->matchUrl($url);
+            if($vars !== false) {
+                $this->vars = $vars;
+                $this->dynamic_controller = $rule->dynamic_controller;
+                $this->dynamic_action = $rule->dynamic_action;
+                $ex = "/\{([^\{\}]*)\}/";
+                if($rule->dynamic_controller) {
+                    $this->controller_name = preg_replace_callback(
+                        $ex, [$this, "dynCallback"], $rule->controller_name);
+                }
+                if($rule->dynamic_action) {
+                    $this->action_name = preg_replace_callback(
+                        $ex, [$this, "dynCallback"], $rule->action_name);
+                }
+                if($this->findPath()) {
+                    $this->found = true;
+                    return;
+                }
+            }
+        }
+    }
+
+    protected function findPath()
+    {
+        $cname = $this->findController();
+        if(!$cname) {
+            if($this->dynamic_controller)
+                return false;
+            else
+                throw new RouteException("Controller not found: ".$this->controller_name);
+        }
+        $method = "action".Str::cmd2method($this->action_name);
+        if(!method_exists($cname, $method)) {
+            if($this->dynamic_action)
+                return false;
+            else
+                throw new RouteException("Action method not found: $cname::$method");
+        }
+        $this->controller_class = $cname;
+        $this->action_method = $method;
+    }
+
+    protected function findController()
+    {
+        return Loader::autofindClass($this->controller_name, "controllers");
+    }
+
+    protected function dynCallback($m)
+    {
+        $vname = $m[1];
+        if(!isset($this->vars[$m[1]]))
+            throw new RouteException("Undefined variable in path: $vname");
+        return $this->vars[$vname];
     }
 
     protected function isModified()
     {
-        return true; // DEV!
-        if(!FileSystem::isFile($this->fcache_file))
-            return true;
-        $lines = FileSystem::fgets($this->fcache_file, true);
-        $files = $this->files;
-        $fname_ = null;
-        foreach($lines as $line) {
-            if(!is_null($fname_)) {
-                $fname = $fname_;
-                $fname_ = null;
-                if(!isset($files[$fname]))
-                    return true;
-                if($files[$fname][2] !== (int) $line)
-                    return true;
-                unset($files[$fname]);
-            }
-            else
-                $fname_ = $line;
-        }
-        return $files ? true : false;
-    }
-
-    protected function fcacheSave()
-    {
-        $lines = [];
+        $cache = EQ::cache("route.files");
         foreach($this->files as $fname => $fdata) {
-            $lines[] = $fname;
-            $lines[] = $fdata[2];
+            if(!isset($cache[$fname]) || $cache[$fname] !== $fdata)
+                return true;
         }
-        FileSystem::fputs($this->fcache_file, $lines);
-    }
-
-    protected function loadFiles()
-    {
-        foreach($this->files as $fname => $fdata) {
-            $file = new RouteFile($fname, $fdata[0], $fdata[1]);
-            $this->rules = array_merge($this->rules, $file->rules);
-        }
-    }
-
-    protected function cacheLoad()
-    {
-        $cache = json_decode(FileSystem::fgets($this->rcache_file));
-        foreach($cache as $data) {
-            $rule = new RouteRule();
-            $rule->loadData($data);
-            $this->rules[] = $rule;
-        }
-    }
-
-    protected function cacheSave()
-    {
-        $cache = [];
-        foreach($this->rules as $rule)
-            $cache[] = $rule->saveData();
-        FileSystem::fputs($this->rcache_file, json_encode($cache));
+        return false;
     }
 
 }

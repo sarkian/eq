@@ -1,9 +1,11 @@
 <?php
 /**
- * Last Change: 2014 Apr 22, 22:40
+ * Last Change: 2014 Apr 24, 00:21
  */
 
 namespace eq\web\route;
+
+use eq\datatypes\DataTypeBase;
 
 class RouteRule
 {
@@ -20,11 +22,52 @@ class RouteRule
     protected $url;
     protected $path;
 
+    protected $_url_reg = null;
+    protected $_url_vars = null;
+    protected $_controller_name = null;
+    protected $_action_name = null;
+    protected $_dynamic_controller = null;
+    protected $_dynamic_action = null;
+
     public function __construct($line = null, $fname = null, $lnum = null,
                 $url_prefix = "", $path_prefix = "")
     {
         if($line)
             $this->parse($line, $fname, $lnum, $url_prefix, $path_prefix);
+    }
+
+    public function getUrlReg()
+    {
+        return is_null($this->_url_reg) ? $this->url->reg :  $this->_url_reg;
+    }
+
+    public function getUrlVars()
+    {
+        return is_null($this->_url_vars) ? $this->url->vars : $this->_url_vars;
+    }
+
+    public function getControllerName()
+    {
+        return is_null($this->_controller_name)
+            ? $this->path->controller_name : $this->_controller_name;
+    }
+
+    public function getActionName()
+    {
+        return is_null($this->_action_name)
+            ? $this->path->action_name : $this->_action_name;
+    }
+
+    public function getDynamicController()
+    {
+        return is_null($this->_dynamic_controller)
+            ? $this->path->dynamic_controller : $this->_dynamic_controller;
+    }
+
+    public function getDynamicAction()
+    {
+        return is_null($this->_dynamic_action)
+            ? $this->path->dynamic_action : $this->_dynamic_action;
     }
 
     public function setMethod($method_)
@@ -44,12 +87,27 @@ class RouteRule
 
     public function saveData()
     {
-        
+        $data = [
+            'method' => $this->method,
+            'url_reg' => $this->url_reg,
+            'url_vars' => $this->url_vars,
+            'controller_name' => $this->controller_name,
+            'action_name' => $this->action_name,
+            'dynamic_controller' => $this->dynamic_controller,
+            'dynamic_action' => $this->dynamic_action,
+        ];
+        return $data;
     }
 
     public function loadData($data)
     {
-        
+        $this->method = $data['method'];
+        $this->_url_reg  = $data['url_reg'];
+        $this->_url_vars = $data['url_vars'];
+        $this->_controller_name = $data['controller_name'];
+        $this->_action_name = $data['action_name'];
+        $this->_dynamic_controller = $data['dynamic_controller'];
+        $this->_dynamic_action = $data['dynamic_action'];
     }
 
     public function parse($line, $fname, $lnum, $url_prefix = "", $path_prefix = "")
@@ -66,6 +124,28 @@ class RouteRule
             $this->fname, $this->lnum, $this->url_prefix);
         $this->path = new RouteRulePath($parts[2],
             $this->fname, $this->lnum, $this->path_prefix);
+        $this->path->validateVariables($this->url->vars);
+    }
+
+    public function matchMethod($method)
+    {
+        return $this->method === "*" ? true : $this->method === $method;
+    }
+
+    public function matchUrl($url)
+    {
+        if(!preg_match($this->url_reg, $url, $matches))
+            return false;
+        $i = 1;
+        $vars = [];
+        foreach($this->url_vars as $var => $type) {
+            if(!isset($matches[$i]))
+                $this->exceptParsing("URL variable not found: $var");
+            $type = DataTypeBase::getClass($type);
+            $vars[$var] = $type::filter($matches[$i]);
+            $i++;
+        }
+        return $vars;
     }
 
     protected function except($message)

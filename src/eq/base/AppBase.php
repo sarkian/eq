@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 19, 19:17
+ * Last Change: 2014 Apr 23, 23:07
  */
 
 namespace eq\base;
@@ -82,6 +82,11 @@ abstract class AppBase extends ModuleAbstract
         catch(\Exception $ue) {
             $this->processUncaughtException($ue);
         }
+    }
+
+    public function module($name)
+    {
+        // TODO implement (returns module instance)
     }
 
     public function __onException($e)
@@ -276,6 +281,14 @@ abstract class AppBase extends ModuleAbstract
     protected static function defaultStaticMethods()
     {
         return [
+            'cache' => function($name = null, $value = null) {
+                if(is_null($name))
+                    return \EQ::app()->cache;
+                elseif(is_null($value))
+                    return \EQ::app()->cache->{$name};
+                else
+                    \EQ::app()->cache->{$name} = $value;
+            },
             't' => function($text) { return $text; },
             'k' => function($key)  { return $key;  },
             // 'log' => function($msg) {  },
@@ -327,6 +340,10 @@ abstract class AppBase extends ModuleAbstract
     protected function systemComponents()
     {
         return [
+            'cache' => [
+                'class' => 'eq\base\Cache',
+                'config' => [],
+            ],
             'db' => [
                 'class' => 'eq\db\Pool',
                 'config' => $this->config("db", []),

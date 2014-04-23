@@ -31,9 +31,9 @@ class WebApp extends \eq\base\AppBase
 
     protected static function defaultStaticMethods()
     {
-        return [
+        return array_merge(parent::defaultStaticMethods(), [
             'widget' => ["eq\web\WebApp", "widget"],
-        ];
+        ]);
     }
 
     protected static function configPermissions()

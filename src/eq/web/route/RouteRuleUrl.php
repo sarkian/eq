@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 20, 03:53
+ * Last Change: 2014 Apr 24, 00:05
  */
 
 namespace eq\web\route;
@@ -28,7 +28,7 @@ class RouteRuleUrl
     {
         $this->fname = $fname;
         $this->lnum = $lnum;
-        $this->prefix = "/".ltrim($prefix, "/");
+        $this->prefix = $prefix;
         $this->parse("/".ltrim($url, "/"));
     }
 
