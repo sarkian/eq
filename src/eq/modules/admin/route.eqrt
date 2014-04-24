@@ -1,0 +1,3 @@
+GET     /admin                          admin.index
+*       /admin/{action}                 admin.{action}
+*       /admin/{controller}/{action}    {controller}.{action}

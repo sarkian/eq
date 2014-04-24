@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 01:43
+ * Last Change: 2014 Apr 24, 05:45
  */
 
 namespace eq\web\route;
@@ -50,6 +50,7 @@ class RouteRuleUrl
 
     public function parse($url)
     {
+        $url = "/".trim($url, " \r\n\t/");
         $chars = str_split($url);
         foreach($chars as $ch) {
             if($this->flag("var"))
@@ -203,7 +204,7 @@ class RouteRuleUrl
                 $this->except("Unknown token: $str");
             }
         }
-        $this->reg .= "$/";
+        $this->reg .= "\/{0,1}$/";
     }
 
     protected function flag($name, $value = null)
