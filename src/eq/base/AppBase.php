@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 05:07
+ * Last Change: 2014 Apr 24, 05:14
  */
 
 namespace eq\base;
@@ -58,6 +58,7 @@ abstract class AppBase extends ModuleAbstract
         register_shutdown_function(['\eq\base\ErrorHandler', 'onShutdown']);
         $this->default_components = $this->defaultComponents();
         static::$default_static_methods = static::defaultStaticMethods();
+        static::$static_methods = static::systemStaticMethods();
         $this->system_components = $this->systemComponents();
         foreach($this->system_components as $name => $component) {
             if(Arr::getItem($component, "preload", false))
@@ -275,6 +276,15 @@ abstract class AppBase extends ModuleAbstract
             throw new InvalidCallException(
                 "Static method does not exists: $name");
         return call_user_func_array($method, $args);
+    }
+
+    protected static function systemStaticMethods()
+    {
+        return [
+            'log' => function() {
+                \EQ::app()->trigger("log", func_get_args());
+            },
+        ];
     }
 
     protected static function defaultStaticMethods()

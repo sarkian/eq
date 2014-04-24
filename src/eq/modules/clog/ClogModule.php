@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 04:52
+ * Last Change: 2014 Apr 24, 05:13
  */
 
 namespace eq\modules\clog;
@@ -49,6 +49,12 @@ class ClogModule extends \eq\base\ModuleBase
             EQ::app()->header("X-EQ-CLog-URL", EQ::app()->createAbsoluteUrl(
                 "modules.clog.clog.process", ['key' => $this->logkey]));
         }
+    }
+
+    public function __onLog($msg)
+    {
+        list($file, $line) = $this->callLocation(4);
+        $this->addMsg("log", func_get_args(), $file, $line);
     }
 
     public function __onException($e)
