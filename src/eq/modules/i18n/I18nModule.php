@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 09, 04:21
+ * Last Change: 2014 Apr 24, 05:05
  */
 
 namespace eq\modules\i18n;
@@ -11,21 +11,20 @@ use eq\helpers\Arr;
 class I18nModule extends \eq\base\ModuleBase
 {
 
-    protected $config;
+    protected $enabled_locales;
+    protected $default_locale;
+
     protected $dirs = [];
     protected $tokens = [];
     protected $keys = [];
 
-    public function __construct($config = [])
+    public function init()
     {
-        $this->config = Arr::extend($config, [
-            'enabled_locales' => ["en_US"],
-            'default_locale' => "en_US",
-            'dirs' => ["@app/locale" => EQ::app()->app_namespace],
-        ]);
-        foreach($this->config['dirs'] as $dir => $key_prefix)
+        $this->enabled_locales = $this->config("enabled_locales", ["en_US"]);
+        $this->default_locale = $this->config("default_locale", "en_US");
+        $dirs = $this->config("dirs", ["@app/locale" => EQ::app()->app_namespace]);
+        foreach($dirs as $dir => $key_prefix)
             $this->addDir($dir, $key_prefix);
-        $this->registerComponent("i18n", $this);
         $this->registerStaticMethod("t", [$this, "t"]);
         $this->registerStaticMethod("k", [$this, "k"]);
         EQ::app()->bind("ready", [$this, "__onReady"]);
@@ -36,12 +35,12 @@ class I18nModule extends \eq\base\ModuleBase
         if(EQ::app()->type === "web") {
             $locale = EQ::app()->cookie->_locale;
             if(!$this->localeEnabled($locale)) {
-                $locale = $this->config['default_locale'];
+                $locale = $this->default_locale;
                 EQ::app()->cookie->_locale = $locale;
             }
         }
         else
-            $locale = $this->config['default_locale'];
+            $locale = $this->default_locale;
         EQ::app()->setLocale($locale);
     }
 
@@ -63,7 +62,7 @@ class I18nModule extends \eq\base\ModuleBase
     {
         if(!$locale)
             return false;
-        return in_array($locale, $this->config['enabled_locales']);
+        return in_array($locale, $this->enabled_locales);
     }
 
     public function t($text)

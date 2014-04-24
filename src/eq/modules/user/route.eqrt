@@ -1,0 +1,3 @@
+*       /login      user.login
+*       /register   user.register
+GET     /logout     user.logout

@@ -36,7 +36,7 @@ class WebApp extends \eq\base\AppBase
         ]);
     }
 
-    protected static function configPermissions()
+    protected function configPermissions()
     {
         return [
             'site.*' => "all",
@@ -85,6 +85,18 @@ class WebApp extends \eq\base\AppBase
         return $this->action_name;
     }
 
+    public function getRouteFiles()
+    {
+        $conf = $this->config("web.route", []);
+        $files = array_combine($conf, array_fill(0, count($conf), ["", ""]));
+        foreach($this->modules_by_name as $name => $module) {
+            $fname = $module->location."/route.eqrt";
+            if(file_exists($fname))
+                $files[$fname] = [$module->url_prefix, "modules.$name"];
+        }
+        return $files;
+    }
+
     public function getHttpException()
     {
         return $this->http_exception;
@@ -98,6 +110,11 @@ class WebApp extends \eq\base\AppBase
     public function createUrl($path, $vars = [], $get_vars = [])
     {
         return $this->route->createUrl($path, $vars, $get_vars);
+    }
+
+    public function createAbsoluteUrl($path, $vars = [], $get_vars = [])
+    {
+        return $this->request->root.$this->createUrl($path, $vars, $get_vars);
     }
 
     public function redirect($url, $status = null)
@@ -191,9 +208,6 @@ class WebApp extends \eq\base\AppBase
 
     protected function systemComponents()
     {
-        $route_conf = $this->config("web.route", []);
-        $route_files = array_combine($route_conf, 
-            array_fill(0, count($route_conf), ["", ""]));
         return array_merge(parent::systemComponents(), [
             'request' => [
                 'class' => 'eq\web\Request',
@@ -209,7 +223,6 @@ class WebApp extends \eq\base\AppBase
             ],
             'route' => [
                 'class' => 'eq\web\route\Route',
-                'config' => $route_files,
             ],
             'client_script' => [
                 'class' => 'eq\web\ClientScript',

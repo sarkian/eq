@@ -1,30 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 02:02
- *
- * TODO структура модуля:
- *
- * modules/example/
- *      /actions/
- *          ExampleAction.php
- *          ...
- *      /controllers/
- *          ExampleController.php
- *          ...
- *      /models/
- *          Examples.php
- *          ...
- *      /src/
- *          ...
- *      /ExampleModule.php          *
- *      /ExampleComponent.php       (можно юзать ExampleModule (или нет?))
- *      /route.eqrt                 (все роуты из этого файла - с префиксом)
- *
- * каждый модуль регистрирует алиас вида @module.example
- * класс ExampleModule может содержать методы типа webInit(), где web - тип приложения
- *
- * иначе порядка в модулях не будет никогда
- *
+ * Last Change: 2014 Apr 24, 04:18
  */
 
 namespace eq\base;
@@ -37,32 +13,6 @@ abstract class ModuleBase extends ModuleAbstract
 
     use TObject;
 
-    private static $_instances = [];
-
-    public static final function init($config)
-    {
-        $cname = get_called_class();
-        if(isset(self::$_instances[$cname]))
-            return;
-        $inst = new $cname($config);
-        self::$_instances[$cname] = $inst;
-    }
-
-    public static final function location()
-    {
-        $cname = get_called_class();
-        $fname = Loader::classLocation($cname);
-        if(!$fname)
-            throw new ModuleException("Unable to get module location: $cname");
-        return dirname($fname);
-    }
-
-    public static final function enabled($cname = null)
-    {
-        $cname or $cname = get_called_class();
-        return isset(self::$_instances[$cname]);
-    }
-
     public static final function getClass($name)
     {
         $path = explode(".", $name);
@@ -74,46 +24,58 @@ abstract class ModuleBase extends ModuleAbstract
         if(Loader::classExists($cname))
             return $cname;
         $cname = 'eq\modules\\'.$cbasename;
-        if(Loader::classExists($cname))
-            return $cname;
-        throw new ModuleException("Module class not found: $name");
+        if(!Loader::classExists($cname))
+            throw new ModuleException("Module class not found: $name");
+        $parents = class_parents($cname);
+        if(!isset($parents["eq\base\ModuleBase"]))
+            throw new ModuleException(
+                "Module class must be inherited from eq\base\ModuleBase");
+        return $cname;
     }
 
-    protected static function configPermissions()
+    protected static final function instance()
     {
-        return [];
+        $modules = EQ::app()->modules_by_class;
+        $cname = get_called_class();
+        return isset($modules[$cname]) ? $modules[$cname] : new $cname();
     }
 
-    protected static function urlPrefix()
+    private $_name;
+    private $_namespace;
+    private $_location;
+
+    private final function __construct()
     {
-        return "";
-    }
-
-
-    protected $config;
-
-    public function __construct($config)
-    {
-        $this->config = $config;
-    }
-
-    public function getDepends()
-    {
-        return [];
+        $this->init();
     }
 
     public final function getName()
     {
-        $cname = Str::classBasename(get_called_class());
-        return Str::method2var(preg_replace("/Module$/", "", $cname));
+        if(!$this->_name)
+            $this->_name = Str::method2var(preg_replace("/Module$/", "", 
+                Str::classBasename(get_called_class())));
+        return $this->_name;
     }
 
-    public function getNamespace()
+    public final function getNamespace()
     {
-        return Str::classNamespace(get_called_class());
+        if(!$this->_namespace)
+            $this->_namespace = Str::classNamespace(get_called_class());
+        return $this->_namespace;
     }
 
-    public function findClass($classname)
+    public final function getLocation()
+    {
+        if(!$this->_location) {
+            $fname = Loader::classLocation(get_called_class());
+            if(!$fname)
+                throw new ModuleException("Unable to get module location: $cname");
+            $this->_location = dirname($fname);
+        }
+        return $this->_location;
+    }
+
+    public final function findClass($classname)
     {
         $name = trim(str_replace(".", "\\", $classname), "\\");
         $cname = $this->getNamespace()."\\".$name;
@@ -122,16 +84,20 @@ abstract class ModuleBase extends ModuleAbstract
         return $cname;
     }
 
-    public function config($key = null, $default = null)
+    public final function config($key = null, $default = null)
     {
         $key = implode(".", ["modules", $this->name, $key]);
         return EQ::app()->config($key, $default);
     }
 
-    protected function registerComponent($name, $class,
-        $config = [], $preload = false)
+    public function getUrlPrefix()
     {
-        EQ::app()->registerComponent($name, $class, $config, $preload);
+        return "";
+    }
+
+    protected function init()
+    {
+        
     }
 
     protected function registerStaticMethod($name, $method)

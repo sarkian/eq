@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 01:43
+ * Last Change: 2014 Apr 24, 03:57
  */
 
 namespace eq\web\route;
@@ -16,11 +16,6 @@ class Route
     use \eq\base\TObject;
 
     protected $files = [];
-
-    protected $fcache_file = "@runtime/route.files";
-    protected $rcache_file = "@runtime/route-cache.json";
-    protected $modified = false;
-
     protected $rules = [];
 
     protected $found = false;
@@ -32,9 +27,9 @@ class Route
     protected $controller_class;
     protected $action_method;
 
-    public function __construct($files)
+    public function __construct()
     {
-        foreach($files as $fname => $fdata) {
+        foreach(EQ::app()->route_files as $fname => $fdata) {
             $fname = EQ::getAlias($fname);
             if(!is_array($fdata))
                 $fdata = [];
@@ -156,7 +151,7 @@ class Route
             else
                 throw new RouteException("Controller not found: ".$this->controller_name);
         }
-        $method = "action".Str::cmd2method($this->action_name);
+        $method = "action".Str::var2method($this->action_name);
         if(!method_exists($cname, $method)) {
             if($this->dynamic_action)
                 return false;
@@ -170,7 +165,21 @@ class Route
 
     protected function findController()
     {
-        return Loader::autofindClass($this->controller_name, "controllers");
+        // modules.user.user.login
+        // eq\modules\user\controllers\UserController
+        $parts = explode(".", $this->controller_name);
+        if($parts[0] === "modules") {
+            array_shift($parts);
+            $module = array_shift($parts);
+            $ns = EQ::app()->module($module)->namespace."\\controllers\\";
+            $cbasename = Str::var2method(array_pop($parts))."Controller";
+            if($parts)
+                $ns .= implode("\\", $parts)."\\";
+            $cname = $ns.$cbasename;
+            return Loader::classExists($cname) ? $cname : false;
+        }
+        else
+            return Loader::autofindClass($this->controller_name, "controllers");
     }
 
     protected function dynCallback($m)
@@ -187,8 +196,9 @@ class Route
         foreach($this->files as $fname => $fdata) {
             if(!isset($cache[$fname]) || $cache[$fname] !== $fdata)
                 return true;
+            unset($cache[$fname]);
         }
-        return false;
+        return $cache ? true : false;
     }
 
 }

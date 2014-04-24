@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 02:01
+ * Last Change: 2014 Apr 24, 04:52
  */
 
 namespace eq\modules\clog;
@@ -15,29 +15,20 @@ class ClogModule extends \eq\base\ModuleBase
 
     use \eq\base\TAutobind;
 
-    protected $config;
     protected $messages = [];
     protected $var_name;
     protected $tmpfname;
     protected $logkey;
 
-    public function __construct($config = [])
+    protected $project_root;
+    protected $url;
+
+    public function init()
     {
-        $this->config = Arr::extend($config, [
-            'project_name' => EQ::app()->app_namespace,
-            'project_root' => "@app",
-            'key' => "eqclogkey",
-            'register_error_handler' => true,
-            'write_db_queries' => false,
-            'ide_protocol' => "vim",
-            'url' => "/__system__/clog/",
-        ]);
-        $this->config['project_root'] = realpath(
-            EQ::getAlias($this->config['project_root']));
-        $this->config['url'] = "/".trim($this->config['url'], "/")."/";
-        EQ::app()->registerComponent("clog", $this);
+        $this->project_root = realpath(EQ::getAlias(
+            $this->config("project_root", "@app")));
         EQ::app()->registerStaticMethod("clog", function() {
-            list($file, $line) = $this->getLocation(4);
+            list($file, $line) = $this->callLocation(4);
             $this->addMsg("log", func_get_args(), $file, $line);
         });
         $this->autobind();
@@ -48,19 +39,15 @@ class ClogModule extends \eq\base\ModuleBase
         if(!$this->checkKey())
             return;
         if($this->checkLogKey()) {
-            EQ::app()->route->register(
-                "GET", $this->config['url']."{key<{$this->logkey}>}",
-                ClogController::className(),
-                "process"
-            );
+
         }
         else {
             FileSystem::mkdir("@runtime/clog");
-            $this->tmpfname = tempnam(EQ::getAlias("@runtime/clog"), "");
+            $this->tmpfname = tempnam(EQ::getAlias("@runtime/clog"), "clog_");
             $this->logkey = basename($this->tmpfname);
             EQ::app()->header("X-EQ-CLog-LogKey", $this->logkey);
-            EQ::app()->header("X-EQ-CLog-URL",
-                EQ::app()->request->root.$this->config['url'].$this->logkey);
+            EQ::app()->header("X-EQ-CLog-URL", EQ::app()->createAbsoluteUrl(
+                "modules.clog.clog.process", ['key' => $this->logkey]));
         }
     }
 
@@ -119,19 +106,9 @@ class ClogModule extends \eq\base\ModuleBase
         
     }
 
-    public function log()
+    public function getUrlPrefix()
     {
-        $this->addMsg("log", func_get_args());
-    }
-
-    public function warn()
-    {
-        $this->addMsg("warn", func_get_args());
-    }
-
-    public function err()
-    {
-        $this->addMsg("err", func_get_args());
+        return $this->config("url_prefix", "/__system__/clog");
     }
 
     public function __destruct()
@@ -147,7 +124,7 @@ class ClogModule extends \eq\base\ModuleBase
     protected function checkKey()
     {
         return isset($_SERVER['HTTP_X_EQ_CLOG_KEY'])
-            && $_SERVER['HTTP_X_EQ_CLOG_KEY'] === $this->config['key'];
+            && $_SERVER['HTTP_X_EQ_CLOG_KEY'] === $this->config("key", "eqclogkey");
     }
 
     protected function checkLogKey()
@@ -167,7 +144,7 @@ class ClogModule extends \eq\base\ModuleBase
         if(!is_array($msg))
             $msg = [$msg];
         if(!$file)
-            list($file, $line) = $this->getLocation();
+            list($file, $line) = $this->callLocation();
         ob_start();
         foreach($msg as $m) {
             print_r($m);
@@ -186,7 +163,7 @@ class ClogModule extends \eq\base\ModuleBase
         ];
     }
 
-    protected function getLocation($skip = 2)
+    protected function callLocation($skip = 2)
     {
         $trace = debug_backtrace();
         $file = "";
@@ -210,22 +187,13 @@ class ClogModule extends \eq\base\ModuleBase
     protected function relativePath($file)
     {
         return preg_replace(
-            "/^".preg_quote($this->config['project_root'], "/")."\//", "", $file
+            "/^".preg_quote($this->project_root, "/")."\//", "", $file
         );
     }
 
     protected function createIdeLink($file, $line = 1)
     {
         
-    }
-
-    protected static function configPermissions()
-    {
-        return [
-            'testw' => "write",
-            'testc' => "concat",
-            'testwc' => "all",
-        ];
     }
 
 }

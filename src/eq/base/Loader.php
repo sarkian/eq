@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 01:00
+ * Last Change: 2014 Apr 24, 03:58
  */
 
 namespace eq\base;
@@ -95,7 +95,6 @@ class Loader
             if(self::classExists($cname))
                 return $cname;
         }
-        // exit;
         return false;
     }
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 23, 23:07
+ * Last Change: 2014 Apr 24, 05:07
  */
 
 namespace eq\base;
@@ -32,7 +32,9 @@ abstract class AppBase extends ModuleAbstract
     protected $registered_components = [];
     protected $default_components = [];
     protected $config_permissions = [];
-    protected $loaded_modules = [];
+
+    protected $modules_by_name = [];
+    protected $modules_by_class = [];
 
     protected $locale = "en_US";
 
@@ -61,19 +63,9 @@ abstract class AppBase extends ModuleAbstract
             if(Arr::getItem($component, "preload", false))
                 $this->loadComponent($name);
         }
-        $this->config_permissions = static::configPermissions();
+        $this->config_permissions = $this->configPermissions();
         try {
-            $modules = $this->config("modules", []);
-            foreach($modules as $mod => $conf) {
-                $cname = ModuleBase::getClass($mod);
-                $this->config_permissions['modules'][$mod] = $cname::configPermissions();
-                $this->loaded_modules[$mod] = $cname;
-            }
-            $this->processConfigPermissions();
-            foreach($modules as $mod => $conf) {
-                $cname = ModuleBase::getClass($mod);
-                $cname::init($conf);
-            }
+            $this->loadModules();
             $this->trigger("ready");
         }
         catch(ExceptionBase $e) {
@@ -86,7 +78,9 @@ abstract class AppBase extends ModuleAbstract
 
     public function module($name)
     {
-        // TODO implement (returns module instance)
+        if(!isset($this->modules_by_name[$name]))
+            throw new ModuleException("Module not registered: $name");
+        return $this->modules_by_name[$name];
     }
 
     public function __onException($e)
@@ -142,14 +136,19 @@ abstract class AppBase extends ModuleAbstract
             preg_replace("/^.*\\\|App$/", "", get_called_class()));
     }
 
-    public function getLoadedModules()
+    public function getModulesByClass()
     {
-        return $this->loaded_modules;
+        return $this->modules_by_class;
+    }
+
+    public function getModulesByName()
+    {
+        return $this->modules_by_name;
     }
 
     public function hasModule($name)
     {
-        return isset($this->loaded_modules[$name]);
+        return isset($this->modules_by_name[$name]);
     }
 
     public function getClassname()
@@ -293,6 +292,33 @@ abstract class AppBase extends ModuleAbstract
             'k' => function($key)  { return $key;  },
             // 'log' => function($msg) {  },
         ];
+    }
+
+    protected function loadModules()
+    {
+        $modules = $this->config("modules", []);
+        foreach($modules as $name => $conf) {
+            $cname = ModuleBase::getClass($name);
+            $this->loadModule($name, $cname);
+        }
+    }
+
+    protected function loadModule($name, $cname)
+    {
+        $this->trigger("modules.$name.init");
+        $module = $cname::instance();
+        $this->modules_by_name[$name] = $module;
+        $this->modules_by_class[$cname] = $module;
+        $this->config_permissions['modules'][$name] = $module->configPermissions();
+        self::setAlias("@modules.$name", $module->location);
+        $compname = preg_replace("/Module$/", "Component", $cname);
+        if(Loader::classExists($compname))
+            $this->registerComponent($module->name, $compname);
+        $method = $this->type."Init";
+        if(method_exists($module, $method))
+            $module->{$method}();
+        $module->ready();
+        $this->trigger("modules.$name.ready");
     }
 
     protected function registerComponent($name, $class,

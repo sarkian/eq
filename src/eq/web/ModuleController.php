@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 17, 22:16
+ * Last Change: 2014 Apr 24, 03:58
  */
 
 namespace eq\web;
@@ -58,8 +58,7 @@ abstract class ModuleController extends Controller
 
     public function getModuleLocation()
     {
-        $cname = $this->module_class;
-        return $cname::location();
+        return EQ::app()->module($this->module_name)->location;
     }
 
     public function config($key = null, $default = null)

@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 19, 19:14
+ * Last Change: 2014 Apr 24, 03:58
  */
 
 namespace eq\widgets;
@@ -28,7 +28,6 @@ abstract class NavbarBase extends \eq\web\WidgetBase
 
     public function isLinkActive($name)
     {
-        EQ::clog($name, $this->active_page);
         return fnmatch($name, $this->active_page);
     }
 

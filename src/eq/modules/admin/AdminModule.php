@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 10, 12:46
+ * Last Change: 2014 Apr 24, 04:11
  */
 
 namespace eq\modules\admin;
@@ -15,12 +15,8 @@ class AdminModule extends \eq\base\ModuleBase
 
     protected $config;
 
-    public function __construct($config)
+    protected function init()
     {
-        $this->config = Arr::extend($config, [
-            'url' => "/admin",
-        ]);
-        $this->registerComponent("admin", AdminComponent::className());
         $this->autobind();
         // EQ::app()->route->register("*", 
             // "/admin/{action}", controllers\AdminController::className());
