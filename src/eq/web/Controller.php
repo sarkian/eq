@@ -150,6 +150,18 @@ abstract class Controller
         return file_exists($view_file_path) ? $view_file_path : false;
     }
 
+    protected function findTemplate()
+    {
+        if(!$this->template)
+            return false;
+        $fname = APPROOT."/templates/{$this->template}.php";
+        file_exists($fname) or $fname = EQROOT."/templates/{$this->template}.php";
+        if(file_exists($fname))
+            return $fname;
+        else
+            throw new ControllerException("Template not found: {$this->template}");
+    }
+
     /*
      * End rendering
      *
@@ -158,15 +170,11 @@ abstract class Controller
      */
     private function renderingEnd($content)
     {
-        if(!$this->template) {
+        $tpl = $this->findTemplate();
+        if($tpl)
+            require $tpl;
+        else
             echo $content;
-            return;
-        }
-        $template = APPROOT."/templates/{$this->template}.php";
-        file_exists($template) or $template = EQROOT."/templates/{$this->template}.php";
-        if(!file_exists($template))
-            throw new ControllerException("Template not found: {$this->template}");
-        require $template;
     }
 
 }

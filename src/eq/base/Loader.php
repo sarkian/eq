@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 03:58
+ * Last Change: 2014 Apr 24, 20:01
  */
 
 namespace eq\base;
@@ -30,6 +30,11 @@ class Loader
     public static function addDir($dir)
     {
         self::$dirs[] = $dir;
+    }
+
+    public static function dirs()
+    {
+        return self::$dirs;
     }
 
     public static function addNSDir($ns, $dir)

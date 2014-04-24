@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 04:18
+ * Last Change: 2014 Apr 24, 21:33
  */
 
 namespace eq\base;
@@ -14,6 +14,24 @@ abstract class ModuleBase extends ModuleAbstract
     use TObject;
 
     public static final function getClass($name)
+    {
+        $path = explode(".", $name);
+        $mname = array_pop($path);
+        $bname = Str::cmd2method($mname)."Module";
+        $path = $path ? implode("\\", $path)."\\" : "";
+        $cbasename = $path."modules\\$mname\\".$bname;
+        if(Loader::classExists($cbasename))
+            return $cbasename;
+        $cname = EQ::app()->app_namespace."\\$cbasename";
+        if(Loader::classExists($cname))
+            return $cname;
+        $cname = "eq\\$cbasename";
+        if(Loader::classExists($cname))
+            return $cname;
+        throw new ModuleException("Module class not found: $name");
+    }
+
+    public static final function getClass_old($name)
     {
         $path = explode(".", $name);
         array_push($path, 
@@ -41,6 +59,7 @@ abstract class ModuleBase extends ModuleAbstract
     }
 
     private $_name;
+    private $_fullname;
     private $_namespace;
     private $_location;
 
@@ -55,6 +74,24 @@ abstract class ModuleBase extends ModuleAbstract
             $this->_name = Str::method2var(preg_replace("/Module$/", "", 
                 Str::classBasename(get_called_class())));
         return $this->_name;
+    }
+
+    public final function getFullname()
+    {
+        if(!$this->_fullname) {
+            $parts = explode("\\", $this->namespace);
+            foreach($parts as $i => $part) {
+                if($part !== "modules")
+                    continue;
+                if(isset($parts[$i - 1], $parts[$i + 1])) {
+                    $this->_fullname = $parts[$i - 1].".".$parts[$i + 1];
+                }
+                else
+                    throw new ModuleException(
+                        "Unable to get module fullname: ".get_called_class());
+            }
+        }
+        return $this->_fullname;
     }
 
     public final function getNamespace()

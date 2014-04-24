@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 03:58
+ * Last Change: 2014 Apr 24, 20:54
  */
 
 namespace eq\web;
@@ -71,6 +71,15 @@ abstract class ModuleController extends Controller
     {
         $fname = Path::join([$this->module_location, "views", $view_file.".php"]);
         return file_exists($fname) ? $fname : parent::findViewFile($view_file);
+    }
+
+    protected function findTemplate()
+    {
+        $tpl = $this->template;
+        if(!$tpl)
+            return false;
+        $fname = Path::join([$this->module_location, "templates", "$tpl.php"]);
+        return file_exists($fname) ? $fname : parent::findTemplate();
     }
 
 }
