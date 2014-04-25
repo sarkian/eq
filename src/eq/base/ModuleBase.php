@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 21:33
+ * Last Change: 2014 Apr 25, 13:14
  */
 
 namespace eq\base;
@@ -13,22 +13,27 @@ abstract class ModuleBase extends ModuleAbstract
 
     use TObject;
 
-    public static final function getClass($name)
+    public static final function getClass($name, $except = true)
     {
         $path = explode(".", $name);
         $mname = array_pop($path);
         $bname = Str::cmd2method($mname)."Module";
         $path = $path ? implode("\\", $path)."\\" : "";
-        $cbasename = $path."modules\\$mname\\".$bname;
-        if(Loader::classExists($cbasename))
-            return $cbasename;
-        $cname = EQ::app()->app_namespace."\\$cbasename";
-        if(Loader::classExists($cname))
-            return $cname;
-        $cname = "eq\\$cbasename";
-        if(Loader::classExists($cname))
-            return $cname;
-        throw new ModuleException("Module class not found: $name");
+        $cname = $path."modules\\$mname\\".$bname;
+        if(Loader::classExists($cname)) {
+            $parents = class_parents($cname);
+            if(isset($parents['eq\base\ModuleBase']))
+                return $cname;
+            elseif($except)
+                throw new ModuleException(
+                    "Module class must be inherited from eq\base\ModuleBase: $cname");
+            else
+                return false;
+        }
+        elseif($except)
+            throw new ModuleException("Module class not found: $name");
+        else
+            return false;
     }
 
     public static final function getClass_old($name)
@@ -58,8 +63,8 @@ abstract class ModuleBase extends ModuleAbstract
         return isset($modules[$cname]) ? $modules[$cname] : new $cname();
     }
 
+
     private $_name;
-    private $_fullname;
     private $_namespace;
     private $_location;
 
@@ -70,28 +75,14 @@ abstract class ModuleBase extends ModuleAbstract
 
     public final function getName()
     {
-        if(!$this->_name)
-            $this->_name = Str::method2var(preg_replace("/Module$/", "", 
-                Str::classBasename(get_called_class())));
-        return $this->_name;
-    }
-
-    public final function getFullname()
-    {
-        if(!$this->_fullname) {
+        if(!$this->_name) {
             $parts = explode("\\", $this->namespace);
-            foreach($parts as $i => $part) {
-                if($part !== "modules")
-                    continue;
-                if(isset($parts[$i - 1], $parts[$i + 1])) {
-                    $this->_fullname = $parts[$i - 1].".".$parts[$i + 1];
-                }
-                else
-                    throw new ModuleException(
-                        "Unable to get module fullname: ".get_called_class());
-            }
+            if(count($parts) === 3 && $parts[1] === "modules")
+                $this->_name = $parts[0].".".$parts[2];
+            else
+                throw new ModuleException("Unable to get module name: ".get_class($this));
         }
-        return $this->_fullname;
+        return $this->_name;
     }
 
     public final function getNamespace()

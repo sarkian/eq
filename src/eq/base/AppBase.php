@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 21:29
+ * Last Change: 2014 Apr 25, 13:08
  */
 
 namespace eq\base;
@@ -35,7 +35,7 @@ abstract class AppBase extends ModuleAbstract
 
     protected $modules_by_name = [];
     protected $modules_by_class = [];
-    protected $modules_by_fullname = [];
+    protected $_available_modules = null;
 
     protected $locale = "en_US";
 
@@ -82,8 +82,6 @@ abstract class AppBase extends ModuleAbstract
     {
         if(isset($this->modules_by_name[$name]))
             return $this->modules_by_name[$name];
-        elseif(isset($this->modules_by_fullname[$name]))
-            return $this->modules_by_fullname[$name];
         else
             throw new ModuleException("Module not registered: $name");
     }
@@ -143,20 +141,25 @@ abstract class AppBase extends ModuleAbstract
 
     public function getAvailableModules()
     {
-        $modules = [];
-        foreach(Loader::dirs() as $dir) {
-            $dir = self::getAlias($dir);
-            $pattern = "$dir/{eq,".$this->app_namespace."}/modules/*";
-            $dirs = array_filter(glob($pattern, GLOB_BRACE), "is_dir");
-            foreach($dirs as $mdir) {
-                $mdir = preg_replace("/^".preg_quote($dir, "/")."[\/\\\]/", "", $mdir);
-                $parts = preg_split("/[\/\\\\]/", $mdir);
-                if(count($parts) !== 3)
-                    continue;
-                $modules[] = $parts[0].".".$parts[2];
+        if(is_null($this->_available_modules)) {
+            $this->_available_modules = [];
+            foreach(Loader::dirs() as $dir) {
+                $dir = self::getAlias($dir);
+                $dirs = array_filter(glob("$dir/*/modules/*", GLOB_BRACE), "is_dir");
+                foreach($dirs as $mdir) {
+                    $mdir = preg_replace("/^".preg_quote($dir, "/")."/", "", $mdir);
+                    $mdir = trim($mdir, "\\/");
+                    $parts = preg_split("/[\/\\\\]/", $mdir);
+                    if(count($parts) !== 3)
+                        continue;
+                    $mname = $parts[0].".".$parts[2];
+                    $cname = ModuleBase::getClass($mname, false);
+                    if($cname)
+                        $this->_available_modules[$mname] = $cname::instance();
+                }
             }
         }
-        return $modules;
+        return $this->_available_modules;
     }
 
     public function getModulesByClass()
@@ -169,15 +172,9 @@ abstract class AppBase extends ModuleAbstract
         return $this->modules_by_name;
     }
 
-    public function getModulesByFullname()
-    {
-        return $this->modules_by_fullname;
-    }
-
     public function hasModule($name)
     {
-        return isset($this->modules_by_name[$name]) 
-            || isset($this->modules_by_fullname[$name]);
+        return isset($this->modules_by_name[$name]);
     }
 
     public function getClassname()
@@ -352,7 +349,6 @@ abstract class AppBase extends ModuleAbstract
         $module = $cname::instance();
         $this->modules_by_name[$name] = $module;
         $this->modules_by_class[$cname] = $module;
-        $this->modules_by_fullname[$module->fullname] = $module;
         $this->config_permissions['modules'][$name] = $module->configPermissions();
         self::setAlias("@modules.$name", $module->location);
         $compname = preg_replace("/Module$/", "Component", $cname);

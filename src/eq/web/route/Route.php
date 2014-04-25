@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 03:57
+ * Last Change: 2014 Apr 25, 12:30
  */
 
 namespace eq\web\route;
@@ -165,12 +165,10 @@ class Route
 
     protected function findController()
     {
-        // modules.user.user.login
-        // eq\modules\user\controllers\UserController
         $parts = explode(".", $this->controller_name);
-        if($parts[0] === "modules") {
+        if(count($parts) > 3 && $parts[0] === "modules") {
             array_shift($parts);
-            $module = array_shift($parts);
+            $module = array_shift($parts).".".array_shift($parts);
             $ns = EQ::app()->module($module)->namespace."\\controllers\\";
             $cbasename = Str::var2method(array_pop($parts))."Controller";
             if($parts)
