@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 17, 13:55
+ * Last Change: 2014 Apr 25, 19:36
  */
 
 namespace eq\helpers;

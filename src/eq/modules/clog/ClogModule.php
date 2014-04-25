@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 05:13
+ * Last Change: 2014 Apr 25, 20:01
  */
 
 namespace eq\modules\clog;
@@ -27,10 +27,6 @@ class ClogModule extends \eq\base\ModuleBase
     {
         $this->project_root = realpath(EQ::getAlias(
             $this->config("project_root", "@app")));
-        EQ::app()->registerStaticMethod("clog", function() {
-            list($file, $line) = $this->callLocation(4);
-            $this->addMsg("log", func_get_args(), $file, $line);
-        });
         $this->autobind();
     }
 

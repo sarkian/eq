@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 25, 13:14
+ * Last Change: 2014 Apr 25, 19:40
  */
 
 namespace eq\base;
@@ -15,7 +15,7 @@ abstract class ModuleBase extends ModuleAbstract
 
     public static final function getClass($name, $except = true)
     {
-        $path = explode(".", $name);
+        $path = explode("/", $name);
         $mname = array_pop($path);
         $bname = Str::cmd2method($mname)."Module";
         $path = $path ? implode("\\", $path)."\\" : "";
@@ -65,6 +65,7 @@ abstract class ModuleBase extends ModuleAbstract
 
 
     private $_name;
+    private $_shortname;
     private $_namespace;
     private $_location;
 
@@ -78,11 +79,22 @@ abstract class ModuleBase extends ModuleAbstract
         if(!$this->_name) {
             $parts = explode("\\", $this->namespace);
             if(count($parts) === 3 && $parts[1] === "modules")
-                $this->_name = $parts[0].".".$parts[2];
+                $this->_name = $parts[0]."/".$parts[2];
             else
                 throw new ModuleException("Unable to get module name: ".get_class($this));
         }
         return $this->_name;
+    }
+
+    public final function getShortname()
+    {
+        if(!$this->_shortname) {
+            $parts = explode("/", $this->name);
+            if(count($parts) < 2)
+                throw new ModuleException("Invalid module name: ".$this->name);
+            $this->_shortname = array_pop($parts);
+        }
+        return $this->_shortname;
     }
 
     public final function getNamespace()

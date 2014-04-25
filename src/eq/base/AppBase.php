@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 25, 13:08
+ * Last Change: 2014 Apr 25, 19:55
  */
 
 namespace eq\base;
@@ -133,6 +133,13 @@ abstract class AppBase extends ModuleAbstract
                 "Component doesnt have method 'call': $name");
     }
 
+    public function test()
+    {
+        header("Content-type: text/plain");
+        print_r(array_keys($this->registered_components));
+        exit;
+    }
+
     public function getType()
     {
         return Str::method2cmd(
@@ -152,7 +159,7 @@ abstract class AppBase extends ModuleAbstract
                     $parts = preg_split("/[\/\\\\]/", $mdir);
                     if(count($parts) !== 3)
                         continue;
-                    $mname = $parts[0].".".$parts[2];
+                    $mname = $parts[0]."/".$parts[2];
                     $cname = ModuleBase::getClass($mname, false);
                     if($cname)
                         $this->_available_modules[$mname] = $cname::instance();
@@ -353,7 +360,7 @@ abstract class AppBase extends ModuleAbstract
         self::setAlias("@modules.$name", $module->location);
         $compname = preg_replace("/Module$/", "Component", $cname);
         if(Loader::classExists($compname))
-            $this->registerComponent($module->name, $compname);
+            $this->registerComponent($module->shortname, $compname);
         $method = $this->type."Init";
         if(method_exists($module, $method))
             $module->{$method}();

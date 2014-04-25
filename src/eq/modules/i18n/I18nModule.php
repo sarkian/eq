@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 05:05
+ * Last Change: 2014 Apr 25, 19:55
  */
 
 namespace eq\modules\i18n;
@@ -28,6 +28,11 @@ class I18nModule extends \eq\base\ModuleBase
         $this->registerStaticMethod("t", [$this, "t"]);
         $this->registerStaticMethod("k", [$this, "k"]);
         EQ::app()->bind("ready", [$this, "__onReady"]);
+    }
+
+    public function test()
+    {
+
     }
 
     public function __onReady()
@@ -107,8 +112,10 @@ class I18nModule extends \eq\base\ModuleBase
                 }
             }
         }
-        $this->tokens = call_user_func_array("array_merge", $tokens);
-        $this->keys = call_user_func_array("array_merge", $keys);
+        if($tokens)
+            $this->tokens = call_user_func_array("array_merge", $tokens);
+        if($keys)
+            $this->keys = call_user_func_array("array_merge", $keys);
         $this->dirs = null;
     }
 

@@ -1,12 +1,14 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 20:54
+ * Last Change: 2014 Apr 25, 18:35
  */
 
 namespace eq\modules\admin\controllers;
 
-class ModulesController extends \eq\web\ModuleController
+class ModulesController extends \eq\web\Controller
 {
+
+    use \eq\base\TModuleClass;
 
     protected $template = "main";
 

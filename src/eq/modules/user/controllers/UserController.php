@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 19, 18:53
+ * Last Change: 2014 Apr 25, 20:02
  */
 
 namespace eq\modules\user\controllers;
@@ -10,8 +10,10 @@ use eq\modules\user\UserModule;
 use eq\modules\user\models\Users;
 use eq\web\HttpException;
 
-class UserController extends \eq\web\ModuleController
+class UserController extends \eq\web\Controller
 {
+
+    use \eq\base\TModuleClass;
 
     protected function permissions()
     {

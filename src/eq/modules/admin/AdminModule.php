@@ -1,6 +1,6 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 04:11
+ * Last Change: 2014 Apr 25, 19:59
  */
 
 namespace eq\modules\admin;
@@ -18,15 +18,11 @@ class AdminModule extends \eq\base\ModuleBase
     protected function init()
     {
         $this->autobind();
-        // EQ::app()->route->register("*", 
-            // "/admin/{action}", controllers\AdminController::className());
-        // EQ::app()->bind("i18n.beforeLoadFiles", 
-            // [$this, "__onI18n_beforeLoadFiles"]);
     }
 
     public function __onI18n_beforeLoadFiles()
     {
-        EQ::app()->i18n->addDir(__DIR__."/locale", "admin");
+        EQ::app()->module("eq/i18n")->addDir(__DIR__."/locale", "admin");
     }
 
 }
