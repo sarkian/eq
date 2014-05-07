@@ -1,19 +1,28 @@
 <?php
 /**
- * Last Change: 2014 Apr 25, 19:39
+ * Last Change: 2014 May 04, 05:09
  */
 
 namespace eq\web\route;
 
 use EQ;
+use eq\base\TObject;
 use eq\helpers\FileSystem;
 use eq\helpers\Str;
 use eq\base\Loader;
 
+/**
+ * @property bool found
+ * @property string controller_name
+ * @property string action_name
+ * @property string controller_class
+ * @property string action_method
+ * @property array vars
+ */
 class Route
 {
 
-    use \eq\base\TObject;
+    use TObject;
 
     protected $files = [];
     protected $rules = [];
@@ -107,7 +116,7 @@ class Route
             }
             return $url;
         }
-        // throw new RouteException("Unable to create URL for path: $path");
+         throw new RouteException("Unable to create URL for path: $path");
     }
 
     public function processRequest()

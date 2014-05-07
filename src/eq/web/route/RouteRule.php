@@ -1,16 +1,17 @@
 <?php
 /**
- * Last Change: 2014 Apr 24, 01:57
+ * Last Change: 2014 May 04, 05:43
  */
 
 namespace eq\web\route;
 
+use eq\base\TObject;
 use eq\datatypes\DataTypeBase;
 
 class RouteRule
 {
 
-    use \eq\base\TObject;
+    use TObject;
 
     protected $fname;
     protected $lnum;
@@ -130,7 +131,7 @@ class RouteRule
         if(count($parts) !== count($parts_p))
             return false;
         foreach($parts as $i => $part) {
-            if(preg_match_all("/\{([^\{\}]*)\}/", $part, $matches)) {
+            if(preg_match_all('/\{([^\{\}]*)\}/', $part, $matches)) {
                 foreach($matches[1] as $var) {
                     $val = $parts_p[$i];
                     $vars[$var] = $val;
@@ -159,7 +160,7 @@ class RouteRule
         $this->lnum = $lnum;
         $this->url_prefix = $url_prefix;
         $this->path_prefix = $path_prefix;
-        $parts = preg_split("/[\s\t]+/", $line);
+        $parts = preg_split("/[ \t]+/", $line);
         if(count($parts) !== 3)
             $this->except("Invalid rule");
         $this->setMethod($parts[0]);

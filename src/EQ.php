@@ -40,7 +40,7 @@ abstract class EQ extends \eq\base\AppBase
         eq\base\Loader::init([
             EQROOT."/src",
         ], [], APPROOT."/runtime/loader.cache");
-        spl_autoload_register(["eq\base\Loader", "loadClass"]);
+        spl_autoload_register(['eq\base\Loader', "loadClass"]);
     }
 
 }

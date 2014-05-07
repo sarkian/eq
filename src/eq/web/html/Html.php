@@ -28,7 +28,8 @@ class Html
         $html = '<'.$tag.self::renderAttrs($options);
         if($content !== null) 
             return $close ? $html.'>'.$content.'</'.$tag.'>' : $html.'>'.$content;
-        else return $close ? $html.' />' : $html.'>';
+        else
+            return $close ? $html.' />' : $html.'>';
     }
     
     public static function renderAttrs($options)

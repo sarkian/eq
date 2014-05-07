@@ -5,10 +5,15 @@
 
 namespace eq\web\route;
 
+use eq\base\TObject;
+
+/**
+ * @property array rules
+ */
 class RouteFile
 {
 
-    use \eq\base\TObject;
+    use TObject;
 
     protected $rules = [];
 

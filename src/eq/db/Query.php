@@ -21,12 +21,13 @@ class Query
     public function __construct(ConnectionBase $db)
     {
         $this->db = $db;
+        $p = $this->db->pdo;
     }
 
     public function select($cols)
     {
         if(!is_array($cols)) {
-            $cols = preg_split("/\s*,\s*/", trim($cols),
+            $cols = preg_split('/\s*,\s*/', trim($cols),
                         -1, PREG_SPLIT_NO_EMPTY);
         }
         foreach($cols as $i => $col)
@@ -64,7 +65,7 @@ class Query
     public function from($tables)
     {
         if(!is_array($tables))
-            $tables = preg_split("/\s*,\s*/", trim($tables),
+            $tables = preg_split('/\s*,\s*/', trim($tables),
                     -1, PREG_SPLIT_NO_EMPTY);
         foreach($tables as $i => $table)
             $tables[$i] = $this->db->schema->quoteTableName($table);

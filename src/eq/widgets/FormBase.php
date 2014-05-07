@@ -1,24 +1,34 @@
 <?php
 /**
- * Last Change: 2014 Apr 19, 18:32
+ * Last Change: 2014 May 04, 05:44
  */
 
 namespace eq\widgets;
 
+use eq\base\TObject;
 use eq\web\html\Html;
 use eq\helpers\Str;
+use eq\web\html\HtmlNode;
+use eq\web\WidgetBase;
 use eq\web\WidgetException;
-use eq\modules\clog\Clog;
+use EQ;
 
-class FormBase extends \eq\web\WidgetBase
+/**
+ * @property string id
+ * @property string method
+ * @property array errors
+ */
+class FormBase extends WidgetBase
 {
 
-    use \eq\base\TObject;
+    use TObject;
 
     private static $_forms = [];
 
     protected $values = [];
     protected $labels = [];
+    protected $errors = [];
+    protected $errors_by_field = [];
     protected $_id;
 
     public function getId()
@@ -43,6 +53,21 @@ class FormBase extends \eq\web\WidgetBase
         $this->labels = $labels;
     }
 
+    public function getErrors()
+    {
+        return $this->errors;
+    }
+
+    public function addError($message, $field = null)
+    {
+        $error = ['message' => $message, 'field' => $field];
+        if(in_array($error, $this->errors))
+            return;
+        array_push($this->errors, $error);
+        if(is_string($field))
+            $this->errors_by_field[$field][] = $message;
+    }
+
     public function fieldName($name)
     {
         return $name;
@@ -53,21 +78,20 @@ class FormBase extends \eq\web\WidgetBase
         if(isset($this->labels[$name]))
             return $this->labels[$name];
         return Str::method2label($name);
-        // $name = preg_replace_callback("/_([a-zA-Z])/", function($m) {
-            // return " ".strtoupper($m[1]);
-        // }, $name);
-        // return ucfirst($name);
     }
 
     public function fieldValue($name, $default = "")
     {
-        return isset($this->values[$name]) ? $this->values[$name] : $default;
+        return isset($this->values[$name])
+            ? htmlspecialchars($this->values[$name]) : $default;
     }
 
     public function begin($options = [])
     {
         $options = $this->formOptions() + $options;
-        return Html::tag("form", $options, null, false);
+        $html = Html::tag("form", $options, null, false);
+        $html .= $this->renderErrors();
+        return $html;
     }
 
     public function end()
@@ -111,7 +135,7 @@ class FormBase extends \eq\web\WidgetBase
     {
         $options = array_merge($this->labelOptions([
             'for' => $this->fieldId($name),
-        ], $type, $name));
+        ], $type, $name), $options);
         return Html::tag("label", $options, $this->fieldLabel($name));
     }
 
@@ -138,9 +162,8 @@ class FormBase extends \eq\web\WidgetBase
             return $this->label($name);
     }
 
-    protected final function createId()
+    protected function createId()
     {
-        $cname = get_class($this);
         $id = Str::method2var(Str::classBasename(get_class($this)));
         if(isset(self::$_forms[$id]))
             $id .= "-".(++self::$_forms[$id]);
@@ -157,8 +180,10 @@ class FormBase extends \eq\web\WidgetBase
     protected function formOptions()
     {
         return [
-            'method' => $this->medhod,
+            'role' => "form",
+            'method' => $this->method,
             'action' => "",
+            'id' => $this->id,
         ];
     }
 
@@ -212,6 +237,55 @@ class FormBase extends \eq\web\WidgetBase
             return false;
         $method = "field".Str::var2method($name).$method_;
         return method_exists($this, $method) ? $method : false;
+    }
+
+    /**
+     * @return HtmlNode|string
+     */
+    protected function renderErrors()
+    {
+        if(!$this->errors)
+            return "";
+        $errors = $this->errorsContainer();
+        EQ::assert($errors instanceof HtmlNode,
+            'errorsContainer() must be returns an eq\web\html\HtmlNode instance');
+        foreach($this->errors as $error) {
+            $message = "";
+            $field = null;
+            if(is_array($error)) {
+                if(!isset($error['message']))
+                    continue;
+                $message = $error['message'];
+                if(isset($error['field']))
+                    $field = $error['field'];
+            }
+            elseif(is_string($error))
+                $message = $error;
+            if(!$message)
+                continue;
+            if(!is_string($field) || !$field)
+                $field = null;
+            $errors->append($this->renderError($message, $field));
+        }
+        return $errors->getContents() ? $errors : "";
+    }
+
+    /**
+     * @return HtmlNode
+     */
+    protected function errorsContainer()
+    {
+        return new HtmlNode("ul");
+    }
+
+    /**
+     * @param string $message
+     * @param string $field
+     * @return HtmlNode|string
+     */
+    protected function renderError($message, $field = null)
+    {
+        return Html::tag("li", [], $message);
     }
 
 }

@@ -5,7 +5,9 @@
 
 namespace eq\models;
 
-class Users implements \eq\web\IIdentity
+use eq\web\IIdentity;
+
+class Users implements IIdentity
 {
 
     public function isAuth()
@@ -18,4 +20,8 @@ class Users implements \eq\web\IIdentity
         return false;
     }
 
+    public function getStatus()
+    {
+        return "guest";
+    }
 }

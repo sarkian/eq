@@ -6,18 +6,29 @@
 namespace eq\base;
 
 use EQ;
+
 use eq\base\ModuleException;
+use eq\base\TObject;
+use eq\cgen\reflection\IDefinitionString;
 use eq\helpers\Path;
 
+/**
+ * @property string module_class
+ * @property string module_name
+ * @property string module_namespace
+ * @property string module_location
+ * @property ModuleBase module
+ */
 trait TModuleClass
 {
 
-    use \eq\base\TObject;
+    use TObject;
 
     private $_module_class;
     private $_module_name;
     private $_module_namespace;
     private $_module_location;
+    private $_module;
 
     public function getModuleClass()
     {
@@ -51,6 +62,13 @@ trait TModuleClass
         if(!$this->_module_location)
             $this->_module_location = EQ::app()->module($this->module_name)->location;
         return $this->_module_location;
+    }
+
+    public function getModule()
+    {
+        if(!$this->_module)
+            $this->_module = EQ::app()->module($this->module_name);
+        return $this->_module;
     }
 
     public function config($key = null, $default = null)

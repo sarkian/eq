@@ -1,10 +1,11 @@
 <?php
 /**
- * Last Change: 2014 Mar 16, 16:26
+ * Last Change: 2014 May 04, 05:44
  */
 
 namespace eq\base;
 
+use EQ;
 use eq\helpers\Str;
 
 trait TObject

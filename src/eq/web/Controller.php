@@ -3,13 +3,17 @@
 namespace eq\web;
 
 use EQ;
+use eq\base\TObject;
 use eq\cgen\ViewRenderer;
 use eq\helpers\Str;
 
+/**
+ * @property string|null template
+ */
 abstract class Controller
 {
 
-    use \eq\base\TObject;
+    use TObject;
 
     protected $page_title = '';
     protected $head_content = '{{$HEAD_CONTENT}}';
@@ -31,10 +35,10 @@ abstract class Controller
 
     public static function routes($line)
     {
-        $cname = preg_replace("/^.+\\\controllers\\\/", "", get_called_class());
+        $cname = preg_replace('/^.+\\\controllers\\\/', "", get_called_class());
         $cname = str_replace('\\', ".", $cname);
         $cname = Str::method2cmd(preg_replace("/Controller$/", "", $cname));
-        return str_replace('{{'.$cname.'}}', "/{action<[a-z\-]+>}", $line)
+        return str_replace('{{'.$cname.'}}', '/{action<[a-z\-]+>}', $line)
             ." $cname.{action}";
     }
 
@@ -54,16 +58,64 @@ abstract class Controller
 
     protected function permissions()
     {
-        return [
-            'guest' => ["allow", "all"],
-            'user' => ['allow', "all"],
-            'admin' => ["allow", "all"],
-        ];
+        return array(
+            'guest,user,admin' => ["allow", "#all"],
+        );
     }
 
     protected function init() {}
 
     protected function processPermissions()
+    {
+        $ustatus = EQ::app()->user->getStatus();
+        $trimf = function(&$str) {
+            $str = strtolower(trim($str, " \n\r\t"));
+        };
+        $permissions = $this->permissions();
+        if(!is_array($permissions))
+            throw new ControllerException("Invalid permissions in ".get_called_class());
+        foreach($permissions as $status => $perms) {
+            $status = explode(",", $status);
+            array_walk($status, $trimf);
+            if(!in_array($ustatus, $status))
+                continue;
+            if(!is_array($perms))
+                throw new ControllerException("Invalid permissions in ".get_called_class());
+            $perms = array_merge($perms);
+            if(count($perms) < 2 || count($perms) > 3)
+                throw new ControllerException("Invalid permissions");
+            $perm = strtolower(trim($perms[0], " \r\n\t"));
+            $actions = strtolower(trim($perms[1], " \r\n\t"));
+            $callback = isset($perms[2]) ? $perms[2] : 404;
+            if(!is_callable($callback)) {
+                if(!is_int($callback) && !is_string($callback))
+                    throw new ControllerException("Invalid permissions in ".get_called_class());
+                $status = $callback;
+                $callback = function() use($status) {
+                    if(is_string($status))
+                        EQ::app()->redirect($status);
+                    else
+                        throw new HttpException($status);
+                };
+            }
+            if($actions !== "#all") {
+                $actions = explode(",", $actions);
+                array_walk($actions, $trimf);
+            }
+            if($perm === "allow") {
+                if($actions === "#all" || in_array(EQ::app()->action_name, $actions))
+                    return;
+            }
+            elseif($perm === "deny") {
+                if($actions === "#all" || in_array(EQ::app()->action_name, $actions))
+                    $callback();
+            }
+            else
+                throw new ControllerException("Invalid permissions");
+        }
+    }
+
+    protected function _processPermissions()
     {
         $perms = $this->permissions();
         $action = EQ::app()->action_name;
@@ -79,9 +131,14 @@ abstract class Controller
             throw new ControllerException("Invalid permissions");
         $callback = isset($perms[2]) ? $perms[2] : 404;
         if(!is_callable($callback)) {
+            if(!is_int($callback) && !is_string($callback))
+                throw new ControllerException("Invalid permissions");
             $status = $callback;
             $callback = function() use($status) {
-                throw new HttpException($status);
+                if(is_string($status))
+                    EQ::app()->redirect($status);
+                else
+                    throw new HttpException($status);
             };
         }
         if($perms[0] === "allow") {
@@ -100,9 +157,9 @@ abstract class Controller
         }
     }
 
-    protected function redir($url, $status = null)
+    protected function redir($url, $status = 302, $message = "Found")
     {
-        EQ::app()->redirect($url, $status);
+        EQ::app()->redirect($url, $status, $message);
     }
 
     protected function setTitle($title)

@@ -42,7 +42,7 @@ namespace eq\web;
             unset($_SESSION[$name]);
         }
         
-        public function __destroy()
+        public function destroy()
         {
             session_unset();
             session_destroy();

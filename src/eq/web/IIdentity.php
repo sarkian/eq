@@ -10,5 +10,6 @@ interface IIdentity
 
     public function isAuth();
     public function isAdmin();
+    public function getStatus();
 
 }

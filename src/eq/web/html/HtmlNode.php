@@ -33,11 +33,16 @@ namespace eq\web\html;
         {
             return isset($this->options[$attr]) ? $this->options[$attr] : null;
         }
+
+        public function getContents()
+        {
+            return $this->content;
+        }
         
         public function append($child)
         {
             if(is_string($this->content)) {
-                if($child instanceof EQHtmlNode)
+                if($child instanceof HtmlNode)
                     $child = $child->render();
             }
             elseif(is_array($this->content)) {
@@ -51,15 +56,20 @@ namespace eq\web\html;
             elseif(is_array($this->content)) {
                 $content = '';
                 foreach($this->content as $node) {
-                    if($node instanceof EQHtmlNode) $content .= $node->render();
+                    if($node instanceof HtmlNode) $content .= $node->render();
                     else $content .= $node;
                 }
             }
             else $content = null;
             $content or $content = null;
-            $res = EQHtml::tag($this->name, $this->options, $content, $content ? false : true);
+            $res = Html::tag($this->name, $this->options, $content, $content ? false : true);
             if($content) $res .= '</'.$this->name.'>';
             return $res;
+        }
+
+        public function __toString()
+        {
+            return $this->render();
         }
         
     }

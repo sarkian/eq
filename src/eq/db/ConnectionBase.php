@@ -2,6 +2,7 @@
 
 namespace eq\db;
 
+use eq\base\Object;
 use eq\helpers\Arr;
 use eq\base\InvalidConfigException;
 use eq\base\InvalidCallException;
@@ -10,7 +11,17 @@ use eq\base\LoaderException;
 use PDO;
 use PDOException;
 
-abstract class ConnectionBase extends \eq\base\Object
+/**
+ * @property PDO pdo
+ * @property Schema schema
+ * @method Query select(mixed $cols)
+ * @method Query update(string $table, array $cols)
+ * @method Query insert(string $table, array $cols)
+ * @method Query from(mixed $tables)
+ * @method Query delete(string $table, mixed $condition, array $params = [])
+ * @method Query where(string $condition, array $params = [], string $glue = "AND")
+ */
+abstract class ConnectionBase extends Object
 {
 
     protected $config;
@@ -52,7 +63,7 @@ abstract class ConnectionBase extends \eq\base\Object
         $driver = Arr::getItem($config, "driver", null);
         if(!$driver)
             throw new InvalidConfigException("Missing parameter: driver");
-        $cname = "eq\db\\$driver\Connection";
+        $cname = 'eq\db\\'.$driver.'\Connection';
         try {
             $conn = new $cname($config);
             return $conn;

@@ -10,10 +10,34 @@
 
 #eq_debug-root-left {
     left: 0;
+    box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
 }
 
 #eq_debug-root-right {
     right: 0;
+    box-shadow: -1px -1px 5px rgba(0, 0, 0, 0.5);
+}
+
+.eq_debug-root-overflow {
+    top: 0;
+    overflow-y: scroll;
+}
+
+.eq_debug-root-overflow {
+    -ms-overflow-style: none;
+}
+
+.eq_debug-root-overflow::-webkit-scrollbar {
+    display: none;
+}
+
+@-moz-document url-prefix() {
+    #eq_debug-root-left.eq_debug-root-overflow {
+        left: -20px;
+    }
+    #eq_debug-root-right.eq_debug-root-overflow {
+        right: -20px;
+    }
 }
 
 .eq_debug-message {
@@ -22,7 +46,7 @@
     background: transparent;
     line-height: 14px;
     margin-top: 1px;
-    opacity: 0.3;
+    opacity: 0.35;
     -webkit-transition: opacity 0.2s ease-in-out;
     -moz-transition: opacity 0.2s ease-in-out;
     -ms-transition: opacity 0.2s ease-in-out;
@@ -39,7 +63,12 @@
 }
 
 .eq_debug-message-info {
-    background-color: #60a5ff;
+    background-color: #61b0fa;
+}
+
+.eq_debug-message-todo {
+    font-weight: bold;
+    color: #c20000;
 }
 
 .eq_debug-message:hover:not(.eq_debug-fadeout) {

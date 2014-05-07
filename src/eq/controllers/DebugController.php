@@ -3,8 +3,10 @@
 namespace eq\controllers;
 
 use EQ;
+use eq\base\UncaughtExceptionException;
+use eq\web\Controller;
 
-class DebugController extends \eq\web\Controller
+class DebugController extends Controller
 {
 
     protected $template = "debug";
@@ -13,7 +15,7 @@ class DebugController extends \eq\web\Controller
     {
         EQ::app()->header("Content-type", "text/html");
         $e = EQ::app()->exception;
-        $etype = $e instanceof \eq\base\UncaughtExceptionException
+        $etype = $e instanceof UncaughtExceptionException
             ? "Uncaught Exception: ".get_class($e->getException())
             : $e->getType();
         $this->page_title = $e->getType();

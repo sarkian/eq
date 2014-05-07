@@ -3,26 +3,48 @@
 namespace eq\web;
 
 use EQ;
+use eq\base\AppBase;
 use eq\base\ExceptionBase;
 use eq\base\LoaderException;
+use eq\controllers\ErrorsController;
+use eq\data\Model;
+use eq\modules\user\models\Users;
 use eq\php\ErrorException;
 use eq\base\UncaughtExceptionException;
-use eq\base\AppException;
-use eq\base\InvalidConfigException;
 use eq\base\ComponentException;
 use eq\base\InvalidParamException;
 use eq\base\Loader;
+use eq\web\route\Route;
 
-defined("EQ_ASSETS_DBG") or define("EQ_ASSETS_DBG", false);
+defined("EQ_ASSETS_DBG") or define("EQ_ASSETS_DBG", EQ_DBG);
 
-class WebApp extends \eq\base\AppBase
+/**
+ * @property ClientScript client_script
+ * @property ThemeBase theme
+ * @property Route route
+ * @property Request request
+ * @property Session session
+ * @property Header header
+ * @property IIdentity|Model|Users user
+ * @property array route_files
+ * @property string controller_name
+ * @property string action_name
+ * @method void header()
+ */
+class WebApp extends AppBase
 {
+
+    protected $controller_name;
+    protected $action_name;
+    protected $http_exception;
+    protected $theme;
 
     public static function widget($name)
     {
         $args = func_get_args();
         array_shift($args);
-        $cname = Loader::autofindClass($name, "widgets", "");
+        $cname = EQ::app()->getTheme()->widgetClass($name);
+        $cname or $cname = Loader::autofindClass($name, "widgets", "");
         if(!$cname)
             throw new InvalidParamException("Widget class not found: $name");
         $reflect = new \ReflectionClass($cname);
@@ -32,7 +54,7 @@ class WebApp extends \eq\base\AppBase
     protected static function defaultStaticMethods()
     {
         return array_merge(parent::defaultStaticMethods(), [
-            'widget' => ["eq\web\WebApp", "widget"],
+            'widget' => ['eq\web\WebApp', "widget"],
         ]);
     }
 
@@ -43,14 +65,6 @@ class WebApp extends \eq\base\AppBase
         ];
     }
 
-
-    protected $controller_name;
-    protected $action_name;
-    protected $http_exception;
-
-    // protected $route;
-    // protected $client_script;
-
     public function __construct($config)
     {
         parent::$_app = $this;
@@ -58,7 +72,7 @@ class WebApp extends \eq\base\AppBase
         self::setAlias("@www", 
             realpath(self::getAlias($this->config("web.content_root"))));
         self::setAlias("@web", "");
-        // $this->bind("beforeRender", [$this, "__beforeRender"]);
+        $this->bind("beforeRender", [$this, "__beforeRender"]);
         foreach($this->config("web.preload_assets", []) as $asset)
             $this->client_script->addBundle($asset, EQ_DBG);
     }
@@ -66,13 +80,25 @@ class WebApp extends \eq\base\AppBase
     public function __beforeRender()
     {
         $this->unbind("beforeRender", [$this, "__beforeRender"]);
+        $this->getTheme()->registerAssets();
         // foreach($this->config("web.preload_assets", []) as $asset)
             // $this->client_script->addBundle($asset, EQ_DBG);
     }
 
-    public function getContentRoot()
+    /**
+     * @return ThemeBase
+     * @throws \eq\base\InvalidParamException
+     */
+    public function getTheme()
     {
-        return $this->content_root;
+        if(!$this->theme) {
+            $tname = $this->config("web.theme", "bootstrap");
+            $cname = Loader::autofindClass($tname, "themes\\$tname", "Theme");
+            if(!$cname)
+                throw new InvalidParamException("Theme class not found: $tname");
+            $this->theme = new $cname();
+        }
+        return $this->theme;
     }
 
     public function getControllerName()
@@ -117,11 +143,9 @@ class WebApp extends \eq\base\AppBase
         return $this->request->root.$this->createUrl($path, $vars, $get_vars);
     }
 
-    public function redirect($url, $status = null)
+    public function redirect($url, $status = 302, $message = "")
     {
-        $this->header("Location", $url);
-        $this->trigger("beforeEcho");
-        exit;
+        throw new HttpRedirectException($url, $status, $message = "Found");
     }
 
     public function run()
@@ -147,6 +171,13 @@ class WebApp extends \eq\base\AppBase
             else {
                 throw new HttpException(404);
             }
+        }
+        catch(HttpRedirectException $e_redir) {
+            $this->clearOutBuff();
+            $this->header->status($e_redir->getStatus(), $e_redir->getMessage());
+            $this->header("Location", $e_redir->getUrl());
+            $this->trigger("beforeEcho");
+            exit;
         }
         catch(HttpException $e_http) {
             $this->clearOutBuff();
@@ -224,6 +255,10 @@ class WebApp extends \eq\base\AppBase
             'route' => [
                 'class' => 'eq\web\route\Route',
             ],
+            'session' => [
+                'class' => 'eq\web\Session',
+                'preload' => true,
+            ],
             'client_script' => [
                 'class' => 'eq\web\ClientScript',
             ],
@@ -235,12 +270,11 @@ class WebApp extends \eq\base\AppBase
 
     protected function defaultComponents()
     {
-        $user_class = $this->app_namespace."\models\Users";
+        $user_class = $this->app_namespace.'\models\Users';
         if(!Loader::classExists($user_class))
-            $user_class = "eq\models\Users";
-        if(!isset(class_implements($user_class)["eq\web\IIdentity"]))
-            throw new ComponentException(
-                "User class must be implements eq\web\IIdentity");
+            $user_class = 'eq\models\Users';
+        if(!isset(class_implements($user_class)['eq\web\IIdentity']))
+            throw new ComponentException('User class must be implements eq\web\IIdentity');
         return [
             'user' => [
                 'class' => $user_class,
@@ -249,15 +283,15 @@ class WebApp extends \eq\base\AppBase
         ];
     }
 
-    protected function processHttpException($e)
+    protected function processHttpException(HttpException $e)
     {
         EQ::app()->header("Content-type", "text/html");
-        $cname = $this->app_namespace."\controllers\ErrorsController";
+        $cname = $this->app_namespace.'\controllers\ErrorsController';
         try {
             $controller = new $cname();
         }
         catch(LoaderException $e_loader) {
-            $controller = new \eq\controllers\ErrorsController();
+            $controller = new ErrorsController();
         }
         $actname = 'action'.$e->getStatus();
         if(method_exists($controller, $actname))

@@ -38,6 +38,7 @@ class ErrorsController extends \eq\web\Controller
     {
         return [
             404 => "Page not found",
+            500 => "Internal Server Error",
         ];
     }
 

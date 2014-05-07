@@ -43,6 +43,28 @@
         }
     }
 
+    function docHeight() {
+        var body = document.body,
+            html = document.documentElement;
+        return Math.max(body.scrollHeight, body.offsetHeight,
+            html.clientHeight, html.scrollHeight, html.offsetHeight);
+    }
+
+    function checkHeight(noscroll) {
+        for(var i in root) {
+            if(!root[i])
+                continue;
+            var el = root[i];
+            if(el.scrollHeight > docHeight()) {
+                el.classList.add('eq_debug-root-overflow');
+                if(!noscroll)
+                    el.scrollTop = el.scrollHeight;
+            }
+            else
+                el.classList.remove('eq_debug-root-overflow');
+        }
+    }
+
     function show(type, message, title, cmessage, side) {
         setRoot(side);
         var block = el('div', {
@@ -56,12 +78,13 @@
                 this.className += ' ' + 'eq_debug-fadeout';
                 setTimeout(function() {
                     self.remove();
+                    checkHeight(true);
                 }, 200);
                 return false;
             }
         }, {});
         var title_el = el('span', {
-            className: 'eq_debug-message-name',
+            className: 'eq_debug-message-name'
         }, {});
         var message_el = el('span', {
             className: 'eq_debug-message-text'
@@ -72,10 +95,16 @@
         }
         else
             message_el.textContent = '';
-        message_el.textContent += message;
+        if (type === 'warning' && /^(TODO|FIXME): /.test(message.trim())) {
+            message_el.innerHTML = message.trim().replace(/^(TODO|FIXME): /,
+                '\n<b class="eq_debug-message-todo">$1: </b>');
+        }
+        else
+            message_el.textContent += message;
         block.appendChild(title_el);
         block.appendChild(message_el);
         root[side].appendChild(block);
+        checkHeight(false);
     }
 
 
@@ -113,5 +142,8 @@
     });
 
     EQ.dispatchOn('DOMContentLoaded', 'EQDbgReady');
+
+
+    window.addEventListener('resize', checkHeight);
     
 })();

@@ -8,6 +8,12 @@ namespace eq\base;
 use EQ;
 use eq\helpers\Str;
 
+/**
+ * @property string name
+ * @property string shortname
+ * @property string namespace
+ * @property string location
+ */
 abstract class ModuleBase extends ModuleAbstract
 {
 
@@ -26,7 +32,7 @@ abstract class ModuleBase extends ModuleAbstract
                 return $cname;
             elseif($except)
                 throw new ModuleException(
-                    "Module class must be inherited from eq\base\ModuleBase: $cname");
+                    'Module class must be inherited from eq\base\ModuleBase: '.$cname);
             else
                 return false;
         }
@@ -50,9 +56,9 @@ abstract class ModuleBase extends ModuleAbstract
         if(!Loader::classExists($cname))
             throw new ModuleException("Module class not found: $name");
         $parents = class_parents($cname);
-        if(!isset($parents["eq\base\ModuleBase"]))
+        if(!isset($parents['eq\base\ModuleBase']))
             throw new ModuleException(
-                "Module class must be inherited from eq\base\ModuleBase");
+                'Module class must be inherited from eq\base\ModuleBase');
         return $cname;
     }
 
@@ -107,7 +113,8 @@ abstract class ModuleBase extends ModuleAbstract
     public final function getLocation()
     {
         if(!$this->_location) {
-            $fname = Loader::classLocation(get_called_class());
+            $cname = get_called_class();
+            $fname = Loader::classLocation($cname);
             if(!$fname)
                 throw new ModuleException("Unable to get module location: $cname");
             $this->_location = dirname($fname);

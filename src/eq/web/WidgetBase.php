@@ -1,11 +1,12 @@
 <?php
 /**
- * Last Change: 2014 Apr 04, 03:20
+ * Last Change: 2014 Apr 30, 20:22
  */
 
 namespace eq\web;
 
 use EQ;
+use eq\base\TObject;
 use eq\helpers\Str;
 use eq\helpers\Path;
 use eq\cgen\ViewRenderer;
@@ -14,7 +15,7 @@ use eq\web\WidgetException;
 abstract class WidgetBase
 {
 
-    use \eq\base\TObject;
+    use TObject;
 
     const _FILE_ = __FILE__;
     const _DIR_ = __DIR__;
@@ -25,6 +26,11 @@ abstract class WidgetBase
     public function render()
     {
         return $this->renderView("main");
+    }
+
+    public function getData()
+    {
+        return [];
     }
 
     protected function renderView($view, $vars = [])

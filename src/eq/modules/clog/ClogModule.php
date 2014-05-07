@@ -1,19 +1,25 @@
 <?php
 /**
- * Last Change: 2014 Apr 25, 20:01
+ * Last Change: 2014 May 04, 05:37
  */
 
 namespace eq\modules\clog;
 
 use EQ;
+use eq\base\ExceptionBase;
+use eq\base\ModuleBase;
+use eq\base\TAutobind;
+use eq\base\UncaughtExceptionException;
 use eq\helpers\Arr;
+use eq\helpers\Debug;
 use eq\helpers\Str;
 use eq\helpers\FileSystem;
+use eq\php\PhpExceptionBase;
 
-class ClogModule extends \eq\base\ModuleBase
+class ClogModule extends ModuleBase
 {
 
-    use \eq\base\TAutobind;
+    use TAutobind;
 
     protected $messages = [];
     protected $var_name;
@@ -32,6 +38,10 @@ class ClogModule extends \eq\base\ModuleBase
 
     public function __onRequest()
     {
+        foreach($this->config("urls_blacklist", ["/favicon.ico", "*.map"]) as $url) {
+            if(fnmatch($url, EQ::app()->request->uri))
+                return;
+        }
         if(!$this->checkKey())
             return;
         if($this->checkLogKey()) {
@@ -43,23 +53,47 @@ class ClogModule extends \eq\base\ModuleBase
             $this->logkey = basename($this->tmpfname);
             EQ::app()->header("X-EQ-CLog-LogKey", $this->logkey);
             EQ::app()->header("X-EQ-CLog-URL", EQ::app()->createAbsoluteUrl(
-                "modules.clog.clog.process", ['key' => $this->logkey]));
+                "modules.eq/clog.clog.process", ['key' => $this->logkey]));
         }
     }
 
     public function __onLog($msg)
     {
-        list($file, $line) = $this->callLocation(4);
+        list($file, $line) = Debug::callLocation(4);
         $this->addMsg("log", func_get_args(), $file, $line);
+    }
+
+    public function __onWarn($msg)
+    {
+        list($file, $line) = Debug::callLocation(4);
+        $this->addMsg("warn", func_get_args(), $file, $line);
+    }
+
+    public function __onErr($msg)
+    {
+        list($file, $line) = Debug::callLocation(4);
+        $this->addMsg("err", func_get_args(), $file, $line);
+    }
+
+    public function __onTodo($msg)
+    {
+        list($file, $line) = Debug::callLocation(4);
+        $this->addMsg("warn", "TODO: $msg", $file, $line);
+    }
+
+    public function __onFixme($msg)
+    {
+        list($file, $line) = Debug::callLocation(4);
+        $this->addMsg("warn", "FIXME: $msg", $file, $line);
     }
 
     public function __onException($e)
     {
-        if($e instanceof \eq\php\PhpExceptionBase)
+        if($e instanceof PhpExceptionBase)
             return;
-        $etype = $e instanceof \eq\base\ExceptionBase
+        $etype = $e instanceof ExceptionBase
             ? $e->getType() : get_class($e);
-        if($e instanceof \eq\base\UncaughtExceptionException) {
+        if($e instanceof UncaughtExceptionException) {
             $etype .= ": ".get_class($e->getException());
             $file = $e->getException()->getFile();
             $line = $e->getException()->getLine();
@@ -69,38 +103,38 @@ class ClogModule extends \eq\base\ModuleBase
             $line = $e->getLine();
         }
         $this->addMsg("err", $e->getMessage(), 
-            $etype.":\n".$this->relativePath($file), $line);
+            $etype.":\n".Debug::relativePath($file), $line);
     }
 
     public function __onError($message, $file, $line)
     {
         $this->addMsg("err", $message,
-            "Error:\n".$this->relativePath($file), $line);
+            "Error:\n".Debug::relativePath($file), $line);
         $this->__destruct();
     }
 
     public function __onWarning($message, $file, $line)
     {
         $this->addMsg("warn", $message,
-            "Warning:\n".$this->relativePath($file), $line);
+            "Warning:\n".Debug::relativePath($file), $line);
     }
 
     public function __onDeprecated($message, $file, $line)
     {
         $this->addMsg("warn", $message,
-            "Deprecated:\n".$this->relativePath($file), $line);
+            "Deprecated:\n".Debug::relativePath($file), $line);
     }
 
     public function __onNotice($message, $file, $line)
     {
         $this->addMsg("warn", $message,
-            "Notice:\n".$this->relativePath($file), $line);
+            "Notice:\n".Debug::relativePath($file), $line);
     }
 
     public function __onStrict($message, $file, $line)
     {
         $this->addMsg("warn", $message,
-            "Strict:\n".$this->relativePath($file), $line);
+            "Strict:\n".Debug::relativePath($file), $line);
     }
 
     public function __onDbQuery($dbname, $query)
@@ -133,7 +167,7 @@ class ClogModule extends \eq\base\ModuleBase
     {
         if(!isset($_SERVER['HTTP_X_EQ_CLOG_LOGKEY']))
             return false;
-        $this->logkey = preg_replace("/[^a-zA-Z0-9]/", "", 
+        $this->logkey = preg_replace("/[^a-zA-Z0-9_]/", "", 
             $_SERVER['HTTP_X_EQ_CLOG_LOGKEY']);
         if($this->logkey && 
                 file_exists(EQ::getAlias("@runtime/clog/".$this->logkey)))
@@ -146,7 +180,7 @@ class ClogModule extends \eq\base\ModuleBase
         if(!is_array($msg))
             $msg = [$msg];
         if(!$file)
-            list($file, $line) = $this->callLocation();
+            list($file, $line) = Debug::callLocation(2);
         ob_start();
         foreach($msg as $m) {
             print_r($m);
@@ -158,44 +192,11 @@ class ClogModule extends \eq\base\ModuleBase
         $msg_d = substr(ob_get_clean(), 0, -1);
         $this->messages[] = [
             'type' => $type,
-            'file' => $this->relativePath($file).":".$line,
+            'file' => Debug::relativePath($file).":".$line,
             'message' => $msg,
             'message_r' => $msg_r,
             'message_d' => $msg_d,
         ];
-    }
-
-    protected function callLocation($skip = 2)
-    {
-        $trace = debug_backtrace();
-        $file = "";
-        $line = 0;
-        if(isset($trace[$skip]['file'])) {
-            $file = $trace[$skip]['file'];
-            $line = $trace[$skip]['line'];
-        }
-        else {
-            foreach(array_reverse($trace) as $call) {
-                if(isset($call['file'])) {
-                    $file = $call['file'];
-                    $line = $call['line'];
-                    break;
-                }
-            }
-        }
-        return [$file, $line];
-    }
-
-    protected function relativePath($file)
-    {
-        return preg_replace(
-            "/^".preg_quote($this->project_root, "/")."\//", "", $file
-        );
-    }
-
-    protected function createIdeLink($file, $line = 1)
-    {
-        
     }
 
 }

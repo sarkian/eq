@@ -1,14 +1,40 @@
 <?php
 /**
- * Last Change: 2014 Apr 25, 19:55
+ * Last Change: 2014 May 04, 05:42
  */
 
 namespace eq\base;
 
+use eq\console\ConsoleApp;
+use eq\db\ConnectionBase;
+use eq\db\Pool;
 use eq\helpers\Str;
 use eq\helpers\Arr;
 use eq\helpers\FileSystem;
+use eq\task\TaskApp;
+use eq\web\WebApp;
+use eq\web\WidgetBase;
+use glip\Binary;
+use glip\Git;
 
+/**
+ * @property string type
+ * @property array available_modules
+ * @property array modules_by_class
+ * @property array modules_by_name
+ * @property string classname
+ * @property string classbasename
+ * @property string app_namespace
+ * @property ExceptionBase exception
+ * @property int time
+ * @property string locale
+ * @property Cache cache
+ * @property Pool db
+ * @method static WidgetBase widget(string $name)
+ * @method static string t($token)
+ * @method static string k($token)
+ * @method ConnectionBase db(string $name)
+ */
 abstract class AppBase extends ModuleAbstract
 {
 
@@ -24,6 +50,7 @@ abstract class AppBase extends ModuleAbstract
     protected static $default_static_methods = [];
 
     protected $_config;
+    protected $_changed_config = [];
     protected $_app_namespace;
     protected $_components = [];
     protected $_exception;
@@ -104,7 +131,7 @@ abstract class AppBase extends ModuleAbstract
     public function __set($name, $value)
     {
         if($this->setterExists($name))
-            return $this->TObject_set($name, $value);
+            $this->TObject_set($name, $value);
         else
             throw new InvalidCallException(
                 "Setting application property: $name");
@@ -238,14 +265,18 @@ abstract class AppBase extends ModuleAbstract
 
     public function config($key = null, $default = null)
     {
-        return Arr::getItem($this->_config, $key, $default);
+        if(isset($this->_changed_config[$key]))
+            return $this->_changed_config[$key];
+        else
+            return Arr::getItem($this->_config, $key, $default);
     }
 
     public function configWrite($key, $value)
     {
         if(!$this->configWritable($key))
             return false;
-        Arr::setItem($this->_config, $key, $value);
+        $this->_changed_config[$key] = $value;
+        // Arr::setItem($this->_config, $key, $value);
         return true;
     }
 
@@ -274,6 +305,9 @@ abstract class AppBase extends ModuleAbstract
         return $val === "concat" || $val === "all" ? true : false;
     }
 
+    /**
+     * @return AppBase|WebApp|ConsoleApp|TaskApp
+     */
     public static final function app()
     {
         return static::$_app;
@@ -290,11 +324,11 @@ abstract class AppBase extends ModuleAbstract
         if($version)
             return $version;
         try {
-            $repo = new \glip\Git(EQROOT."/.git");
+            $repo = new Git(EQROOT."/.git");
             $bname = $repo->getCurrentBranch();
             $branch = $repo->getTip($bname);
             $commit = $repo->getObject($branch);
-            $hash = substr(\glip\Binary::sha1_hex($branch), 0, 7);
+            $hash = substr(Binary::sha1_hex($branch), 0, 7);
             return "[$bname: $hash - ".$commit->summary
                 ." (".date("y-m-d", $commit->committer->time).")]";
         }
@@ -313,6 +347,59 @@ abstract class AppBase extends ModuleAbstract
             throw new InvalidCallException(
                 "Static method does not exists: $name");
         return call_user_func_array($method, $args);
+    }
+
+    public static function assert($assertion, $description = null)
+    {
+        if(!$assertion)
+            throw new AssertionFailedException($assertion, $description);
+    }
+
+    /**
+     * @param mixed $msg, ...
+     */
+    public static function log($msg)
+    {
+        \EQ::app()->trigger("log", func_get_args());
+    }
+
+    /**
+     * @param mixed $msg, ...
+     */
+    public static function warn($msg)
+    {
+        \EQ::app()->trigger("warn", func_get_args());
+    }
+
+    /**
+     * @param mixed $msg, ...
+     */
+    public static function err($msg)
+    {
+        \EQ::app()->trigger("err", func_get_args());
+    }
+
+    /**
+     * @param string $msg
+     */
+    public static function todo($msg)
+    {
+        \EQ::app()->trigger("todo", [$msg]);
+    }
+
+    public static function fixme($msg)
+    {
+        \EQ::app()->trigger("fixme", [$msg]);
+    }
+
+    public static function cache($name = null, $value = null)
+    {
+        if(is_null($name))
+            return \EQ::app()->cache;
+        elseif(is_null($value))
+            return \EQ::app()->cache->{$name};
+        else
+            \EQ::app()->cache->{$name} = $value;
     }
 
     protected static function systemStaticMethods()
@@ -427,6 +514,8 @@ abstract class AppBase extends ModuleAbstract
     protected function loadComponent($name)
     {
         $config = [];
+        if(!$this->system_components)
+            $this->system_components = $this->systemComponents();
         if(isset($this->_config['components'][$name]))
             $config = $this->_config['components'][$name];
         elseif(isset($this->system_components[$name]))

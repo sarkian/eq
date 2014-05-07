@@ -5,8 +5,6 @@
 
 namespace eq\helpers;
 
-use eq\modules\clog\Clog;
-
 class Str
 {
 
@@ -44,14 +42,14 @@ class Str
     public static function var2method($cmd, $ucfirst = true)
     {
         // echo $cmd."\n";
-        $cmd  = preg_replace_callback("/\_([a-z])/", 
+        $cmd  = preg_replace_callback('/\_([a-z0-9])/',
             create_function('$m', 'return strtoupper($m[1]);'), $cmd);
         return $ucfirst ? ucfirst($cmd) : $cmd;
     }
 
     public static function cmdvar2method($cmd, $ucfirst = true)
     {
-        $cmd = preg_replace_callback("/[_\-]([a-z])/",
+        $cmd = preg_replace_callback('/[_\-]([a-z])/',
             create_function('$m', 'return strtoupper($m[1]);'), $cmd);
         return $ucfirst ? ucfirst($cmd) : $cmd;
     }
@@ -68,7 +66,8 @@ class Str
 
     public static function method2label($method, $ucfirst = true, $ucfirst_all = true)
     {
-        $label = preg_replace_callback("/[^\sa-zA-Z]([a-zA-Z])/", function($m) use($ucfirst_all) {
+        $label = preg_replace_callback('/[^\sa-zA-Z0-9]([a-zA-Z0-9])/',
+            function($m) use($ucfirst_all) {
             return " ".($ucfirst_all ? ucfirst($m[1]) : $m[1]);
         }, $method);
         return $ucfirst ? ucfirst($label) : $label;

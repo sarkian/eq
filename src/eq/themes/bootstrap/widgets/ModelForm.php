@@ -1,23 +1,15 @@
 <?php
 /**
- * Last Change: 2014 Apr 09, 13:52
+ * Last Change: 2013 Nov 14, 10:57
  */
 
-namespace eq\widgets;
+namespace eq\themes\bootstrap\widgets;
 
 use eq\web\html\Html;
+use eq\web\html\HtmlNode;
 
-class BootstrapForm extends FormBase
+class ModelForm extends \eq\widgets\ModelForm
 {
-
-    protected function formOptions()
-    {
-        return [
-            'role' => "form",
-            'method' => "POST",
-            'action' => "",
-        ];
-    }
 
     protected function inputOptions($options, $type, $name = null)
     {
@@ -33,8 +25,7 @@ class BootstrapForm extends FormBase
         ];
     }
 
-    protected function inputWrap($contents, $type, 
-                            $name = null, &$wrapped_ = null)
+    protected function inputWrap($contents, $type, $name = null, &$wrapped_ = null)
     {
         $contents = parent::inputWrap($contents, $type, $name, $wrapped);
         if(!$wrapped)
@@ -45,6 +36,16 @@ class BootstrapForm extends FormBase
     protected function inputSubmitButtonWrap($contents, $name = null)
     {
         return $contents;
+    }
+
+    protected function errorsContainer()
+    {
+        return new HtmlNode("fieldset");
+    }
+
+    protected function renderError($message, $field = null)
+    {
+        return Html::tag("div", ['class' => "alert alert-danger"], $message);
     }
 
 }

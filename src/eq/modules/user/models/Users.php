@@ -6,20 +6,46 @@
 namespace eq\modules\user\models;
 
 use EQ;
+use eq\base\TModuleClass;
+use eq\data\Model;
+use eq\data\TModel;
+use eq\modules\user\UserModule;
+use eq\web\IIdentity;
 
-class Users
+/**
+ * @property int id
+ * @property string name
+ * @property string email
+ * @property string firstname
+ * @property string phone
+ * @property int role
+ * @property string pass
+ * @property string pass_confirm
+ * @property string invite
+ * @property array session_fields
+ * @property UserModule module
+ */
+class Users extends Model implements IIdentity
 {
 
-    use \eq\data\TModel;
+    use TModuleClass;
 
     const SESSION_LIMIT = 29;
     
     const ROLE_USER     = 1;
     const ROLE_ADMIN    = 2;
     
-    private static $_fields;
+    private static $_fields = [];
 
     public function getFields()
+    {
+        if(self::$_fields)
+            return self::$_fields;
+        self::$_fields = $this->module->getFields();
+        return self::$_fields;
+    }
+
+    public function _getFields()
     {
         return [
             'id' => [
@@ -87,34 +113,15 @@ class Users
         ];
     }
 
-    public function _getFields()
+    public function getSessionFields()
     {
-        if(self::$_fields)
-            return self::$_fields;
-
-        $fields = EQ::app()->config("modules.user.fields", [
-            'name' => "username",
-            'email' => "email",
-            'pass' => "password",
-            'pass_confirm' => "password",
-        ]);
-        self::$_fields = array_merge([
-            'id' => "uintp",
-        ], $fields);
-        EQ::clog(self::$_fields);
-
-        self::$_fields = [
-            'id'                => "uintp",
-            'name'              => "username",
-            'email'             => "email",
-            'firstname'         => "firstname",
-            'phone'             => "phone",
-            'role'              => "uintp",
-            'pass'              => "password",
-            'pass_confirm'      => "password",
-            'invite'            => "invite",
+        return [
+            "id",
+            "name",
+            "role",
+            "firstname",
+            "phone",
         ];
-        return self::$_fields;
     }
 
     public function getDbName()
@@ -157,15 +164,14 @@ class Users
         return [];
     }
 
-    public function login($data)
-    {
-        if(!$this->load(['name' => $data['name']]))
-            return false;
-    }
-
     public function verifyPassword($pass)
     {
-        return $this->pass === md5(sha1($this->id).sha1($pass));
+        return $this->pass === $this->encryptPassword($pass);
+    }
+
+    public function encryptPassword($pass)
+    {
+        return md5(sha1($this->id).sha1($pass));
     }
 
     public function isAuth()
@@ -175,7 +181,18 @@ class Users
 
     public function isAdmin()
     {
-        return $this->role === self::ROLE_ADMIN;
+        if($this->fieldExists("role"))
+            return $this->role === self::ROLE_ADMIN;
+        else
+            return false;
+    }
+
+    public function getStatus()
+    {
+        if($this->isAuth())
+            return $this->isAdmin() ? "admin" : "user";
+        else
+            return "guest";
     }
 
     protected function scenarioRegister()
@@ -184,20 +201,20 @@ class Users
         $pass = "";
         $this->bind("afterValidate", function() use(&$invite) {
             if($this->pass && $this->pass !== $this->pass_confirm)
-                $this->addError("Пароли не совпадают", "pass");
+                $this->addError("Passwords do not match", "pass");
             if(!$this->invite || !$invite->load($this->invite))
-                $this->addError("Инвайт недействителен", "invite");
+                $this->addError("Invalid invite", "invite");
         });
         $this->bind("beforeSave", function() use(&$pass) {
             $pass = $this->pass;
             $this->pass = "";
         });
         $this->bind("saveSuccess", function() use(&$pass, &$invite) {
-            $this->pass = md5(sha1($this->id).sha1($pass));
+            $this->pass = $this->verifyPassword($pass);
             $this->role = 1;
             $this->unbind("saveSuccess");
             if(!$this->save())
-                $this->addRawError("Ошибка. Попробуйте позже.");
+                $this->addRawError("Error. Try later");
             else
                 $invite->delete();
             $this->pass = $pass;
@@ -209,17 +226,60 @@ class Users
 
     protected function scenarioLogin()
     {
-        
+        $this->bind("afterApply", function() {
+            $this->unbind("afterApply");
+            $this->validate();
+            if($this->errors)
+                return;
+            $pass = $this->pass;
+            if($this->load(['name' => $this->name])) {
+                if(!$this->verifyPassword($pass)) {
+                    $this->addRawError("Invalid login or password", "name");
+                    return;
+                }
+                $this->saveSession();
+            }
+        });
+    }
+
+    protected function scenarioLogout()
+    {
+        $this->reset();
+        EQ::app()->session->destroy();
     }
 
     protected function saveSession()
     {
-        
+        $data = [];
+        foreach($this->session_fields as $field)
+            $data[$field] = $this->{$field};
+        EQ::log($data);
+        EQ::app()->session['userdata'] = $data;
     }
 
     protected function loadSession()
     {
-        
+        $data = $this->validateSessionData(EQ::app()->session['userdata']);
+        if($data === false)
+            return false;
+        unset($data['sessions']);
+        unset($data['sessid']);
+        $this->applyAll($data);
+        return true;
+    }
+
+    protected function validateSessionData($data)
+    {
+        $fields = $this->session_fields;
+        foreach($fields as $name) {
+            if(!isset($data[$name]))
+                return false;
+        }
+        foreach($data as $name => $value) {
+            if(!in_array($name, $fields, true))
+                unset($data[$name]);
+        }
+        return $data;
     }
 
 }

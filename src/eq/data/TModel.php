@@ -6,6 +6,8 @@
 namespace eq\data;
 
 use EQ;
+use eq\base\TEvent;
+use eq\base\TObject;
 use eq\datatypes\DataTypeBase;
 use eq\base\InvalidParamException;
 use eq\base\UnknownPropertyException;
@@ -18,12 +20,12 @@ use eq\helpers\Str;
 trait TModel
 {
 
-    use \eq\base\TObject {
+    use TObject {
         __isset as protected TObject_isset;
         __get as protected TObject_get;
         __set as protected TObject_set;
     }
-    use \eq\base\TEvent;
+    use TEvent;
 
     protected $scenario = "default";
     protected $db;

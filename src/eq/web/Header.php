@@ -10,6 +10,8 @@ use EQ;
 class Header implements \ArrayAccess
 {
 
+    protected $status_code = 200;
+    protected $status_message = "OK";
     protected $headers = [];
 
     public function __construct()
@@ -19,6 +21,7 @@ class Header implements \ArrayAccess
 
     public function __beforeEcho()
     {
+        header("HTTP/1.1 {$this->status_code} {$this->status_message}");
         foreach($this->headers as $name => $value)
             header("$name: $value");
     }
@@ -73,6 +76,14 @@ class Header implements \ArrayAccess
             return isset($_SERVER[$hname]) ? $_SERVER[$hname] : null;
         }
         $this->headers[$name] = $value;
+    }
+
+    public function status($code, $message = null)
+    {
+        // TODO messages by code
+        $this->status_code = (int) $code;
+        if(is_string($message) && $message)
+            $this->status_message = $message;
     }
 
 }

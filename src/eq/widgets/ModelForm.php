@@ -1,22 +1,28 @@
 <?php
 /**
- * Last Change: 2014 Apr 19, 18:37
+ * Last Change: 2014 May 04, 04:58
  */
 
 namespace eq\widgets;
 
 use EQ;
+use eq\base\TObject;
 use eq\data\Model;
-use eq\web\html\Html;
 use eq\helpers\Str;
-use eq\modules\clog\Clog;
 
-trait TModelForm
+class ModelForm extends FormBase
 {
 
+    use TObject;
+
+    private static $_forms = [];
+
+    /**
+     * @var Model model
+     */
     protected $model;
 
-    public function __construct($model)
+    public function __construct(Model $model)
     {
         $this->model = $model;
     }
@@ -26,8 +32,15 @@ trait TModelForm
         return $this->model->fieldLabel($name);
     }
 
+    public function fieldValue($name, $default = "")
+    {
+        return htmlspecialchars($this->model->fieldValue($name, $default));
+    }
+
     public function render()
     {
+        $this->errors = $this->model->errors;
+        $this->errors_by_field = $this->model->errors_by_field;
         $out = [$this->begin()];
         foreach($this->model->currentRules("change") as $field) {
             if(!$this->model->isVisible($field))
@@ -36,8 +49,8 @@ trait TModelForm
             $out[] = $this->renderField($field, $type);
         }
         $out[] = $this->submitButton(
-            $this->model->currentRules("submit_text", 
-            EQ::t(Str::method2label($this->model->scenario))));
+            $this->model->currentRules("submit_text",
+                EQ::t(Str::method2label($this->model->scenario))));
         $out[] = $this->end();
         return implode("\n", $out);
     }
@@ -53,4 +66,16 @@ trait TModelForm
         return $data;
     }
 
+    protected function createId()
+    {
+        $id = Str::method2var(Str::classBasename(get_class($this->model)))
+            ."-".Str::method2var(Str::classBasename(get_class($this)));
+        if(isset(self::$_forms[$id]))
+            $id .= "-".(++self::$_forms[$id]);
+        else
+            self::$_forms[$id] = 0;
+        $this->_id = $id;
+    }
+
 }
+

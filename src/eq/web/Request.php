@@ -6,9 +6,16 @@
 namespace eq\web;
 
 use EQ;
+use eq\base\Object;
 use eq\helpers\Arr;
 
-class Request extends \eq\base\Object
+/**
+ * @property string scheme
+ * @property string host
+ * @property string method
+ * @property string root
+ */
+class Request extends Object
 {
 
     const C_SECURE = 1;

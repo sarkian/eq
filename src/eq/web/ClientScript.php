@@ -6,6 +6,8 @@
 namespace eq\web;
 
 use EQ;
+use eq\base\TObject;
+use eq\helpers\Debug;
 use eq\web\html\Html;
 use eq\base\InvalidArgumentException;
 use eq\base\LoaderException;
@@ -23,7 +25,7 @@ use eq\helpers\FileSystem;
 class ClientScript
 {
 
-    use \eq\base\TObject;
+    use TObject;
 
     const POS_HEAD = 1;
     const POS_BEGIN = 2;
@@ -83,7 +85,7 @@ class ClientScript
      * addMetaTag 
      * 
      * @param array $options 
-     * @return eq\web\ClientScript
+     * @return ClientScript
      */
     public function addMetaTag($options)
     {
@@ -95,7 +97,7 @@ class ClientScript
      * addLinkTag 
      * 
      * @param array $options 
-     * @return eq\web\ClientScript
+     * @return ClientScript
      */
     public function addLinkTag($options)
     {
@@ -108,12 +110,12 @@ class ClientScript
      * 
      * @param string $code 
      * @param array $options 
-     * @return eq\web\ClientScript
+     * @return ClientScript
      */
     public function addCss($code, $options = [])
     {
-        $options = array_merge(['type' => 'text/css'], $options);
-        $this->css[] = Html::tag('style', $options, "\n$code\n");
+        $options = array_merge(['type' => "text/css"], $options);
+        $this->css[] = Html::tag("style", $options, "\n$code\n");
         return $this;
     }
 
@@ -122,16 +124,16 @@ class ClientScript
      * 
      * @param string $url 
      * @param array $options 
-     * @return eq\web\ClientScript
+     * @return ClientScript
      */
     public function addCssFile($url, $options = [])
     {
         $options = array_merge([
-            'rel' => 'stylesheet',
-            'type' => 'text/css',
+            'rel' => "stylesheet",
+            'type' => "text/css",
             'href' => $url,
         ], $options);
-        $this->css_files[] = Html::tag('link', $options);
+        $this->css_files[] = Html::tag("link", $options);
         return $this;
     }
 
@@ -140,12 +142,16 @@ class ClientScript
      * 
      * @param string $code 
      * @param int $position 
-     * @return eq\web\ClientScript
+     * @return ClientScript
      */
     public function addJs($code, $position = self::POS_HEAD)
     {
-        $this->js[$position][] = Html::tag("script", 
-            ['type' => "text/javascript"], "\n$code\n");
+        if(EQ_DBG) {
+            $location = Debug::callLocation(1);
+            $info = "[".$location[0].":".$location[1]."]";
+            $code = "/* >$info */\n$code\n/* /$info */";
+        }
+        $this->js[$position][] = $code;
     }
 
     /**
@@ -153,7 +159,7 @@ class ClientScript
      * 
      * @param string $url 
      * @param int $position
-     * @return eq\web\ClientScript
+     * @return ClientScript
      */
     public function addJsFile($url, $position = self::POS_HEAD)
     {
@@ -167,10 +173,9 @@ class ClientScript
     }
 
     /**
-     * addBundle 
-     * 
-     * @param eq\web\AssetBundle $bundle
-     * @return eq\web\ClientScript
+     * @param \eq\web\AssetBundle $bundle
+     * @param bool $reload
+     * @return \eq\web\ClientScript
      */
     public function addBundle($bundle, $reload = EQ_ASSETS_DBG)
     {
@@ -190,40 +195,59 @@ class ClientScript
     public function renderHead()
     {
         if($this->js[self::POS_READY]) {
-            JqueryAsset::register($this);
+            JqueryAsset::register();
             $ready_script = [];
             foreach($this->js[self::POS_READY] as $script)
                 $ready_script[] = "$(function() {\n$script\n});";
-            $this->addJs(implode("\n", $ready_script));
+            $this->addJs(implode("\n\n", $ready_script));
         }
         $html = [];
         if($this->title)
             $html[] = Html::tag('title', [], $this->title);
-        $html[] = $this->implodeTags($this->meta_tags);
-        $html[] = $this->implodeTags($this->link_tags);
-        $html[] = $this->implodeTags($this->css_files);
-        $html[] = $this->implodeTags($this->css);
-        $html[] = $this->implodeTags($this->js_files[self::POS_HEAD]);
-        $html[] = $this->implodeTags($this->js[self::POS_HEAD]);
-        return $this->implodeTags($html, true);
+        $html[] = $this->joinTags($this->meta_tags);
+        $html[] = $this->joinTags($this->link_tags);
+        $html[] = $this->joinTags($this->css_files);
+        $html[] = $this->joinTags($this->css);
+        $html[] = $this->joinTags($this->js_files[self::POS_HEAD]);
+        if($this->js[self::POS_HEAD])
+            $html[] = $this->joinScripts(self::POS_HEAD);
+        return $this->joinTags($html, true);
     }
 
     public function renderBegin()
     {
-
+        $html = [];
+        if($this->js[self::POS_BEGIN]) {
+            $html[] = Html::tag("script", ['type' => "text/javascript"],
+                implode("\n\n", $this->js[self::POS_BEGIN]));
+        }
+        $html[] = $this->joinTags($this->js_files[self::POS_BEGIN]);
+        return $this->joinTags($html);
     }
 
     public function renderEnd()
     {
-
+        $html = [];
+        $html[] = $this->joinTags($this->js_files[self::POS_END]);
+        $html[] = $this->joinTags($this->js[self::POS_END]);
+        return $this->joinTags($html, true);
     }
 
-    private function implodeTags($tags, $ret = false)
+    private function joinTags($tags, $ret = false)
     {
         $tags = array_diff($tags, ['']);
         if(empty($tags)) return '';
         $tags = implode("\n", $tags);
         return $ret ? $tags."\n" : $tags; 
+    }
+
+    private function joinScripts($pos, $tag = true)
+    {
+        $code = "\n".implode("\n\n", $this->js[$pos])."\n";
+        if($tag)
+            return Html::tag("script", ['type' => "text/javascript"], $code);
+        else
+            return $code;
     }
 
 }
