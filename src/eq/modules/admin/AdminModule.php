@@ -1,17 +1,15 @@
 <?php
-/**
- * Last Change: 2014 Apr 25, 19:59
- */
 
 namespace eq\modules\admin;
 
 use EQ;
-use eq\helpers\Arr;
+use eq\base\ModuleBase;
+use eq\base\TAutobind;
 
-class AdminModule extends \eq\base\ModuleBase
+class AdminModule extends ModuleBase
 {
 
-    use \eq\base\TAutobind;
+    use TAutobind;
 
     protected $config;
 
@@ -22,7 +20,8 @@ class AdminModule extends \eq\base\ModuleBase
 
     public function __onI18n_beforeLoadFiles()
     {
-        EQ::app()->module("eq/i18n")->addDir(__DIR__."/locale", "admin");
+        /** @noinspection PhpUndefinedMethodInspection */
+        EQ::app()->module("eq:i18n")->addDir(__DIR__."/locale", "admin");
     }
 
 }

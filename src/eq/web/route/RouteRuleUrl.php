@@ -1,16 +1,19 @@
 <?php
-/**
- * Last Change: 2014 Apr 24, 05:45
- */
 
 namespace eq\web\route;
 
+use eq\base\TObject;
 use eq\datatypes\DataTypeBase;
 
+/**
+ * @property string reg
+ * @property array vars
+ * @property array mask
+ */
 class RouteRuleUrl
 {
 
-    use \eq\base\TObject;
+    use TObject;
 
     protected $fname;
     protected $lnum;
@@ -204,7 +207,7 @@ class RouteRuleUrl
                 $this->except("Unknown token: $str");
             }
         }
-        $this->reg .= "\/{0,1}$/";
+        $this->reg .= '\/{0,1}$/';
     }
 
     protected function flag($name, $value = null)
@@ -212,7 +215,7 @@ class RouteRuleUrl
         if(is_null($value))
             return isset($this->flags[$name]) ? $this->flags[$name] : false;
         else
-            $this->flags[$name] = (bool) $value;
+            return $this->flags[$name] = (bool) $value;
     }
 
     protected function except($message)

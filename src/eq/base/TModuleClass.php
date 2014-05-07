@@ -7,9 +7,7 @@ namespace eq\base;
 
 use EQ;
 
-use eq\base\ModuleException;
 use eq\base\TObject;
-use eq\cgen\reflection\IDefinitionString;
 use eq\helpers\Path;
 
 /**
@@ -43,7 +41,7 @@ trait TModuleClass
             $cname = get_called_class();
             $parts = explode("\\", $cname);
             if(count($parts) > 2 && $parts[1] === "modules")
-                $this->_module_name = $parts[0]."/".$parts[2];
+                $this->_module_name = $parts[0].":".$parts[2];
             else
                 throw new ModuleException("Unable to get module name: $cname");
         }
@@ -80,6 +78,8 @@ trait TModuleClass
     protected function findViewFile($view_file)
     {
         $fname = Path::join([$this->module_location, "views", $view_file.".php"]);
+        /** @noinspection PhpUndefinedClassInspection */
+        /** @noinspection PhpUndefinedMethodInspection */
         return file_exists($fname) ? $fname : parent::findViewFile($view_file);
     }
 
@@ -91,6 +91,8 @@ trait TModuleClass
         if(!$tpl)
             return false;
         $fname = Path::join([$this->module_location, "templates", "$tpl.php"]);
+        /** @noinspection PhpUndefinedClassInspection */
+        /** @noinspection PhpUndefinedMethodInspection */
         return file_exists($fname) ? $fname : parent::findTemplate();
     }
 

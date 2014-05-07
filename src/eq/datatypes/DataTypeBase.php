@@ -5,21 +5,25 @@ namespace eq\datatypes;
 use EQ;
 use eq\helpers\Str;
 use eq\base\Loader;
-use eq\web\html\HtmlNode;
 
 abstract class DataTypeBase
 {
 
+    /**
+     * @param string $type
+     * @return static DataTypeBase
+     * @throws DataTypeException
+     */
     public static final function getClass($type)
     {
         if(Loader::classExists($type) 
                 && isset(class_parents($type)[get_called_class()]))
             return $type;
         $cbasename = Str::var2method($type);
-        $cname = "\\".EQ::app()->app_namespace."\datatypes\\$cbasename";
+        $cname = "\\".EQ::app()->app_namespace.'\datatypes\\'.$cbasename;
         if(Loader::classExists($cname))
             return $cname;
-        $cname = "\\eq\datatypes\\$cbasename";
+        $cname = '\\eq\datatypes\\'.$cbasename;
         if(Loader::classExists($cname))
             return $cname;
         else
@@ -53,7 +57,8 @@ abstract class DataTypeBase
         return !(bool) strlen( (string) $value );
     }
 
-    public static function validate($value)
+    public static function validate(/** @noinspection PhpUnusedParameterInspection */
+        $value)
     {
         return true;
     }
@@ -83,7 +88,8 @@ abstract class DataTypeBase
         return $value;
     }
 
-    public static function sqlType($engine = null)
+    public static function sqlType(/** @noinspection PhpUnusedParameterInspection */
+        $engine = null)
     {
         return "VARCHAR(255)";
     }

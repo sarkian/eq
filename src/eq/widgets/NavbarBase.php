@@ -6,8 +6,13 @@
 namespace eq\widgets;
 
 use EQ;
+use eq\web\WidgetBase;
 
-abstract class NavbarBase extends \eq\web\WidgetBase
+// TODO: links ordering
+/**
+ * @property string active_page
+ */
+abstract class NavbarBase extends WidgetBase
 {
 
     const _FILE_ = __FILE__;

@@ -16,7 +16,6 @@ abstract class ModuleBase extends ModuleAbstract
 
     use TObject;
 
-    // TODO: use ":" as module path separator
     /**
      * @param string $name
      * @param bool $except
@@ -25,7 +24,7 @@ abstract class ModuleBase extends ModuleAbstract
      */
     public static final function getClass($name, $except = true)
     {
-        $path = explode("/", $name);
+        $path = explode(":", $name);
         $mname = array_pop($path);
         $bname = Str::cmd2method($mname)."Module";
         $path = $path ? implode("\\", $path)."\\" : "";

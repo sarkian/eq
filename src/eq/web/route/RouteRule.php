@@ -8,6 +8,16 @@ namespace eq\web\route;
 use eq\base\TObject;
 use eq\datatypes\DataTypeBase;
 
+/**
+ * @property bool dynamic_controller
+ * @property bool dynamic_action
+ * @property string controller_name
+ * @property string action_name
+ * @property string pathname
+ * @property array url_mask
+ * @property mixed url_reg
+ * @property array url_vars
+ */
 class RouteRule
 {
 
@@ -126,8 +136,8 @@ class RouteRule
 
     public function createUrl($path, $vars = [])
     {
-        $parts = array_merge(array_diff(preg_split("/[\\\.]/", $this->pathname), [""]));
-        $parts_p = array_merge(array_diff(preg_split("/[\\\.]/", $path), [""]));
+        $parts = array_merge(array_diff(preg_split('/[\\\.]/', $this->pathname), [""]));
+        $parts_p = array_merge(array_diff(preg_split('/[\\\.]/', $path), [""]));
         if(count($parts) !== count($parts_p))
             return false;
         foreach($parts as $i => $part) {
@@ -207,13 +217,12 @@ class RouteRule
         if(is_array($exp)) {
             $exp_ = [];
             foreach($exp as $str)
-                $exp_[] = count(preg_split("/\s|_/", $str)) == 1
+                $exp_[] = count(preg_split('/\s|_/', $str)) == 1
                     ? "'$str'" : $str;;
             $exp = implode(" or ", $exp_);
-        }
-        elseif(count(preg_split("/\s|_/", $exp)) < 2)
+        } elseif(count(preg_split('/\s|_/', $exp)) < 2)
             $exp = "'$exp'";
-        if(count(preg_split("/\s|_/", $unexp)) == 1)
+        if(count(preg_split('/\s|_/', $unexp)) == 1)
             $unexp = "'$unexp'";
         throw new RouteSyntaxException(
             "Unexpected $unexp, expecting $exp", $this->fname, $this->lnum);

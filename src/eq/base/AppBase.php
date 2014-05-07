@@ -450,7 +450,7 @@ abstract class AppBase extends ModuleAbstract
         $this->modules_by_name[$name] = $module;
         $this->modules_by_class[$cname] = $module;
         $this->config_permissions['modules'][$name] = $module->configPermissions();
-        self::setAlias("@modules.".str_replace("/", ".", $name), $module->location);
+        self::setAlias("@modules.$name", $module->location);
         $compname = preg_replace("/Module$/", "Component", $cname);
         if(Loader::classExists($compname))
             $this->registerComponent($module->shortname, $compname);

@@ -7,7 +7,6 @@ namespace eq\web\route;
 
 use EQ;
 use eq\base\TObject;
-use eq\helpers\FileSystem;
 use eq\helpers\Str;
 use eq\base\Loader;
 
@@ -25,6 +24,9 @@ class Route
     use TObject;
 
     protected $files = [];
+    /**
+     * @var RouteRule[]
+     */
     protected $rules = [];
 
     protected $found = false;
@@ -130,7 +132,7 @@ class Route
                 $this->vars = $vars;
                 $this->dynamic_controller = $rule->dynamic_controller;
                 $this->dynamic_action = $rule->dynamic_action;
-                $ex = "/\{([^\{\}]*)\}/";
+                $ex = '/\{([^\{\}]*)\}/';
                 if($rule->dynamic_controller) {
                     $this->controller_name = preg_replace_callback(
                         $ex, [$this, "dynCallback"], $rule->controller_name);
