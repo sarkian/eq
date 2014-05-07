@@ -24,5 +24,4 @@ class GitTreeInvalidPathError extends GitTreeError
 {
 
 
-
 }

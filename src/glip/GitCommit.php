@@ -58,84 +58,76 @@ class GitCommit extends GitObject
 
     public function __construct($repo)
     {
-	parent::__construct($repo, Git::OBJ_COMMIT);
+        parent::__construct($repo, Git::OBJ_COMMIT);
     }
 
     public function _unserialize($data)
     {
-	$lines = explode("\n", $data);
-	unset($data);
-	$meta = array('parent' => array());
-	while (($line = array_shift($lines)) != '')
-	{
-	    $parts = explode(' ', $line, 2);
-	    if (!isset($meta[$parts[0]]))
-		$meta[$parts[0]] = array($parts[1]);
-	    else
-		$meta[$parts[0]][] = $parts[1];
-	}
+        $lines = explode("\n", $data);
+        unset($data);
+        $meta = array('parent' => array());
+        while(($line = array_shift($lines)) != '') {
+            $parts = explode(' ', $line, 2);
+            if(!isset($meta[$parts[0]]))
+                $meta[$parts[0]] = array($parts[1]);
+            else
+                $meta[$parts[0]][] = $parts[1];
+        }
 
-	$this->tree = Binary::sha1_bin($meta['tree'][0]);
-	$this->parents = array_map(['glip\Binary', 'sha1_bin'], $meta['parent']);
-	$this->author = new GitCommitStamp;
-	$this->author->unserialize($meta['author'][0]);
-	$this->committer = new GitCommitStamp;
-	$this->committer->unserialize($meta['committer'][0]);
+        $this->tree = Binary::sha1_bin($meta['tree'][0]);
+        $this->parents = array_map(['glip\Binary', 'sha1_bin'], $meta['parent']);
+        $this->author = new GitCommitStamp;
+        $this->author->unserialize($meta['author'][0]);
+        $this->committer = new GitCommitStamp;
+        $this->committer->unserialize($meta['committer'][0]);
 
-	$this->summary = array_shift($lines);
-	$this->detail = implode("\n", $lines);
+        $this->summary = array_shift($lines);
+        $this->detail = implode("\n", $lines);
 
-        $this->history = NULL;
+        $this->history = null;
     }
 
     public function _serialize()
     {
-	$s = '';
-	$s .= sprintf("tree %s\n", Binary::sha1_hex($this->tree));
-	foreach ($this->parents as $parent)
-	    $s .= sprintf("parent %s\n", Binary::sha1_hex($parent));
-	$s .= sprintf("author %s\n", $this->author->serialize());
-	$s .= sprintf("committer %s\n", $this->committer->serialize());
-	$s .= "\n".$this->summary."\n".$this->detail;
-	return $s;
+        $s = '';
+        $s .= sprintf("tree %s\n", Binary::sha1_hex($this->tree));
+        foreach($this->parents as $parent)
+            $s .= sprintf("parent %s\n", Binary::sha1_hex($parent));
+        $s .= sprintf("author %s\n", $this->author->serialize());
+        $s .= sprintf("committer %s\n", $this->committer->serialize());
+        $s .= "\n".$this->summary."\n".$this->detail;
+        return $s;
     }
 
     /**
      * @brief Get commit history in topological order.
-     *
      * @returns GitCommit[]
      */
     public function getHistory()
     {
-        if ($this->history)
+        if($this->history)
             return $this->history;
 
         /* count incoming edges */
         $inc = array();
 
         $queue = array($this);
-        while (($commit = array_shift($queue)) !== NULL)
-        {
-            foreach ($commit->parents as $parent)
-            {
-                if (!isset($inc[$parent]))
-                {
+        while(($commit = array_shift($queue)) !== null) {
+            foreach($commit->parents as $parent) {
+                if(!isset($inc[$parent])) {
                     $inc[$parent] = 1;
                     $queue[] = $this->repo->getObject($parent);
-                }
-                else
+                } else
                     $inc[$parent]++;
             }
         }
 
         $queue = array($this);
         $r = array();
-        while (($commit = array_pop($queue)) !== NULL)
-        {
+        while(($commit = array_pop($queue)) !== null) {
             array_unshift($r, $commit);
-            foreach ($commit->parents as $parent)
-            {
-                if (--$inc[$parent] == 0)
+            foreach($commit->parents as $parent) {
+                if(--$inc[$parent] == 0)
                     $queue[] = $this->repo->getObject($parent);
             }
         }
@@ -146,7 +138,6 @@ class GitCommit extends GitObject
 
     /**
      * @brief Get the tree referenced by this commit.
-     *
      * @returns GitTree referenced by this commit.
      */
     public function getTree()
@@ -156,10 +147,8 @@ class GitCommit extends GitObject
 
     /**
      * @copybrief GitTree::find()
-     *
      * This is a convenience function calling GitTree::find() on the commit's
      * tree.
-     *
      * @copydetails GitTree::find()
      */
     public function find($path)
@@ -174,7 +163,7 @@ class GitCommit extends GitObject
      */
     static public function treeDiff($a, $b)
     {
-        return GitTree::treeDiff($a ? $a->getTree() : NULL, $b ? $b->getTree() : NULL);
+        return GitTree::treeDiff($a ? $a->getTree() : null, $b ? $b->getTree() : null);
     }
 }
 

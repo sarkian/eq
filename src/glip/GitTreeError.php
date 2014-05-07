@@ -24,5 +24,4 @@ class GitTreeError extends \Exception
 {
 
 
-
 }

@@ -16,8 +16,7 @@ class Debug
         if(isset($trace[$skip]['file'])) {
             $file = $trace[$skip]['file'];
             $line = $trace[$skip]['line'];
-        }
-        else {
+        } else {
             foreach(array_reverse($trace) as $call) {
                 if(isset($call['file'])) {
                     $file = $call['file'];
@@ -31,11 +30,4 @@ class Debug
         return [$file, $line];
     }
 
-    public static function relativePath($path, $root = null)
-    {
-        if(is_null($root))
-            $root = EQ::app()->config("system.project_root", "@app");
-        return preg_replace("/^".preg_quote($root).'\//', "", $path);
-    }
-
-} 
+}

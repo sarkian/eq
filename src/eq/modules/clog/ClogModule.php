@@ -44,8 +44,7 @@ class ClogModule extends ModuleBase
             return;
         if($this->checkLogKey()) {
 
-        }
-        else {
+        } else {
             FileSystem::mkdir("@runtime/clog");
             $this->tmpfname = tempnam(EQ::getAlias("@runtime/clog"), "clog_");
             $this->logkey = basename($this->tmpfname);
@@ -95,44 +94,43 @@ class ClogModule extends ModuleBase
             $etype .= ": ".get_class($e->getException());
             $file = $e->getException()->getFile();
             $line = $e->getException()->getLine();
-        }
-        else {
+        } else {
             $file = $e->getFile();
             $line = $e->getLine();
         }
-        $this->addMsg("err", $e->getMessage(), 
-            $etype.":\n".Debug::relativePath($file), $line);
+        $this->addMsg("err", $e->getMessage(),
+            $etype.":\n".EQ::unalias($file), $line);
     }
 
     public function __onError($message, $file, $line)
     {
         $this->addMsg("err", $message,
-            "Error:\n".Debug::relativePath($file), $line);
+            "Error:\n".EQ::unalias($file), $line);
         $this->__destruct();
     }
 
     public function __onWarning($message, $file, $line)
     {
         $this->addMsg("warn", $message,
-            "Warning:\n".Debug::relativePath($file), $line);
+            "Warning:\n".EQ::unalias($file), $line);
     }
 
     public function __onDeprecated($message, $file, $line)
     {
         $this->addMsg("warn", $message,
-            "Deprecated:\n".Debug::relativePath($file), $line);
+            "Deprecated:\n".EQ::unalias($file), $line);
     }
 
     public function __onNotice($message, $file, $line)
     {
         $this->addMsg("warn", $message,
-            "Notice:\n".Debug::relativePath($file), $line);
+            "Notice:\n".EQ::unalias($file), $line);
     }
 
     public function __onStrict($message, $file, $line)
     {
         $this->addMsg("warn", $message,
-            "Strict:\n".Debug::relativePath($file), $line);
+            "Strict:\n".EQ::unalias($file), $line);
     }
 
     public function __onDbQuery($dbname, $query)
@@ -158,7 +156,7 @@ class ClogModule extends ModuleBase
     protected function checkKey()
     {
         return isset($_SERVER['HTTP_X_EQ_CLOG_KEY'])
-            && $_SERVER['HTTP_X_EQ_CLOG_KEY'] === $this->config("key", "eqclogkey");
+        && $_SERVER['HTTP_X_EQ_CLOG_KEY'] === $this->config("key", "eqclogkey");
     }
 
     protected function checkLogKey()
@@ -168,7 +166,8 @@ class ClogModule extends ModuleBase
         $this->logkey = preg_replace("/[^a-zA-Z0-9_]/", "",
             $_SERVER['HTTP_X_EQ_CLOG_LOGKEY']);
         if($this->logkey &&
-                file_exists(EQ::getAlias("@runtime/clog/".$this->logkey)))
+            file_exists(EQ::getAlias("@runtime/clog/".$this->logkey))
+        )
             return true;
         return false;
     }
