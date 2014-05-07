@@ -2,6 +2,7 @@
 
 namespace eq\base;
 
+// TODO: drop nested aliases support
 trait TAlias
 {
 
@@ -73,11 +74,32 @@ trait TAlias
 			return false;
     }
 
+    public static function unalias($path, $blacklist = [])
+    {
+        if(!strncmp($path, "@", 1))
+            return $path;
+        foreach(array_reverse(static::$aliases) as $alias => $root) {
+            if(!is_string($root))
+                continue;
+            if(!$root || in_array($alias, $blacklist))
+                continue;
+            $regex = "/^".preg_quote($root, "/")."/";
+            if(preg_match($regex, $path))
+                return preg_replace($regex, $alias, $path);
+        }
+        return $path;
+    }
+
     public static function getAliasRoot($alias)
     {
         $pos = strpos($alias, "/");
         $root = $pos === false ? $alias : substr($alias, 0, $pos);
         return isset(static::$aliases[$root]) ? static::$aliases[$root] : false;
+    }
+
+    public static function aliasTest()
+    {
+        return array_reverse(static::$aliases);
     }
 
 }

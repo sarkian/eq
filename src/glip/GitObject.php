@@ -23,7 +23,7 @@ namespace glip;
 class GitObject
 {
     /**
-     * @brief (Git) The repository this object belongs to.
+     * @var Git The repository this object belongs to.
      */
     public $repo;
     protected $type;
@@ -46,11 +46,10 @@ class GitObject
 
     /**
      * @brief Create a GitObject of the specified type.
-     *
-     * @param $repo (Git) The repository the object belongs to.
-     * @param $type (integer) Object type (one of Git::OBJ_COMMIT,
-     * Git::OBJ_TREE, Git::OBJ_BLOB).
-     * @returns A new GitCommit, GitTree or GitBlob object respectively.
+     * @param Git $repo The repository the object belongs to.
+     * @param int $type Object type (one of Git::OBJ_COMMIT, * Git::OBJ_TREE, Git::OBJ_BLOB).
+     * @throws \Exception
+     * @returns GitObject A new GitCommit, GitTree or GitBlob object respectively.
      */
     static public function create($repo, $type)
     {
@@ -66,9 +65,9 @@ class GitObject
     /**
      * @brief Internal function to calculate the hash value of a git object of the
      * current type with content $data.
-     *
-     * @param $data (string) The data to hash.
-     * @returns (string) The hash value (binary sha1).
+     * @param string $data string The data to hash.
+     * @returns string The hash value (binary sha1).
+     * @return string The hash value (binary sha1).
      */
     protected function hash($data)
     {
@@ -105,18 +104,20 @@ class GitObject
     public function unserialize($data)
     {
 	$this->name = $this->hash($data);
-	$this->_unserialize($data);
+        /** @noinspection PhpUndefinedMethodInspection */
+        $this->_unserialize($data);
     }
 
     /**
      * @brief Get the string representation of an object.
      *
-     * @returns The serialized representation of the object, as it would be
+     * @returns string The serialized representation of the object, as it would be
      * stored by git.
      */
     public function serialize()
     {
-	return $this->_serialize();
+        /** @noinspection PhpUndefinedMethodInspection */
+        return $this->_serialize();
     }
 
     /**

@@ -10,9 +10,7 @@ use eq\base\ExceptionBase;
 use eq\base\ModuleBase;
 use eq\base\TAutobind;
 use eq\base\UncaughtExceptionException;
-use eq\helpers\Arr;
 use eq\helpers\Debug;
-use eq\helpers\Str;
 use eq\helpers\FileSystem;
 use eq\php\PhpExceptionBase;
 
@@ -139,7 +137,7 @@ class ClogModule extends ModuleBase
 
     public function __onDbQuery($dbname, $query)
     {
-        
+
     }
 
     public function getUrlPrefix()
@@ -167,9 +165,9 @@ class ClogModule extends ModuleBase
     {
         if(!isset($_SERVER['HTTP_X_EQ_CLOG_LOGKEY']))
             return false;
-        $this->logkey = preg_replace("/[^a-zA-Z0-9_]/", "", 
+        $this->logkey = preg_replace("/[^a-zA-Z0-9_]/", "",
             $_SERVER['HTTP_X_EQ_CLOG_LOGKEY']);
-        if($this->logkey && 
+        if($this->logkey &&
                 file_exists(EQ::getAlias("@runtime/clog/".$this->logkey)))
             return true;
         return false;
@@ -192,7 +190,7 @@ class ClogModule extends ModuleBase
         $msg_d = substr(ob_get_clean(), 0, -1);
         $this->messages[] = [
             'type' => $type,
-            'file' => Debug::relativePath($file).":".$line,
+            'file' => EQ::unalias($file).":".$line,
             'message' => $msg,
             'message_r' => $msg_r,
             'message_d' => $msg_d,

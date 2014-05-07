@@ -20,6 +20,9 @@
 
 namespace glip;
 
+/**
+ *
+ */
 class Git
 {
     public $dir;
@@ -76,7 +79,9 @@ class Git
 
     /**
      * @brief Tries to find $object_name in the fanout table in $f at $offset.
-     *
+     * @param $f
+     * @param $object_name
+     * @param $offset
      * @returns array The range where the object can be located (first possible
      * location and past-the-end location)
      */
@@ -100,10 +105,11 @@ class Git
 
     /**
      * @brief Try to find an object in a pack.
-     *
-     * @param $object_name (string) name of the object (binary SHA1)
-     * @returns (array) an array consisting of the name of the pack (string) and
+     * @param string $object_name name of the object (binary SHA1)
+     * @returns array an array consisting of the name of the pack (string) and
      * the byte offset inside it, or NULL if not found
+     * @throws \Exception
+     * @return array|null (array) an array consisting of the name of the pack (string) and
      */
     protected function findPackedObject($object_name)
     {
@@ -189,16 +195,18 @@ class Git
 
     /**
      * @brief Apply the git delta $delta to the byte sequence $base.
-     *
-     * @param $delta (string) the delta to apply
-     * @param $base (string) the sequence to patch
-     * @returns (string) the patched byte sequence
+     * @param string $delta the delta to apply
+     * @param string $base the sequence to patch
+     * @returns string the patched byte sequence
+     * @return string the patched byte sequence
      */
     protected function applyDelta($delta, $base)
     {
         $pos = 0;
 
+        /** @noinspection PhpUnusedLocalVariableInspection */
         $base_size = Binary::git_varint($delta, $pos);
+        /** @noinspection PhpUnusedLocalVariableInspection */
         $result_size = Binary::git_varint($delta, $pos);
 
         $r = '';
@@ -232,11 +240,12 @@ class Git
 
     /**
      * @brief Unpack an object from a pack.
-     *
-     * @param $pack (resource) open .pack file
-     * @param $object_offset (integer) offset of the object in the pack
-     * @returns (array) an array consisting of the object type (int) and the
+     * @param resource $pack open .pack file
+     * @param int $object_offset offset of the object in the pack
+     * @returns array an array consisting of the object type (int) and the
      * binary representation of the object (string)
+     * @throws \Exception
+     * @return array (array) an array consisting of the object type (int) and the
      */
     protected function unpackObject($pack, $object_offset)
     {
@@ -312,12 +321,11 @@ class Git
 
     /**
      * @brief Fetch an object in its binary representation by name.
-     *
      * Throws an exception if the object cannot be found.
-     *
      * @param $object_name (string) name of the object (binary SHA1)
-     * @returns (array) an array consisting of the object type (int) and the
      * binary representation of the object (string)
+     * @throws \Exception
+     * @return array an array consisting of the object type (int) and the
      */
     protected function getRawObject($object_name)
     {
@@ -332,11 +340,12 @@ class Git
 	{
             list($hdr, $object_data) = explode("\0", gzuncompress(file_get_contents($path)), 2);
 
+        $object_size = 0;
 	    sscanf($hdr, "%s %d", $type, $object_size);
 	    $object_type = Git::getTypeID($type);
             $r = array($object_type, $object_data);
 	}
-	else if ($x = $this->findPackedObject($object_name))
+	else if (($x = $this->findPackedObject($object_name)))
 	{
             list($pack_name, $object_offset) = $x;
 
@@ -362,7 +371,7 @@ class Git
      * @brief Fetch an object in its PHP representation.
      *
      * @param $name (string) name of the object (binary SHA1)
-     * @returns (GitObject) the object
+     * @returns GitObject|GitCommit|GitBlob the object
      */
     public function getObject($name)
     {
@@ -375,9 +384,10 @@ class Git
 
     /**
      * @brief Look up a branch.
-     *
-     * @param $branch (string) The branch to look up, defaulting to @em master.
-     * @returns (string) The tip of the branch (binary sha1).
+     * @param string $branch (string) The branch to look up, defaulting to @em master.
+     * @returns string The tip of the branch (binary sha1).
+     * @throws \Exception
+     * @return null|string (string) The tip of the branch (binary sha1).
      */
     public function getTip($branch='master')
     {

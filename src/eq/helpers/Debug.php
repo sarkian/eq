@@ -27,7 +27,7 @@ class Debug
             }
         }
         if(!$absolute)
-            $file = self::relativePath($file);
+            $file = EQ::unalias($file);
         return [$file, $line];
     }
 

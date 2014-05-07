@@ -5,13 +5,13 @@
 
 namespace eq\web;
 
-use EQ;
 use eq\base\Object;
 use eq\helpers\Arr;
 
 /**
  * @property string scheme
  * @property string host
+ * @property string uri
  * @property string method
  * @property string root
  */

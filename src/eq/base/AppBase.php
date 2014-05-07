@@ -384,11 +384,13 @@ abstract class AppBase extends ModuleAbstract
      */
     public static function todo($msg)
     {
+        // TODO: check for repeats
         \EQ::app()->trigger("todo", [$msg]);
     }
 
     public static function fixme($msg)
     {
+        // TODO: check for repeats
         \EQ::app()->trigger("fixme", [$msg]);
     }
 
@@ -399,7 +401,7 @@ abstract class AppBase extends ModuleAbstract
         elseif(is_null($value))
             return \EQ::app()->cache->{$name};
         else
-            \EQ::app()->cache->{$name} = $value;
+            return \EQ::app()->cache->{$name} = $value;
     }
 
     protected static function systemStaticMethods()
@@ -420,7 +422,7 @@ abstract class AppBase extends ModuleAbstract
                 elseif(is_null($value))
                     return \EQ::app()->cache->{$name};
                 else
-                    \EQ::app()->cache->{$name} = $value;
+                    return \EQ::app()->cache->{$name} = $value;
             },
             't' => function($text) { return $text; },
             'k' => function($key)  { return $key;  },
@@ -437,6 +439,10 @@ abstract class AppBase extends ModuleAbstract
         }
     }
 
+    /**
+     * @param $name
+     * @param string|ModuleBase $cname
+     */
     protected function loadModule($name, $cname)
     {
         $this->trigger("modules.$name.init");
@@ -444,7 +450,7 @@ abstract class AppBase extends ModuleAbstract
         $this->modules_by_name[$name] = $module;
         $this->modules_by_class[$cname] = $module;
         $this->config_permissions['modules'][$name] = $module->configPermissions();
-        self::setAlias("@modules.$name", $module->location);
+        self::setAlias("@modules.".str_replace("/", ".", $name), $module->location);
         $compname = preg_replace("/Module$/", "Component", $cname);
         if(Loader::classExists($compname))
             $this->registerComponent($module->shortname, $compname);
@@ -513,7 +519,6 @@ abstract class AppBase extends ModuleAbstract
 
     protected function loadComponent($name)
     {
-        $config = [];
         if(!$this->system_components)
             $this->system_components = $this->systemComponents();
         if(isset($this->_config['components'][$name]))

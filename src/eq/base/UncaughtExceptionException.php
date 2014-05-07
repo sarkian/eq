@@ -8,7 +8,7 @@ class UncaughtExceptionException extends ExceptionBase
     protected $type = "UncaughtExceptionException";
     protected $exception;
 
-    public function __construct($exception)
+    public function __construct(\Exception $exception)
     {
         $this->exception = $exception;
         parent::__construct($exception->getMessage(), $exception->getCode());

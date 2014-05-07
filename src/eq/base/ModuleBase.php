@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 25, 19:40
- */
 
 namespace eq\base;
 
@@ -19,6 +16,13 @@ abstract class ModuleBase extends ModuleAbstract
 
     use TObject;
 
+    // TODO: use ":" as module path separator
+    /**
+     * @param string $name
+     * @param bool $except
+     * @return static ModuleBase|bool
+     * @throws ModuleException
+     */
     public static final function getClass($name, $except = true)
     {
         $path = explode("/", $name);
@@ -62,6 +66,9 @@ abstract class ModuleBase extends ModuleAbstract
         return $cname;
     }
 
+    /**
+     * @return ModuleBase
+     */
     protected static final function instance()
     {
         $modules = EQ::app()->modules_by_class;

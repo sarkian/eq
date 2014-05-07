@@ -23,36 +23,38 @@ namespace glip;
 class GitCommit extends GitObject
 {
     /**
-     * @brief (string) The tree referenced by this commit, as binary sha1
+     * @var string The tree referenced by this commit, as binary sha1
      * string.
      */
     public $tree;
 
     /**
-     * @brief (array of string) Parent commits of this commit, as binary sha1
+     * @var string[] Parent commits of this commit, as binary sha1
      * strings.
      */
     public $parents;
 
     /**
-     * @brief (GitCommitStamp) The author of this commit.
+     * @var GitCommitStamp The author of this commit.
      */
     public $author;
 
     /**
-     * @brief (GitCommitStamp) The committer of this commit.
+     * @var GitCommitStamp The committer of this commit.
      */
     public $committer;
 
     /**
-     * @brief (string) Commit summary, i.e. the first line of the commit message.
+     * @var string Commit summary, i.e. the first line of the commit message.
      */
     public $summary;
 
     /**
-     * @brief (string) Everything after the first line of the commit message.
+     * @var string Everything after the first line of the commit message.
      */
     public $detail;
+
+    public $history;
 
     public function __construct($repo)
     {
@@ -101,7 +103,7 @@ class GitCommit extends GitObject
     /**
      * @brief Get commit history in topological order.
      *
-     * @returns (array of GitCommit)
+     * @returns GitCommit[]
      */
     public function getHistory()
     {
@@ -145,7 +147,7 @@ class GitCommit extends GitObject
     /**
      * @brief Get the tree referenced by this commit.
      *
-     * @returns The GitTree referenced by this commit.
+     * @returns GitTree referenced by this commit.
      */
     public function getTree()
     {
@@ -165,6 +167,11 @@ class GitCommit extends GitObject
         return $this->getTree()->find($path);
     }
 
+    /**
+     * @param GitCommit $a
+     * @param GitCommit $b
+     * @return array
+     */
     static public function treeDiff($a, $b)
     {
         return GitTree::treeDiff($a ? $a->getTree() : NULL, $b ? $b->getTree() : NULL);
