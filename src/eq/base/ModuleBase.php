@@ -48,14 +48,15 @@ abstract class ModuleBase extends ModuleAbstract
     }
 
     /**
-     * @param bool $noinit
+     * @param bool $enable
+     * @internal param bool $noinit
      * @return ModuleBase
      */
-    protected static final function instance($noinit = true)
+    protected static final function instance($enable = false)
     {
         $modules = EQ::app()->modules_by_class;
         $cname = get_called_class();
-        return isset($modules[$cname]) ? $modules[$cname] : new $cname($noinit);
+        return isset($modules[$cname]) ? $modules[$cname] : new $cname($enable);
     }
 
 
