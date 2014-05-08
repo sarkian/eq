@@ -1,21 +1,24 @@
 <?php
-/**
- * Last Change: 2014 Apr 14, 17:11
- */
 
 namespace eq\console;
 
+use eq\base\TObject;
 use eq\datatypes\DataTypeBase;
 
+/**
+ * @property DataTypeBase type
+ * @property string description
+ * @property bool required
+ */
 class ReflectionActionParameter extends \ReflectionParameter
 {
 
-    use \eq\base\TObject;
+    use TObject;
 
     protected $action;
     protected $doctag;
 
-    public function __construct($action, $name)
+    public function __construct(ReflectionAction $action, $name)
     {
         parent::__construct([$action->class, $action->name], $name);
         $this->action = $action;

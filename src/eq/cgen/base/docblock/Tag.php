@@ -6,21 +6,12 @@
 namespace eq\cgen\base\docblock;
 
 /**
- * Представляет тег doc-блока. 
- * 
- * @author Sarkian <root@dustus.org> 
- * @since 0.2
- * @doc docs/eq/cgen/base/docblock/Tag.md
- * @test tests/eq/cgen/base/docblock/TagTest.php
- * @uses eq\cgen\base\docblock\DocblockAbstract
- * @usedby eq\cgen\base\docblock\TagList
- * @see eq\cgen\base\docblock\TagList
- * @see eq\cgen\base\docblock\Docblock
+ * Представляет тег doc-блока.
  */
 class Tag extends DocblockAbstract
 {
 
-# @section Properties
+    # @section Properties
 
     /**
      * @var string Имя тега (без "@").
@@ -52,11 +43,10 @@ class Tag extends DocblockAbstract
      */
     protected $_fromsecond = "";
 
-# @endsection Properties
+    # @endsection Properties
 
     /**
-     * Конструктор. 
-     * 
+     * Конструктор.
      * @param string $name Имя тега
      * @param string $value Значение тега
      */
@@ -68,11 +58,8 @@ class Tag extends DocblockAbstract
     }
 
     /**
-     * Добавляет строку к значению тега. 
-     * 
+     * Добавляет строку к значению тега.
      * @param string $value Добавляемая строка
-     * @see eq\cgen\base\docblock\TagList::append
-     * @see eq\cgen\base\docblock\TagList::appendAll
      */
     protected function append($value)
     {
@@ -81,12 +68,9 @@ class Tag extends DocblockAbstract
     }
 
     /**
-     * Устанавливает (если указан параметр) и возвращает значение тега. 
-     * 
+     * Устанавливает (если указан параметр) и возвращает значение тега.
      * @param string $value Новое значение
      * @return string Текущее значение тега.
-     * @see eq\cgen\base\docblock\TagList::value
-     * @see eq\cgen\base\docblock\TagList::valueAll
      */
     protected function value($value = null)
     {
@@ -98,12 +82,9 @@ class Tag extends DocblockAbstract
     }
 
     /**
-     * Устанавливает (если указан параметр) и возвращает первое слово значения тега. 
-     * 
+     * Устанавливает (если указан параметр) и возвращает первое слово значения тега.
      * @param string $value Новое значение
      * @return string Первое слово текущего значения тега.
-     * @see eq\cgen\base\docblock\TagList::wfirst
-     * @see eq\cgen\base\docblock\TagList::wfirstAll
      */
     protected function wfirst($value = null)
     {
@@ -119,12 +100,9 @@ class Tag extends DocblockAbstract
     }
 
     /**
-     * Устанавливает (если указан параметр) и возвращает второе слово значения тега. 
-     * 
+     * Устанавливает (если указан параметр) и возвращает второе слово значения тега.
      * @param string $value Новое значение
      * @return string Второе слово текущего значения тега.
-     * @see eq\cgen\base\docblock\TagList::wsecond
-     * @see eq\cgen\base\docblock\TagList::wsecondAll
      */
     protected function wsecond($value = null)
     {
@@ -143,12 +121,9 @@ class Tag extends DocblockAbstract
     }
 
     /**
-     * Устанавливает (если указан параметр) и возвращает часть значения тега после первого слова. 
-     * 
+     * Устанавливает (если указан параметр) и возвращает часть значения тега после первого слова.
      * @param string $value Новое значение
      * @return string Часть текущего значения тега после первого слова.
-     * @see eq\cgen\base\docblock\TagList:fromfirst
-     * @see eq\cgen\base\docblock\TagList:fromfirstAll
      */
     protected function fromfirst($value = null)
     {
@@ -163,12 +138,9 @@ class Tag extends DocblockAbstract
     }
 
     /**
-     * Устанавливает (если указан параметр) и возвращает часть значения тега после второго слова. 
-     * 
+     * Устанавливает (если указан параметр) и возвращает часть значения тега после второго слова.
      * @param string $value Новое значение
      * @return string Часть текущего значения тега после второго слова.
-     * @see eq\cgen\base\docblock\TagList::fromsecond
-     * @see eq\cgen\base\docblock\TagList::fromsecondAll
      */
     protected function fromsecond($value = null)
     {
@@ -185,12 +157,9 @@ class Tag extends DocblockAbstract
     }
 
     /**
-     * Рендерит тег. 
-     * 
+     * Рендерит тег.
      * @param int $indent Отступ в пробелах
      * @return string Часть докблока (не комментарий полностью!), содержащая тег.
-     * @see eq\cgen\base\docblock\TagList::render
-     * @see eq\cgen\base\docblock\Docblock::render
      */
     protected function render($indent = 0)
     {
@@ -200,7 +169,7 @@ class Tag extends DocblockAbstract
     }
 
     /**
-     * Парсит текущее значение тега. 
+     * Парсит текущее значение тега.
      */
     protected function processValue()
     {

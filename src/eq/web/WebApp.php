@@ -6,6 +6,7 @@ use EQ;
 use eq\base\AppBase;
 use eq\base\ExceptionBase;
 use eq\base\LoaderException;
+use eq\controllers\DebugController;
 use eq\controllers\ErrorsController;
 use eq\data\Model;
 use eq\modules\user\models\Users;
@@ -15,6 +16,7 @@ use eq\base\ComponentException;
 use eq\base\InvalidParamException;
 use eq\base\Loader;
 use eq\web\route\Route;
+use Exception;
 
 defined("EQ_ASSETS_DBG") or define("EQ_ASSETS_DBG", EQ_DBG);
 
@@ -25,13 +27,14 @@ defined("EQ_ASSETS_DBG") or define("EQ_ASSETS_DBG", EQ_DBG);
  * @property Request request
  * @property Session session
  * @property Header header
+ * @property Cookie cookie
  * @property IIdentity|Model|Users user
  * @property array route_files
  * @property string controller_name
  * @property string action_name
  * @method void header()
  */
-class WebApp extends AppBase
+final class WebApp extends AppBase
 {
 
     protected $controller_name;
@@ -143,9 +146,9 @@ class WebApp extends AppBase
         return $this->request->root.$this->createUrl($path, $vars, $get_vars);
     }
 
-    public function redirect($url, $status = 302, $message = "")
+    public function redirect($url, $status = 302, $message = "Found")
     {
-        throw new HttpRedirectException($url, $status, $message = "Found");
+        throw new HttpRedirectException($url, $status, $message);
     }
 
     public function run()
@@ -159,11 +162,14 @@ class WebApp extends AppBase
                 $cname = $this->route->controller_class;
                 $method = $this->route->action_method;
                 $controller = new $cname();
+                if(!$controller instanceof Controller)
+                    throw new ControllerException(
+                        'Controller class must be a subclass of eq\web\Controller: '.$cname);
                 $action = new ReflectionAction($controller, $method);
                 ob_start();
                 $result = $action->call($this->route->vars);
                 if(!is_null($result))
-                    $controller->useActionResult();
+                    $controller->useActionResult($result);
                 $out = ob_get_clean();
                 $this->trigger("beforeEcho");
                 echo $out;
@@ -188,13 +194,12 @@ class WebApp extends AppBase
             // $this->unbind("exception");
             $this->clearOutBuff();
             $this->processException($e_base);
-        }
-        catch(\Exception $e_unc) {
+        } catch(Exception $e_unc) {
             $this->processUncaughtException($e_unc);
         }
     }
 
-    public function processFatalError($err)
+    public function processFatalError(array $err)
     {
         $this->clearOutBuff();
         $this->processException(
@@ -203,7 +208,7 @@ class WebApp extends AppBase
         );
     }
 
-    public function processException($e)
+    public function processException(ExceptionBase $e)
     {
         if(defined('EQ_DBG') && EQ_DBG) {
             $cname = $this->app_namespace.'\\controllers\\DebugController';
@@ -211,7 +216,7 @@ class WebApp extends AppBase
                 $controller = new $cname();
             }
             catch(LoaderException $e_load) {
-                $controller = new \eq\controllers\DebugController();
+                $controller = new DebugController();
             }
             $actname = 'action'.$e->getType();
             $this->exception = $e;
@@ -229,7 +234,7 @@ class WebApp extends AppBase
                 new HttpException(500, $e->getMessage()));
     }
 
-    public function processUncaughtException($e)
+    public function processUncaughtException(Exception $e)
     {
         $this->clearOutBuff();
         $this->processException(
@@ -302,6 +307,7 @@ class WebApp extends AppBase
 
     protected function clearOutBuff()
     {
+        /** @noinspection PhpUnusedLocalVariableInspection */
         foreach(ob_list_handlers() as $handler)
             ob_end_clean();
     }

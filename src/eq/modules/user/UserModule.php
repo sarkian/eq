@@ -25,30 +25,43 @@ class UserModule extends ModuleBase
         foreach($this->config("fields", []) as $name => $attrs) {
             $fields[$name] = $this->field($name);
         }
-        $this->login_field = $this->config("login_field", "name");
         if(!isset($fields[$this->login_field]))
             $fields[$this->login_field] = $this->field($this->login_field);
+        // email
         if($this->config("use_email", true)) {
-            if(!isset($fields['email']))
-                $fields['email'] = $this->field("email");
+            $fields['email'] = $this->field("email");
             if($this->config("email_confirmation", false) && !isset($fields['email_confirm']))
                 $fields['email_confirm'] = $this->field("email_confirm");
             if($this->config("email_verification", true)) {
                 // TODO Email verification
-                EQ::todo("Email verification");
             }
         }
+        // password
         if($this->config("use_password", true)) {
-            if(!isset($fields['pass']))
-                $fields['pass'] = $this->field("pass");
+            $fields['pass'] = $this->field("pass");
             if($this->config("password_confirmation", true) && !isset($fields['pass_confirm']))
                 $fields['pass_confirm'] = $this->field("pass_confirm");
         }
+        // phone
         if($this->config("use_phone", false)) {
-            if(!isset($fields['phone']))
-                $fields['phone'] = $this->field("phone");
+            $fields['phone'] = $this->field("phone");
         }
-        EQ::log($fields);
+        // firstname
+        if($this->config("use_firstname", false)) {
+            $fields['firstname'] = $this->field("firstname");
+        }
+        // lastname
+        if($this->config("use_lastname", false)) {
+            $fields['lastname'] = $this->field("lastname");
+        }
+        // invite
+        if($this->config("use_invite", false)) {
+            $fields['invite'] = $this->field("invite");
+        }
+        $this->login_field = $this->config("login_field", "name");
+        EQ::log($this->login_field);
+        //        EQ::log(array_keys($fields));
+        //        EQ::log($fields);
         return $fields;
     }
 
@@ -139,7 +152,16 @@ class UserModule extends ModuleBase
                 'save' => true,
                 'unique' => false,
                 'default' => "",
-                'label' => EQ::t("Firstname"),
+                'label' => EQ::t("First Name"),
+            ],
+            'lastname' => [
+                'type' => "lastname",
+                'show' => true,
+                'load' => true,
+                'save' => true,
+                'unique' => false,
+                'default' => "",
+                'label' => EQ::t("Last Name"),
             ],
             'phone' => [
                 'type' => "phone",

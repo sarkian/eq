@@ -38,7 +38,7 @@ abstract class TaskBase
     const R_QUEUE           = 3;
 
     /**
-     * @property eq\task\TaskQueue $queue Очередь
+     * @property TaskQueue $queue Очередь
      * @see getQueue()
      */
     protected static $queue = null;
@@ -63,9 +63,9 @@ abstract class TaskBase
 
     /**
      * Запускает задачу синхронно с аргументами $args
-     * 
-     * @param array $args 
-     * @return void
+
+     * @param array $args
+     * @return int
      */
     public final function runNow(array $args = [])
     {
@@ -90,11 +90,11 @@ abstract class TaskBase
      * Запускает задачу асинхронно. Рекомендуется определять свой метод run()
      * для каждой задачи (именно поэтому он с префиксом '_')
      * и в нём уже определять необходимые параметры и вызывать _run().
-     *  
-     * @param array     $args       Аргументы задачи
-     * @param int       $run        Как запускать (см. константы)
-     * @param string    $outlog     Лог STDOUT
-     * @param string    $errlog     Лог STDERR
+     * @param array $args Аргументы задачи
+     * @param int $run Как запускать (см. константы)
+     * @param string $outlog Лог STDOUT
+     * @param string $errlog Лог STDERR
+     * @throws InvalidParamException
      */
     public static function _run(array $args = [], $run = self::R_ONCE,
         $outlog = null, $errlog = null)

@@ -14,14 +14,16 @@ use eq\helpers\FileSystem;
 use eq\task\TaskApp;
 use eq\web\WebApp;
 use eq\web\WidgetBase;
+use Exception;
 use glip\Binary;
 use glip\Git;
 
 /**
  * @property string type
- * @property array available_modules
- * @property array modules_by_class
- * @property array modules_by_name
+ * @property ModuleBase[] available_modules
+ * @property ModuleBase[] enabled_modules
+ * @property ModuleBase[] modules_by_class
+ * @property ModuleBase[] modules_by_name
  * @property string classname
  * @property string classbasename
  * @property string app_namespace
@@ -67,9 +69,12 @@ abstract class AppBase extends ModuleAbstract
     protected $locale = "en_US";
 
     abstract public function run();
-    abstract public function processFatalError($err);
-    abstract public function processException($e);
-    abstract public function processUncaughtException($e);
+
+    abstract public function processFatalError(array $err);
+
+    abstract public function processException(ExceptionBase $e);
+
+    abstract public function processUncaughtException(Exception $e);
 
     public function __construct($config)
     {
@@ -99,18 +104,42 @@ abstract class AppBase extends ModuleAbstract
         }
         catch(ExceptionBase $e) {
             $this->processException($e);
-        }
-        catch(\Exception $ue) {
+        } catch(Exception $ue) {
             $this->processUncaughtException($ue);
         }
     }
 
-    public function module($name)
+    /**
+     * @param string $name
+     * @param bool $nothrow
+     * @return ModuleBase|bool
+     * @throws ModuleException
+     */
+    public function module($name, $nothrow = false)
     {
         if(isset($this->modules_by_name[$name]))
             return $this->modules_by_name[$name];
+        elseif(isset($this->available_modules[$name])) {
+            $module = $this->available_modules[$name];
+            $this->modules_by_name[$name] = $module;
+            $this->modules_by_class[get_class($module)] = $module;
+            return $module;
+        } elseif($nothrow)
+            return false;
         else
-            throw new ModuleException("Module not registered: $name");
+            throw new ModuleException("Module not found: $name");
+    }
+
+    public function isModuleAvaliable($name)
+    {
+        $module = $this->module($name, true);
+        return $module ? true : false;
+    }
+
+    public function isModuleEnabled($name)
+    {
+        $module = $this->module($name, false);
+        return $module ? $module->isEnabled() : false;
     }
 
     public function __onException($e)
@@ -170,7 +199,7 @@ abstract class AppBase extends ModuleAbstract
     public function getType()
     {
         return Str::method2cmd(
-            preg_replace("/^.*\\\|App$/", "", get_called_class()));
+            preg_replace('/^.*\\\|App$/', "", get_called_class()));
     }
 
     public function getAvailableModules()
@@ -183,17 +212,27 @@ abstract class AppBase extends ModuleAbstract
                 foreach($dirs as $mdir) {
                     $mdir = preg_replace("/^".preg_quote($dir, "/")."/", "", $mdir);
                     $mdir = trim($mdir, "\\/");
-                    $parts = preg_split("/[\/\\\\]/", $mdir);
+                    $parts = preg_split('/[\/\\\\]/', $mdir);
                     if(count($parts) !== 3)
                         continue;
-                    $mname = $parts[0]."/".$parts[2];
+                    $mname = $parts[0].":".$parts[2];
                     $cname = ModuleBase::getClass($mname, false);
                     if($cname)
-                        $this->_available_modules[$mname] = $cname::instance();
+                        $this->_available_modules[$mname] = $cname::instance(false);
                 }
             }
         }
         return $this->_available_modules;
+    }
+
+    public function getEnabledModules()
+    {
+        $modules = [];
+        foreach($this->modules_by_name as $name => $module) {
+            if($module->isEnabled())
+                $modules[$name] = $module;
+        }
+        return $modules;
     }
 
     public function getModulesByClass()
@@ -218,7 +257,7 @@ abstract class AppBase extends ModuleAbstract
 
     public function getClassbasename()
     {
-        return preg_replace("/^.*\\\|App$/", "", get_called_class());
+        return preg_replace('/^.*\\\|App$/', "", get_called_class());
     }
 
     public function getAppNamespace()
@@ -273,16 +312,15 @@ abstract class AppBase extends ModuleAbstract
 
     public function configWrite($key, $value)
     {
-        if(!$this->configWritable($key))
+        if(!$this->configAccessWrite($key))
             return false;
         $this->_changed_config[$key] = $value;
-        // Arr::setItem($this->_config, $key, $value);
         return true;
     }
 
-    public function configConcat($key, $value)
+    public function configAppend($key, $value)
     {
-        if(!$this->configContatenable($key))
+        if(!$this->configAccessAppend($key))
             return false;
         $val = $this->config($key, []);
         if(is_array($value))
@@ -293,13 +331,13 @@ abstract class AppBase extends ModuleAbstract
         return true;
     }
 
-    public function configWritable($key)
+    public function configAccessWrite($key)
     {
         $val = $this->configPermissionsValue($key);
         return $val === "write" || $val === "all" ? true : false;
     }
 
-    public function configContatenable($key)
+    public function configAccessAppend($key)
     {
         $val = $this->configPermissionsValue($key);
         return $val === "concat" || $val === "all" ? true : false;
@@ -331,8 +369,7 @@ abstract class AppBase extends ModuleAbstract
             $hash = substr(Binary::sha1_hex($branch), 0, 7);
             return "[$bname: $hash - ".$commit->summary
                 ." (".date("y-m-d", $commit->committer->time).")]";
-        }
-        catch(\Exception $e) {
+        } catch(Exception $e) {
             return "0.7 (unknown)";
         }
     }
@@ -384,13 +421,13 @@ abstract class AppBase extends ModuleAbstract
      */
     public static function todo($msg)
     {
-        // TODO: check for repeats
+        // TODO check for repeats
         \EQ::app()->trigger("todo", [$msg]);
     }
 
     public static function fixme($msg)
     {
-        // TODO: check for repeats
+        // TODO check for repeats
         \EQ::app()->trigger("fixme", [$msg]);
     }
 
@@ -440,13 +477,13 @@ abstract class AppBase extends ModuleAbstract
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @param string|ModuleBase $cname
      */
     protected function loadModule($name, $cname)
     {
         $this->trigger("modules.$name.init");
-        $module = $cname::instance();
+        $module = $cname::instance(true);
         $this->modules_by_name[$name] = $module;
         $this->modules_by_class[$cname] = $module;
         $this->config_permissions['modules'][$name] = $module->configPermissions();

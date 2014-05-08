@@ -2,9 +2,17 @@
 
 namespace eq\console;
 
-use EQ;
+use eq\base\TObject;
 use eq\cgen\base\docblock\Docblock;
 
+/**
+ * @property Docblock docblock
+ * @property string short_description
+ * @property ReflectionActionParameter[] parameters
+ * @property string parameters_str
+ * @property ReflectionActionOption[] options
+ * @property string options_str
+ */
 class ReflectionAction extends \ReflectionMethod
 {
 
@@ -15,7 +23,7 @@ class ReflectionAction extends \ReflectionMethod
     protected $_params = [];
     protected $_opts = [];
 
-    use \eq\base\TObject;
+    use TObject;
 
     public function __construct($command, $method)
     {

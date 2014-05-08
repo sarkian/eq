@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 14, 10:47
- */
 
 namespace eq\console;
 
@@ -74,12 +71,20 @@ class Args extends ArgumentAbstract
         return in_array($name, $this->args);
     }
 
+    /**
+     * @param string $name
+     * @return Argument|null
+     */
     protected function get($name)
     {
         $key = array_search($name, $this->args);
         return $key === false ? null : $this->args[$key];
     }
 
+    /**
+     * @param string $index
+     * @return bool|null|void
+     */
     protected function iExists($index)
     {
         if($index < 0)
@@ -87,6 +92,10 @@ class Args extends ArgumentAbstract
         return isset($this->args[$index]);
     }
 
+    /**
+     * @param string $index
+     * @return Argument|null
+     */
     protected function iGet($index)
     {
         if($index < 0)

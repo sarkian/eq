@@ -1,21 +1,25 @@
 <?php
-/**
- * Last Change: 2014 Apr 14, 16:36
- */
 
 namespace eq\console;
 
+use eq\base\TObject;
+
+/**
+ * @property string name
+ * @property string type
+ * @property string description
+ */
 class ReflectionActionOption
 {
 
-    use \eq\base\TObject;
+    use TObject;
 
     protected $action;
     protected $doctag;
     protected $name;
     protected $default_value = null;
 
-    public function __construct($action, $name)
+    public function __construct(ReflectionAction $action, $name)
     {
         $this->action = $action;
         $this->name = $name;

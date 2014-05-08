@@ -1,23 +1,25 @@
 <?php
 
-/**
- * Last Change: 2014 Apr 14, 17:48
- */
-
 namespace eq\console;
 
-use EQ;
+use eq\base\AppBase;
 use eq\base\Loader;
-use eq\base\LoaderException;
-use eq\base\console\InvalidOptionException;
 use eq\helpers\Arr;
 use eq\helpers\Console;
-use eq\helpers\Str;
 use eq\datatypes\DataTypeBase;
 use eq\base\ExceptionBase;
 use Exception;
 
-class ConsoleApp extends \eq\base\AppBase
+/**
+ * @property Args args
+ * @property int argc
+ * @property array argv
+ * @property string executable
+ * @property string command_name
+ * @property string action_name
+ * @property array action_options
+ */
+final class ConsoleApp extends AppBase
 {
 
     protected $argc;
@@ -27,6 +29,9 @@ class ConsoleApp extends \eq\base\AppBase
     protected $action_name;
     protected $action_options = [];
 
+    /**
+     * @var Command[]
+     */
     protected $commands = [];
 
     public function __construct($config)
@@ -75,7 +80,7 @@ class ConsoleApp extends \eq\base\AppBase
         $this->scanCommands();
         if($this->args->option("commands", false))
             return $this->printCommands();
-        if($cname = $this->args->option("actions"))
+        if(($cname = $this->args->option("actions")))
             return $this->printActions($cname);
         $this->command_name = $this->args->argument(0);
         $this->action_name = $this->args->argument(1, "default");
@@ -126,26 +131,26 @@ class ConsoleApp extends \eq\base\AppBase
             return -1;
         }
         catch(Exception $ue) {
-            $this->processUncaughtException($e);
+            $this->processUncaughtException($ue);
             return -1;
         }
     }
 
-    public function processFatalError($err)
+    public function processFatalError(array $err)
     {
         // TODO Implement
         echo "Fatal Error:\n";
         print_r($err);
     }
 
-    public function processException($e)
+    public function processException(ExceptionBase $e)
     {
         // TODO Implement
         echo get_class($e).": ".$e->getMessage()."\n\n";
         echo $e->getTraceAsString();
     }
 
-    public function processUncaughtException($e)
+    public function processUncaughtException(Exception $e)
     {
         // TODO Implement
         echo get_class($e).": ".$e->getMessage()."\n\n";
@@ -154,20 +159,22 @@ class ConsoleApp extends \eq\base\AppBase
 
     protected function scanCommands()
     {
-        $this->scanCommandsDir("@appsrc/commands",
-            $this->app_namespace.'\commands');
+        $this->scanCommandsDir("@appsrc/commands", $this->app_namespace.'\commands');
         $this->scanCommandsDir("@eqsrc/commands", 'eq\commands');
-        foreach($this->loaded_modules as $mod => $cname) {
-            $ns = Str::classNamespace($cname).'\commands';
-            $this->scanCommandsDir($cname::location()."/commands", $ns);
+        foreach($this->enabled_modules as $module) {
+            $ns = $module->namespace;
+            $this->scanCommandsDir($module->location, $ns);
         }
     }
 
     protected function scanCommandsDir($dir, $ns)
     {
+        /**
+         * @var string|Command $cname
+         */
         $dir = self::getAlias($dir);
         foreach(array_filter(glob($dir."/*Command.php"), "is_file") as $fname) {
-            $cbasename = preg_replace("/\.php$/", "", basename($fname));
+            $cbasename = preg_replace('/\.php$/', "", basename($fname));
             $cname = $ns."\\".$cbasename;
             if(!Loader::classExists($cname))
                 continue;
@@ -205,7 +212,7 @@ class ConsoleApp extends \eq\base\AppBase
              "Options:\n".
              "    --commands [--pure-print] -- Available commands\n".
              "    --actions <command> [--pure-print]  -- Available actions";
-        return $this->printMessage($msg);
+        return $this->printMessage($msg, $err);
     }
 
     protected function printCommands()

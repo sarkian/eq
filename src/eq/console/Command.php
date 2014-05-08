@@ -34,6 +34,9 @@ class Command
         return self::$_instances[$cname];
     }
 
+    /**
+     * @return ReflectionCommand
+     */
     public static final function reflect()
     {
         $cname = get_called_class();
@@ -44,7 +47,7 @@ class Command
 
     protected function init()
     {
-        
+
     }
 
 }

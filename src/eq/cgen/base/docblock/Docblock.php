@@ -1,25 +1,15 @@
 <?php
-/**
- * Last Change: 2014 Apr 08, 00:57
- */
 
 namespace eq\cgen\base\docblock;
 
 /**
- * Представляет doc-блок класса, метода, файла и т.д. 
- *
- * @author Sarkian <root@dustus.org> 
- * @since 0.2
- * @doc TO_DO Write documentation
- * @test TO_DO Write test
- * @see eq\cgen\base\docblock\TagList
- * @see eq\cgen\base\docblock\Tag
+ * Представляет doc-блок класса, метода, файла и т.д.
  */
 class Docblock extends DocblockAbstract
 {
 
     /**
-     * @var eq\cgen\base\docblock\TagList[] Массив списков тегов. Заполняется при вызове processDocblock().
+     * @var TagList[] Массив списков тегов. Заполняется при вызове processDocblock().
      */
     protected $tags = [];
 
@@ -34,8 +24,7 @@ class Docblock extends DocblockAbstract
     protected $descr_long = "";
 
     /**
-     * Конструктор. 
-     * 
+     * Конструктор.
      * @param string $doc_comment Doc-блок
      */
     public function __construct($doc_comment = "")
@@ -44,8 +33,7 @@ class Docblock extends DocblockAbstract
     }
 
     /**
-     * Возвращает имена всех встречающихся в блоке тегов (без "@"). 
-     * 
+     * Возвращает имена всех встречающихся в блоке тегов (без "@").
      * @return array
      */
     public function getAllUsedTags()
@@ -54,7 +42,7 @@ class Docblock extends DocblockAbstract
     }
 
     /**
-     * Удаляет все теги. 
+     * Удаляет все теги.
      */
     public function clearTags()
     {
@@ -62,10 +50,9 @@ class Docblock extends DocblockAbstract
     }
 
     /**
-     * Возвращает или устанавливает краткое описание. 
-     * 
+     * Возвращает или устанавливает краткое описание.
      * @param string $value Краткое описание, если его нужно установить
-     * @return string|eq\cgen\base\docblock\Docblock Краткое описание или текущий инстанс класса, если передан параметр $value.
+     * @return string|Docblock Краткое описание или текущий инстанс класса, если передан параметр $value.
      */
     public function shortDescription($value = null)
     {
@@ -76,10 +63,9 @@ class Docblock extends DocblockAbstract
     }
 
     /**
-     * Возвращает или устанавливает подробное описание. 
-     * 
+     * Возвращает или устанавливает подробное описание.
      * @param string $value Подробное описание, если его нужно установить
-     * @return string|eq\cgen\base\docblock\Docblock Подробное описание или текущий инстанс класса, если передан параметр $value. 
+     * @return string|Docblock Подробное описание или текущий инстанс класса, если передан параметр $value.
      */
     public function longDescription($value = null)
     {
@@ -91,12 +77,10 @@ class Docblock extends DocblockAbstract
 
     /**
      * Возвращает объект, содержащий теги, подходящие под указанные критерии.
-     * 
      * @param string $name Имя тега (без "@")
      * @param string $wfirst Первое слово значения тега; если начинается с "/" - трактуется как регэксп
      * @param string $wsecond Второе слово значения тега; если начинается с "/" - трактуется как регэксп
-     * @return eq\cgen\base\docblock\TagList Объект, содержащий теги, подходящие под указанные критерии
-     * @see eq\cgen\base\docblock\TagList
+     * @return TagList Объект, содержащий теги, подходящие под указанные критерии
      */
     public function tag($name, $wfirst = null, $wsecond = null)
     {
@@ -111,15 +95,14 @@ class Docblock extends DocblockAbstract
     }
 
     /**
-     * Рендерит doc-блок. 
-     * 
+     * Рендерит doc-блок.
      * @param int $indent Отступ в пробелах для каждой строки
      * @return string Doc-блок, готовый для вставки перед методом, классом, etc.
      */
     public function render($indent = 0)
     {
         $indent_str = str_repeat(" ", $indent);
-        $out = [ $indent_str."/**" ];
+        $out = [$indent_str."/**"];
         if($this->descr_short)
             $out = array_merge($out, $this->renderDescription($this->descr_short, $indent_str));
         if($this->descr_long)
@@ -138,15 +121,14 @@ class Docblock extends DocblockAbstract
     }
 
     /**
-     * Обрабатывает описание, разбивая его на строки, пригодные для вставки в doc-блок. 
-     * 
+     * Обрабатывает описание, разбивая его на строки, пригодные для вставки в doc-блок.
      * @param string $descr Описание
      * @param string $indent_str Отступ
      * @return array Массив строк (с отступом и " * ") описания.
      */
     protected function renderDescription($descr, $indent_str = "")
     {
-        $lines = array_map(function($line) use($indent_str) {
+        $lines = array_map(function ($line) use ($indent_str) {
             return $indent_str." * ".$line;
         }, explode("\n", $descr));
         $lines[] = $indent_str." *";
@@ -154,44 +136,43 @@ class Docblock extends DocblockAbstract
     }
 
     /**
-     * Парсит doc-блок. 
-     * 
+     * Парсит doc-блок.
      * @param string $doc Doc-блок
      */
     protected function processDocblock($doc)
     {
-        if(!$doc) return;
-        $doc = array_map(function($line) {
-            return preg_replace("/^\*\s{0,1}/", "", trim($line, " \r\n\t"));
+        if(!$doc)
+            return;
+        $doc = array_map(function ($line) {
+            return preg_replace('/^\*\s{0,1}/', "", trim($line, " \r\n\t"));
         }, preg_split("/[\r\n]+/", $doc));
-        if(array_shift($doc) !== "/**") return;
-        if(array_pop($doc) !== "/") return;
+        if(array_shift($doc) !== "/**")
+            return;
+        if(array_pop($doc) !== "/")
+            return;
         $f_sdescr = false;
         $f_ldescr = false;
         $prevtag = false;
         $descr_short = [];
         $descr_long = [];
         foreach($doc as $line) {
-            if(preg_match("/^\@[a-zA-Z]+/", $line, $matches)) {
+            if(preg_match('/^\@[a-zA-Z]+/', $line, $matches)) {
                 $f_sdescr = true;
                 $f_ldescr = true;
                 $tagname = substr(trim($matches[0], " \r\n\t"), 1);
-                $tagval = preg_replace("/^\@[a-zA-Z]+\s*/", "", $line);
+                $tagval = preg_replace('/^\@[a-zA-Z]+\s*/', "", $line);
                 if(!isset($this->tags[$tagname]))
                     $this->tags[$tagname] = new TagList($tagname);
                 $this->tags[$tagname]->addTagByValue($tagval);
                 $prevtag = $tagname;
-            } 
-            elseif($line) {
+            } elseif($line) {
                 if($prevtag)
                     $this->tags[$prevtag]->previousAdded()->append("\n".$line);
                 elseif(!$f_sdescr) {
                     $descr_short[] = $line;
-                }
-                elseif(!$f_ldescr)
+                } elseif(!$f_ldescr)
                     $descr_long[] = $line;
-            }
-            else {
+            } else {
                 $prevtag = false;
                 if($descr_short)
                     $f_sdescr = true;

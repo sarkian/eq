@@ -2,7 +2,6 @@
 
 namespace eq\console;
 
-use EQ;
 use eq\helpers\Str;
 use eq\cgen\base\docblock\Docblock;
 
@@ -24,12 +23,16 @@ class ReflectionCommand extends \ReflectionClass
         $actions = [];
         foreach($this->getMethods() as $method) {
             if(preg_match("/^action([A-Z][a-zA-Z]+)/", $method->name, $matches))
-                $actions[Str::method2cmd($matches[1])] 
-                        = $this->getAction($method->name);
+                $actions[Str::method2cmd($matches[1])]
+                    = $this->getAction($method->name);
         }
         return $actions;
     }
 
+    /**
+     * @param string $name
+     * @return ReflectionAction
+     */
     public function getAction($name)
     {
         if(!preg_match("/^action/", $name))

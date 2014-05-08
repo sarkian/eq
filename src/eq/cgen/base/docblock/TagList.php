@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 08, 00:57
- */
 
 namespace eq\cgen\base\docblock;
 
@@ -9,22 +6,11 @@ use eq\base\InvalidArgumentException;
 
 /**
  * Представляет список тегов с одинаковым именем.
- * 
- * @author Sarkian <root@dustus.org> 
- * @since 0.2
- * @doc TO_DO Write documentation
- * @test TO_DO Write test
- * @uses eq\cgen\base\docblock\DocblockAbstract
- * @uses eq\cgen\base\docblock\Tag
- * @uses eq\base\InvalidArgumentException
- * @usedby eq\cgen\base\docblock\Docblock
- * @see eq\cgen\base\docblock\Docblock
- * @see eq\cgen\base\docblock\Tag
  */
 class TagList extends DocblockAbstract
 {
 
-# @section Constants
+    # @section Constants
     /**
      * @const int Первое слово в значении тега. Используется при вызове assoc().
      */
@@ -46,21 +32,21 @@ class TagList extends DocblockAbstract
      *      Используется при вызове assoc().
      */
     const A_FROMSECOND = 3;
-# @endsection Constants
+    # @endsection Constants
 
-# @section Properties
+    # @section Properties
     /**
      * @var string Имя тега.
      */
     protected $name;
 
     /**
-     * @var eq\cgen\base\docblock\Tag[] Массив тегов.
+     * @var Tag[] Массив тегов.
      */
     protected $tags = [];
 
     /**
-     * @var eq\cgen\base\docblock\Tag Последний добавленный тег.
+     * @var Tag Последний добавленный тег.
      */
     protected $previous_added = null;
 
@@ -90,34 +76,29 @@ class TagList extends DocblockAbstract
     protected $_fromsecond;
 
     /**
-     * @var eq\cgen\base\docblock\TagList Родительский список, куда будут
+     * @var TagList Родительский список, куда будут
      *      добавлены теги методами add(), addOnce() и addTagToRoot().
      */
     protected $parent_list;
 
     protected $assoc_methods = [
-        self::A_WFIRST      => 'wfirst',
-        self::A_WSECOND     => 'wsecond',
-        self::A_FROMFIRST   => 'fromfirst',
-        self::A_FROMSECOND  => 'fromsecond',
+        self::A_WFIRST => 'wfirst',
+        self::A_WSECOND => 'wsecond',
+        self::A_FROMFIRST => 'fromfirst',
+        self::A_FROMSECOND => 'fromsecond',
     ];
-# @endsection Properties
+    # @endsection Properties
 
     /**
-     * Конструктор. 
-     * 
+     * Конструктор.
      * @param string $name Имя всех тегов в данном списке
-     * @param string $value Значение искомого тега
      * @param string $wfirst Первое слово искомого тега
      * @param string $wsecond Второе слово искомого тега
-     * @param eq\cgen\base\dockblock\TagList $parent_list Родительский список,
+     * @param TagList $parent_list Родительский список,
      *      куда будут добавлены теги методами add(), addOnce(), addTagToRoot().
-     * @see add
-     * @see addOnce
-     * @see addTagToRoot
      */
     public function __construct($name, $wfirst = null,
-            $wsecond = null, TagList $parent_list = null)
+                                $wsecond = null, TagList $parent_list = null)
     {
         $this->name = $name;
         $this->_wfirst = $wfirst;
@@ -125,12 +106,10 @@ class TagList extends DocblockAbstract
         $this->parent_list = $parent_list;
     }
 
-# @section API
+    # @section API
     /**
-     * Проверяет наличие тегов в списке. 
-     * 
+     * Проверяет наличие тегов в списке.
      * @return bool TRUE, если в списке есть хоть один тег, иначе FALSE.
-     * @see count
      */
     public function exists()
     {
@@ -138,10 +117,8 @@ class TagList extends DocblockAbstract
     }
 
     /**
-     * Возвращает количество тегов в списке. 
-     * 
+     * Возвращает количество тегов в списке.
      * @return int Количество тегов в списке.
-     * @see exists
      */
     public function count()
     {
@@ -150,10 +127,8 @@ class TagList extends DocblockAbstract
 
     /**
      * Добавляет строку к значению первого тега.
-     * 
      * @param string $value Добавляемая строка
-     * @return eq\cgen\base\docblock\TagList $this
-     * @see appendAll
+     * @return TagList $this
      */
     public function append($value)
     {
@@ -163,12 +138,10 @@ class TagList extends DocblockAbstract
     }
 
     /**
-     * Возвращает или устанавливает значение первого тега в списке. 
-     * 
+     * Возвращает или устанавливает значение первого тега в списке.
      * @param string $value Новое значение
-     * @return string|eq\cgen\base\docblock\TagList Значение первого тега в
+     * @return TagList Значение первого тега в
      *      списке или $this, если был указан параметр.
-     * @see valueAll
      */
     public function value($value = null)
     {
@@ -179,11 +152,9 @@ class TagList extends DocblockAbstract
 
     /**
      * Возвращает или устанавливает первое слово значения первого тега в списке.
-     * 
      * @param string $value Новое значение
-     * @return string|eq\cgen\base\docblock\TagList Первое слово значения
+     * @return TagList Первое слово значения
      *      первого тега в списке или $this, если был указан параметр.
-     * @see wfirstAll
      */
     public function wfirst($value = null)
     {
@@ -194,11 +165,9 @@ class TagList extends DocblockAbstract
 
     /**
      * Возвращает или устанавливает второе слово значения первого тега в списке.
-     * 
      * @param string $value Новое значение
-     * @return string|eq\cgen\base\docblock\TagList Второе слово значения
+     * @return TagList Второе слово значения
      *      первого тега в списке или $this, если был указан параметр.
-     * @see wsecondAll
      */
     public function wsecond($value = null)
     {
@@ -210,11 +179,9 @@ class TagList extends DocblockAbstract
     /**
      * Возвращает или устанавливает часть значения после
      *      первого слова первого тега в списке.
-     * 
      * @param string $value Новое значение
-     * @return string|eq\cgen\base\docblock\TagList Часть значения после первого
+     * @return TagList Часть значения после первого
      *      слова первого тега в списке или $this, если был указан параметр.
-     * @see fromfirstAll
      */
     public function fromfirst($value = null)
     {
@@ -226,11 +193,9 @@ class TagList extends DocblockAbstract
     /**
      * Возвращает или устанавливает часть значения после
      *      второго слова первого тега в списке.
-     * 
      * @param string $value Новое значение
-     * @return string|eq\cgen\base\docblock\TagList Часть значения после
+     * @return TagList Часть значения после
      *      второго слова первого тега в списке $this, если был указан параметр.
-     * @see fromsecondAll
      */
     public function fromsecond($value = null)
     {
@@ -240,10 +205,9 @@ class TagList extends DocblockAbstract
     }
 
     /**
-     * Добавляет строку к значению каждого тега в списке. 
-     * 
+     * Добавляет строку к значению каждого тега в списке.
      * @param string $value Добавляемая строка
-     * @see append
+     * @return TagList
      */
     public function appendAll($value)
     {
@@ -253,12 +217,10 @@ class TagList extends DocblockAbstract
     }
 
     /**
-     * Возвращает или устанавливает значения всех тегов в списке. 
-     * 
+     * Возвращает или устанавливает значения всех тегов в списке.
      * @param string $value Новое значение
-     * @return array|eq\cgen\base\docblock\TagList Массив значений всех тегов
+     * @return array|TagList Массив значений всех тегов
      *      в списке или $this, если был указан параметр.
-     * @see value
      */
     public function valueAll($value = null)
     {
@@ -270,11 +232,9 @@ class TagList extends DocblockAbstract
 
     /**
      * Возвращает или устанавливает первое слово значения каждого тега в списке.
-     * 
      * @param string $value Новое значение
-     * @return array|eq\cgen\base\docblock\TagList Массив, содержащий
+     * @return array|TagList Массив, содержащий
      *      первое слово каждого тега в списке $this, если был указан параметр.
-     * @see wfirst
      */
     public function wfirstAll($value = null)
     {
@@ -286,11 +246,9 @@ class TagList extends DocblockAbstract
 
     /**
      * Возвращает или устанавливает второе слово значения каждого тега в списке.
-     * 
      * @param string $value Новое значение
-     * @return array|eq\cgen\base\docblock\TagList Массив, содержащий второе
+     * @return array|TagList Массив, содержащий второе
      *      слово каждого тега в списке или $this, если был указан параметр.
-     * @see wsecond
      */
     public function wsecondAll($value = null)
     {
@@ -303,12 +261,10 @@ class TagList extends DocblockAbstract
     /**
      * Возвращает или устанавливает часть значения после первого слова
      *      каждого тега в списке.
-     * 
      * @param string $value Новое значение
-     * @return array|eq\cgen\base\docblock\TagList Массив, содержащий часть
+     * @return array|TagList Массив, содержащий часть
      *      значения после первого слова каждого тега в списке
      *      или $this, если был указан параметр.
-     * @see fromfirst
      */
     public function fromfirstAll($value = null)
     {
@@ -321,12 +277,10 @@ class TagList extends DocblockAbstract
     /**
      * Возвращает или устанавливает часть значения после
      *      второго слова каждого тега в списке.
-     * 
      * @param string $value Новое значение
-     * @return array|eq\cgen\base\docblock\TagList Массив, содержащий часть
+     * @return array|TagList Массив, содержащий часть
      *      значения после второго слова каждого тега в списке
      *      или $this, если был указан параметр.
-     * @see fromsecond
      */
     public function fromsecondAll($value = null)
     {
@@ -338,15 +292,13 @@ class TagList extends DocblockAbstract
 
     /**
      * Возвращает ассоциативный массив из частей значений тегов.
-     * 
      * @param int $keys Что использовать в качестве ключей (см. константы)
      * @param int $values Что использовать в качестве значений (см. константы)
      * @param bool $no_rewrite_keys Не переписывать значение,
      *      если ключ втречается более одного раза
-     * @return array Ассоциативный массив из частей значений тегов.
-     * @throws eq\base\InvalidArgumentException В случае некорректных
+     * @throws InvalidArgumentException В случае некорректных
      *      параметров $keys и $values.
-     * @see [Константы_класса](docs/eq/cgen/base/docblock/TagList.md)
+     * @return array Ассоциативный массив из частей значений тегов.
      */
     public function assoc($keys, $values, $no_rewrite_keys = false)
     {
@@ -367,10 +319,7 @@ class TagList extends DocblockAbstract
     }
 
     /**
-     * Добавляет тег с искомыми критериями в список. 
-     *
-     * @see addOnce
-     * @see remove
+     * Добавляет тег с искомыми критериями в список.
      */
     public function add()
     {
@@ -389,23 +338,17 @@ class TagList extends DocblockAbstract
     }
 
     /**
-     * Добавляет тег с искомыми параметрами в список, только если список пуст. 
-     *
-     * @see add
-     * @see remove
+     * Добавляет тег с искомыми параметрами в список, только если список пуст.
      */
     public function addOnce()
     {
-        if(!$this->exists()) 
+        if(!$this->exists())
             $this->add();
     }
 
     /**
-     * Удаляет первый тег в списке. 
-     * 
-     * @return eq\cgen\base\docblock\TagList Текущий объект класса.
-     * @see removeAll
-     * @see removeDuplicates
+     * Удаляет первый тег в списке.
+     * @return TagList Текущий объект класса.
      */
     public function remove()
     {
@@ -418,11 +361,8 @@ class TagList extends DocblockAbstract
     }
 
     /**
-     * Удалаяет все теги в списке. 
-     * 
-     * @return eq\cgen\base\docblock\TagList Текущий объект класса.
-     * @see remove
-     * @see removeDuplicates
+     * Удалаяет все теги в списке.
+     * @return TagList Текущий объект класса.
      */
     public function removeAll()
     {
@@ -435,11 +375,8 @@ class TagList extends DocblockAbstract
     }
 
     /**
-     * Удаляет все теги в списке, кроме первого. 
-     * 
-     * @return eq\cgen\base\docblock\TagList Текущий объект класса.
-     * @see remove
-     * @see removeAll
+     * Удаляет все теги в списке, кроме первого.
+     * @return TagList Текущий объект класса.
      */
     public function removeDuplicates()
     {
@@ -453,13 +390,10 @@ class TagList extends DocblockAbstract
         }
         return $this;
     }
-# @endsection API
+    # @endsection API
 
     /**
-     * Сбрасывает критерии искомых/добавляемых тегов. 
-     *
-     * @usedby addTagToRoot
-     * @see addTagToRoot
+     * Сбрасывает критерии искомых/добавляемых тегов.
      */
     protected function clearCriteries()
     {
@@ -471,12 +405,8 @@ class TagList extends DocblockAbstract
     }
 
     /**
-     * Добавляет тег. 
-     * 
+     * Добавляет тег.
      * @param Tag $tag Добавляемый тег
-     * @see removeTag
-     * @see addTagByValue
-     * @see addTagToRoot
      */
     protected function addTag(Tag $tag)
     {
@@ -486,9 +416,7 @@ class TagList extends DocblockAbstract
 
     /**
      * Удаляет тег из текущего списка и родительского, если таковой назначен.
-     * 
      * @param Tag $tag Удаляемый тег
-     * @see addTag
      */
     protected function removeTag(Tag $tag)
     {
@@ -503,10 +431,8 @@ class TagList extends DocblockAbstract
     }
 
     /**
-     * Добавляет тег со значением $value. 
-     * 
+     * Добавляет тег со значением $value.
      * @param string $value Значение добавляемого тега
-     * @see addTag
      */
     protected function addTagByValue($value)
     {
@@ -517,13 +443,8 @@ class TagList extends DocblockAbstract
 
     /**
      * Добавляет тег в родительский список или в текущий,
-     *      если родительский не задан. 
-     * 
-     * @param eq\cgen\base\docblock\Tag $tag Добавляемый тег
-     * @uses clearCriteries
-     * @see addTag
-     * @see addTagByValue
-     * @see clearCriteries
+     *      если родительский не задан.
+     * @param Tag $tag Добавляемый тег
      */
     protected function addTagToRoot(Tag $tag)
     {
@@ -537,12 +458,8 @@ class TagList extends DocblockAbstract
     /**
      * Возвращает последний добавленный тег.
      *      Если в списке нет ни одного тега -
-     *      сначала добавляет тег с пустым значением. 
-     * 
-     * @return eq\cgen\base\docblock\Tag Последний добавленный тег.
-     * @uses addTag
-     * @see addTag
-     * @see addTagByValue
+     *      сначала добавляет тег с пустым значением.
+     * @return Tag Последний добавленный тег.
      */
     protected function previousAdded()
     {
@@ -554,14 +471,10 @@ class TagList extends DocblockAbstract
     /**
      * Возвращает новый список тегов,
      *      первое слово значений которых совпадает с $word.
-     * 
      * @param string $word Первое слово значения тега;
      *      если начинается с "/" - трактуется как регэксп
-     * @return eq\cgen\base\docblock\TagList Новый список тегов,
+     * @return TagList Новый список тегов,
      *      являющийся дочерним списком текущего.
-     * @uses createComparsionFunction
-     * @see createComparsionFunction
-     * @see getByWSecond
      */
     protected function getByWFirst($word)
     {
@@ -578,14 +491,10 @@ class TagList extends DocblockAbstract
     /**
      * Возвращает новый список тегов,
      *      второе слово значений которых совпадает с $word.
-     * 
      * @param string $word Второе слово значения тега;
      *      если начинается с "/" - трактуется как регэксп
-     * @return eq\cgen\base\docblock\TagList Новый список тегов,
+     * @return TagList Новый список тегов,
      *      являющийся дочерним списком текущего.
-     * @uses createComparsionFunction
-     * @see createComparsionFunction
-     * @see getByWFirst
      */
     protected function getByWSecond($word)
     {
@@ -600,13 +509,10 @@ class TagList extends DocblockAbstract
     }
 
     /**
-     * Рендерит все теги в списке. 
-     * 
+     * Рендерит все теги в списке.
      * @param int $indent Отступ в пробелах
      * @return string Часть док-блока (не комментарий полностью!),
      *      содержащая все теги в списке.
-     * @see eq\cgen\base\docblock\Tag::render
-     * @see eq\cgen\base\docblock\Docblock::render
      */
     protected function render($indent = 0)
     {
@@ -617,8 +523,7 @@ class TagList extends DocblockAbstract
     }
 
     /**
-     * Создаёт и возвращает функцию сравнения первого или второго слова тега. 
-     * 
+     * Создаёт и возвращает функцию сравнения первого или второго слова тега.
      * @param string $word Слово, с которым будет проводиться сравнение;
      *      если начинается с "/" - трактуется как регэксп
      * @return callable
@@ -628,11 +533,11 @@ class TagList extends DocblockAbstract
     protected function createComparsionFunction($word)
     {
         if(strncmp($word, '/', 1))
-            return function($tag_word) use($word) {
+            return function ($tag_word) use ($word) {
                 return $word === $tag_word;
             };
         else
-            return function($tag_word) use($word) {
+            return function ($tag_word) use ($word) {
                 return (bool) preg_match($word, $tag_word);
             };
     }

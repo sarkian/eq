@@ -10,6 +10,8 @@ use eq\helpers\Str;
  * @property string shortname
  * @property string namespace
  * @property string location
+ * @property string url_prefix
+ * @property array depends
  */
 abstract class ModuleBase extends ModuleAbstract
 {
@@ -45,34 +47,15 @@ abstract class ModuleBase extends ModuleAbstract
             return false;
     }
 
-    public static final function getClass_old($name)
-    {
-        $path = explode(".", $name);
-        array_push($path, 
-            Str::cmd2var($name)."\\".Str::cmd2method(
-                array_pop($path))."Module");
-        $cbasename = implode("\\", $path);
-        $cname = EQ::app()->app_namespace."\\modules\\".$cbasename;
-        if(Loader::classExists($cname))
-            return $cname;
-        $cname = 'eq\modules\\'.$cbasename;
-        if(!Loader::classExists($cname))
-            throw new ModuleException("Module class not found: $name");
-        $parents = class_parents($cname);
-        if(!isset($parents['eq\base\ModuleBase']))
-            throw new ModuleException(
-                'Module class must be inherited from eq\base\ModuleBase');
-        return $cname;
-    }
-
     /**
+     * @param bool $noinit
      * @return ModuleBase
      */
-    protected static final function instance()
+    protected static final function instance($noinit = true)
     {
         $modules = EQ::app()->modules_by_class;
         $cname = get_called_class();
-        return isset($modules[$cname]) ? $modules[$cname] : new $cname();
+        return isset($modules[$cname]) ? $modules[$cname] : new $cname($noinit);
     }
 
 
@@ -80,10 +63,19 @@ abstract class ModuleBase extends ModuleAbstract
     private $_shortname;
     private $_namespace;
     private $_location;
+    private $_enabled = false;
 
-    private final function __construct()
+    private final function __construct($enable = false)
     {
-        $this->init();
+        if($enable) {
+            $this->init();
+            $this->_enabled = true;
+        }
+    }
+
+    public final function isEnabled()
+    {
+        return $this->_enabled;
     }
 
     public final function getName()
@@ -91,7 +83,7 @@ abstract class ModuleBase extends ModuleAbstract
         if(!$this->_name) {
             $parts = explode("\\", $this->namespace);
             if(count($parts) === 3 && $parts[1] === "modules")
-                $this->_name = $parts[0]."/".$parts[2];
+                $this->_name = $parts[0].":".$parts[2];
             else
                 throw new ModuleException("Unable to get module name: ".get_class($this));
         }
@@ -101,7 +93,7 @@ abstract class ModuleBase extends ModuleAbstract
     public final function getShortname()
     {
         if(!$this->_shortname) {
-            $parts = explode("/", $this->name);
+            $parts = explode(":", $this->name);
             if(count($parts) < 2)
                 throw new ModuleException("Invalid module name: ".$this->name);
             $this->_shortname = array_pop($parts);
@@ -139,8 +131,27 @@ abstract class ModuleBase extends ModuleAbstract
 
     public final function config($key = null, $default = null)
     {
-        $key = implode(".", ["modules", $this->name, $key]);
-        return EQ::app()->config($key, $default);
+        return EQ::app()->config($this->configKey($key), $default);
+    }
+
+    public final function configWrite($key, $value)
+    {
+        EQ::app()->configWrite($this->configKey($key), $value);
+    }
+
+    public final function configAppend($key, $value)
+    {
+        EQ::app()->configAppend($this->configKey($key), $value);
+    }
+
+    public final function configAccessWrite($key)
+    {
+        return EQ::app()->configAccessWrite($this->configKey($key));
+    }
+
+    public final function configAccessAppend($key)
+    {
+        return EQ::app()->configAccessAppend($this->configKey($key));
     }
 
     public function getUrlPrefix()
@@ -148,14 +159,24 @@ abstract class ModuleBase extends ModuleAbstract
         return "";
     }
 
-    protected function init()
+    public function getDepends()
     {
-        
+        return [];
     }
 
-    protected function registerStaticMethod($name, $method)
+    protected final function configKey($key)
+    {
+        return implode(".", ["modules", $this->name, $key]);
+    }
+
+    protected final function registerStaticMethod($name, $method)
     {
         EQ::app()->registerStaticMethod($name, $method);
+    }
+
+    protected function init()
+    {
+
     }
 
 }

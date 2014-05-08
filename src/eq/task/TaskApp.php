@@ -5,12 +5,14 @@
 
 namespace eq\task;
 
-use eq\helpers\Str;
+use eq\base\AppBase;
+use eq\base\ExceptionBase;
 use eq\helpers\Arr;
 use eq\helpers\Console;
 use eq\base\LoaderException;
+use Exception;
 
-class TaskApp extends \eq\base\AppBase
+class TaskApp extends AppBase
 {
 
     protected $argc = 0;
@@ -47,27 +49,38 @@ class TaskApp extends \eq\base\AppBase
         }
     }
 
-    public function processFatalError($err)
+    public function processFatalError(array $err)
     {
         // TODO Implement
         echo "Fatal Error:\n";
         print_r($err);
     }
 
-    public function processUncaughtException($e)
+    public function processException(ExceptionBase $e)
+    {
+
+    }
+
+    public function processUncaughtException(Exception $e)
     {
         // TODO Implement
         echo get_class($e).": ".$e->getMessage()."\n\n";
         echo $e->getTraceAsString()."\n";
     }
 
+    /**
+     * @param string $task_class
+     * @param $task_args
+     * @return int
+     * @throws TaskException
+     */
     protected function runTask($task_class, $task_args)
     {
         try {
-            if(!is_subclass_of($task_class, 'eq\task\TaskBase'))
-                throw new TaskException(
-                    "Task class must be a subclass of eq\\task\\TaskBase");
             $task = new $task_class();
+            if(!$task instanceof TaskBase)
+                throw new TaskException(
+                    'Task class must be a subclass of eq\task\TaskBase: '.$task_class);
             return $task->runNow($task_args);
         }
         catch(LoaderException $e) {
