@@ -6,15 +6,24 @@ use EQ;
 use eq\base\ModuleBase;
 use eq\helpers\Str;
 
+/**
+ * @property bool managed_sessions
+ */
 class UserModule extends ModuleBase
 {
 
     private $fields_defaults;
     private $login_field;
+    private $managed_sessions = false;
 
     public function getUrlPrefix()
     {
         return $this->config("url_prefix", "");
+    }
+
+    public function getManagedSessions()
+    {
+        return $this->managed_sessions;
     }
 
     public function getFields()
@@ -59,9 +68,8 @@ class UserModule extends ModuleBase
             $fields['invite'] = $this->field("invite");
         }
         $this->login_field = $this->config("login_field", "name");
-        EQ::log($this->login_field);
-        //        EQ::log(array_keys($fields));
-        //        EQ::log($fields);
+        $this->managed_sessions = $this->config("managed_sessions", false);
+        EQ::dump($this->managed_sessions);
         return $fields;
     }
 

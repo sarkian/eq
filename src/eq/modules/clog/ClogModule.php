@@ -84,6 +84,12 @@ class ClogModule extends ModuleBase
         $this->addMsg("warn", "FIXME: $msg", $file, $line);
     }
 
+    public function __onDump($var)
+    {
+        list($file, $line) = Debug::callLocation(4);
+        $this->addMsg("dump", func_get_args(), $file, $line);
+    }
+
     public function __onException($e)
     {
         if($e instanceof PhpExceptionBase)
@@ -180,13 +186,18 @@ class ClogModule extends ModuleBase
             list($file, $line) = Debug::callLocation(2);
         ob_start();
         foreach($msg as $m) {
-            print_r($m);
+            if($type === "dump")
+                var_dump($m);
+            else
+                print_r($m);
             echo "\n";
         }
         $msg_r = substr(ob_get_clean(), 0, -1);
         ob_start();
         var_dump(count($msg) == 1 ? $msg[0] : $msg);
         $msg_d = substr(ob_get_clean(), 0, -1);
+        if($type === "dump")
+            $type = "log";
         $this->messages[] = [
             'type' => $type,
             'file' => EQ::unalias($file).":".$line,

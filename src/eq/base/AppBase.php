@@ -425,10 +425,21 @@ abstract class AppBase extends ModuleAbstract
         \EQ::app()->trigger("todo", [$msg]);
     }
 
+    /**
+     * @param string $msg
+     */
     public static function fixme($msg)
     {
         // TODO check for repeats
         \EQ::app()->trigger("fixme", [$msg]);
+    }
+
+    /**
+     * @param mixed $var, ...
+     */
+    public static function dump($var)
+    {
+        \EQ::app()->trigger("dump", func_get_args());
     }
 
     public static function cache($name = null, $value = null)
