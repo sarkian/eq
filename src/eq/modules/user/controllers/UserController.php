@@ -1,16 +1,11 @@
 <?php
-/**
- * Last Change: 2014 May 04, 05:37
- */
 
 namespace eq\modules\user\controllers;
 
 use EQ;
 use eq\base\TModuleClass;
-use eq\modules\user\UserModule;
 use eq\modules\user\models\Users;
 use eq\web\Controller;
-use eq\web\HttpException;
 use eq\web\WebApp;
 
 class UserController extends Controller

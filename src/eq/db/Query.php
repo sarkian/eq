@@ -1,10 +1,8 @@
 <?php
-/**
- * Last Change: 2014 Mar 18, 12:47
- */
 
 namespace eq\db;
 
+use EQ;
 use PDO;
 use PDOException;
 
@@ -21,14 +19,13 @@ class Query
     public function __construct(ConnectionBase $db)
     {
         $this->db = $db;
-        $p = $this->db->pdo;
     }
 
     public function select($cols)
     {
         if(!is_array($cols)) {
             $cols = preg_split('/\s*,\s*/', trim($cols),
-                        -1, PREG_SPLIT_NO_EMPTY);
+                -1, PREG_SPLIT_NO_EMPTY);
         }
         foreach($cols as $i => $col)
             $cols[$i] = $this->db->schema->quoteColumnName($col);
@@ -66,7 +63,7 @@ class Query
     {
         if(!is_array($tables))
             $tables = preg_split('/\s*,\s*/', trim($tables),
-                    -1, PREG_SPLIT_NO_EMPTY);
+                -1, PREG_SPLIT_NO_EMPTY);
         foreach($tables as $i => $table)
             $tables[$i] = $this->db->schema->quoteTableName($table);
         $this->_query[] = "FROM ".implode(",", $tables);
@@ -94,19 +91,20 @@ class Query
         try {
             $stmt->execute();
             $stmt->setFetchMode(PDO::FETCH_ASSOC);
-        }
-        catch(PDOException $e) {
+        } catch(PDOException $e) {
             throw new SQLException($e->getMessage(), $e->getCode(), $e);
+        } finally {
+            EQ::app()->trigger("dbQuery", [$this->db->name, $stmt->queryString]);
         }
         return $stmt;
     }
 
     public function buildStatement($query = null, $params = null)
     {
-        // $query or $query = $this->buildQuery();
         $query or $query = implode(" ", $this->_query);
-        // echo $query."\n";
-        // exit;
+        $query = trim($query, " \r\n\t");
+        if(!preg_match("/;$/", $query))
+            $query .= ";";
         $stmt = $this->db->pdo->prepare($query);
         $params !== null or $params = $this->params;
         foreach($params as $name => $value)

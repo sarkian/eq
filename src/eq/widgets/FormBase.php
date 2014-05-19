@@ -30,6 +30,7 @@ class FormBase extends WidgetBase
     protected $errors = [];
     protected $errors_by_field = [];
     protected $_id;
+    protected $_autofocus = false;
 
     public function getId()
     {
@@ -84,6 +85,14 @@ class FormBase extends WidgetBase
     {
         return isset($this->values[$name])
             ? htmlspecialchars($this->values[$name]) : $default;
+    }
+
+    public function fieldErrors($name)
+    {
+        if(isset($this->errors_by_field[$name]) && is_array($this->errors_by_field[$name]))
+            return $this->errors_by_field[$name];
+        else
+            return [];
     }
 
     public function begin($options = [])
@@ -141,12 +150,20 @@ class FormBase extends WidgetBase
 
     public function renderField($name, $type = null)
     {
-        if($method = $this->getFieldMethod($name, "Render"))
-            $contents = $this->{$method}();
-        elseif($method = $this->getInputMethod($type, "Render"))
-            $contents = $this->{$method}($name);
+        $options = [];
+        if(!$this->_autofocus
+            && $this->typeCanHasAutofocus($type) && $this->nameCanHasAutofocus($name)
+            && (($this->errors_by_field && $this->fieldErrors($name)) || !$this->errors_by_field)
+        ) {
+            $options['autofocus'] = "autofocus";
+            $this->_autofocus = true;
+        }
+        if(($method = $this->getFieldMethod($name, "Render")))
+            $contents = $this->{$method}($options);
+        elseif(($method = $this->getInputMethod($type, "Render")))
+            $contents = $this->{$method}($name, $options);
         elseif($type && method_exists($this, $type))
-            $contents = $this->renderLabel($name, $type).$this->{$type}($name);
+            $contents = $this->renderLabel($name, $type).$this->{$type}($name, $options);
         else
             throw new WidgetException("Cant render field: $name (type: $type)");
         return $this->inputWrap($contents, $type, $name);
@@ -154,12 +171,29 @@ class FormBase extends WidgetBase
 
     public function renderLabel($name, $type = null)
     {
-        if($method = $this->getFieldMethod($name, "RenderLabel"))
+        if(($method = $this->getFieldMethod($name, "RenderLabel")))
             return $this->{$method}();
-        elseif($method = $this->getInputMethod($type, "RenderLabel"))
+        elseif(($method = $this->getInputMethod($type, "RenderLabel")))
             return $this->{$method}($name);
         else
-            return $this->label($name);
+            return $this->label($name, [], $type);
+    }
+
+    protected function nameCanHasAutofocus(/** @noinspection PhpUnusedParameterInspection */
+        $name)
+    {
+        return true;
+    }
+
+    protected function typeCanHasAutofocus($type)
+    {
+        if(is_null($type))
+            return true;
+        return in_array($type, [
+            "textField",
+            "numberField",
+            "passwordField",
+        ]);
     }
 
     protected function createId()
@@ -210,7 +244,7 @@ class FormBase extends WidgetBase
     }
 
     protected function inputWrap($contents, $type,
-                            $name = null, &$wrapped = null)
+                                 $name = null, &$wrapped = null)
     {
         $wrapped = true;
         $method = $this->getFieldMethod($name, "Wrap");
@@ -258,8 +292,7 @@ class FormBase extends WidgetBase
                 $message = $error['message'];
                 if(isset($error['field']))
                     $field = $error['field'];
-            }
-            elseif(is_string($error))
+            } elseif(is_string($error))
                 $message = $error;
             if(!$message)
                 continue;

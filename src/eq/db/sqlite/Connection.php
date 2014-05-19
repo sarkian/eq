@@ -5,16 +5,16 @@
 
 namespace eq\db\sqlite;
 
-use PDO;
+use eq\db\ConnectionBase;
 
-class Connection extends \eq\db\ConnectionBase
+class Connection extends ConnectionBase
 {
 
     protected $driver = "sqlite";
 
     protected function createDSN()
     {
-        
+
     }
 
 }

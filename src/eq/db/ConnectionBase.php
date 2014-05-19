@@ -12,6 +12,7 @@ use PDO;
 use PDOException;
 
 /**
+ * @property string name
  * @property PDO pdo
  * @property Schema schema
  * @method Query select(mixed $cols)
@@ -24,14 +25,16 @@ use PDOException;
 abstract class ConnectionBase extends Object
 {
 
+    protected $name;
     protected $config;
     protected $driver;
     protected $charset;
     protected $pdo = null;
     protected $schema = null;
 
-    public function __construct($config)
+    public function __construct($name, $config)
     {
+        $this->name = $name;
         $this->config = $config;
         $this->charset = Arr::getItem($config, "charset", null);
     }
@@ -43,6 +46,11 @@ abstract class ConnectionBase extends Object
             return call_user_func_array([$q, $name], $args);
         else
             throw new InvalidCallException("Undefined method: $name");
+    }
+
+    public function getName()
+    {
+        return $this->name;
     }
 
     public function getPdo()
@@ -58,17 +66,16 @@ abstract class ConnectionBase extends Object
         return $this->schema;
     }
 
-    public static function create($config)
+    public static function create($name, $config)
     {
         $driver = Arr::getItem($config, "driver", null);
         if(!$driver)
             throw new InvalidConfigException("Missing parameter: driver");
         $cname = 'eq\db\\'.$driver.'\Connection';
         try {
-            $conn = new $cname($config);
+            $conn = new $cname($name, $config);
             return $conn;
-        }
-        catch(LoaderException $e) {
+        } catch(LoaderException $e) {
             throw new DbException("Unknown driver: $driver");
         }
     }
@@ -80,8 +87,7 @@ abstract class ConnectionBase extends Object
         try {
             $this->createPDOInstance();
             $this->initConnection();
-        }
-        catch(PDOException $e) {
+        } catch(PDOException $e) {
             throw new SQLException($e->getMessage(), $e->getCode(), $e);
         }
     }
@@ -101,9 +107,10 @@ abstract class ConnectionBase extends Object
     {
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         if($this->charset !== null && in_array($this->driver,
-                ["pgsql", "mysql", "mysqli", "cubrid"])) {
+                ["pgsql", "mysql", "mysqli", "cubrid"])
+        ) {
             $this->pdo->exec("SET NAMES ".$this->pdo->quote($this->charset));
-		}
+        }
     }
 
     protected function createQuery()

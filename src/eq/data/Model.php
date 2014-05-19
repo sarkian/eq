@@ -239,7 +239,7 @@ abstract class Model extends Object
             }
         }
     }
-    
+
     public function reset()
     {
         foreach($this->fields as $name => $params)
@@ -308,8 +308,7 @@ abstract class Model extends Object
             $this->loaded_data = $this->data;
             $this->trigger("saveSuccess");
             return true;
-        }
-        else {
+        } else {
             $this->trigger("saveFail");
             return false;
         }
@@ -370,12 +369,17 @@ abstract class Model extends Object
     {
         if(isset($this->fields[$name]['label']))
             return $this->fields[$name]['label'];
-        $name = preg_replace_callback("/_([a-zA-Z])/", function($m) {
+        $name = preg_replace_callback("/_([a-zA-Z])/", function ($m) {
             return " ".strtoupper($m[1]);
         }, $name);
         return ucfirst($name);
     }
 
+    /**
+     * @param $fieldname
+     * @return DataTypeBase|string
+     * @throws \eq\base\InvalidParamException
+     */
     public function fieldType($fieldname)
     {
         if(!isset($this->fields[$fieldname]))
@@ -396,11 +400,21 @@ abstract class Model extends Object
             ? $this->fields[$name]['default'] : null;
     }
 
+    public function fieldErrors($name)
+    {
+        if(isset($this->errors_by_field[$name]) && is_array($this->errors_by_field[$name]))
+            return $this->errors_by_field[$name];
+        else
+            return [];
+    }
+
     public function typeIsEmpty($fieldname, $value)
     {
         $vmethod = "isEmpty".Str::var2method($fieldname);
         if(method_exists($this, $vmethod))
             return $this->{$vmethod}($value);
+        elseif(property_exists($this, $vmethod) && is_callable($this->{$vmethod}))
+            return call_user_func_array($this->{$vmethod}, [$value]);
         $type = $this->fieldType($fieldname);
         return $type::isEmpty($value);
     }
@@ -410,6 +424,8 @@ abstract class Model extends Object
         $vmethod = "validate".Str::var2method($fieldname);
         if(method_exists($this, $vmethod))
             return $this->{$vmethod}($value);
+        elseif(property_exists($this, $vmethod) && is_callable($this->{$vmethod}))
+            return call_user_func_array($this->{$vmethod}, [$value]);
         $type = $this->fieldType($fieldname);
         return $type::validate($value);
     }

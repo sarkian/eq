@@ -1,14 +1,12 @@
 <?php
-/**
- * Last Change: 2014 May 04, 05:30
- */
 
 namespace eq\modules\clog\controllers;
 
 use EQ;
+use eq\web\Controller;
 use eq\web\HttpException;
 
-class ClogController extends \eq\web\Controller
+class ClogController extends Controller
 {
 
     public function actionProcess($key)

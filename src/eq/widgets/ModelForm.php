@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 May 04, 04:58
- */
 
 namespace eq\widgets;
 
@@ -21,6 +18,7 @@ class ModelForm extends FormBase
      * @var Model model
      */
     protected $model;
+    protected $autofocus = false;
 
     public function __construct(Model $model)
     {

@@ -5,12 +5,13 @@
 
 namespace eq\db\mysql;
 
+use eq\db\ConnectionBase;
 use eq\helpers\Arr;
 use eq\base\InvalidConfigException;
 
 use PDO;
 
-class Connection extends \eq\db\ConnectionBase
+class Connection extends ConnectionBase
 {
 
     protected $driver = "mysql";
@@ -19,9 +20,9 @@ class Connection extends \eq\db\ConnectionBase
     protected $user;
     protected $pass;
 
-    public function __construct($config)
+    public function __construct($name, $config)
     {
-        parent::__construct($config);
+        parent::__construct($name, $config);
         $this->host = Arr::getItem($config, "host", "localhost");
         $this->dbname = Arr::getItem($config, "dbname", null);
         $this->user = Arr::getItem($config, "user", "root");

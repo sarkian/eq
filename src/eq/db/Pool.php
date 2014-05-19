@@ -2,9 +2,10 @@
 
 namespace eq\db;
 
+use eq\base\Object;
 use eq\base\UnknownPropertyException;
 
-class Pool extends \eq\base\Object
+class Pool extends Object
 {
 
     protected $connections = [];
@@ -19,7 +20,7 @@ class Pool extends \eq\base\Object
     {
         if(isset($this->connections[$name]))
             throw new DbException("Database already exists in pool: $name");
-        $this->connections[$name] = ConnectionBase::create($config);
+        $this->connections[$name] = ConnectionBase::create($name, $config);
     }
 
     public function call($name = null)

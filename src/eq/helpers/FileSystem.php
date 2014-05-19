@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 22, 21:57
- */
 
 namespace eq\helpers;
 
@@ -58,12 +55,14 @@ class FileSystem
     {
         umask(0);
         $path = EQ::getAlias($path);
+        if(is_link($path))
+            $path = realpath($path);
         if(is_dir($path)) {
             if(fileperms($path) !== $mode)
                 @chmod($path, $mode);
             return;
         }
-        if(!mkdir($path, $mode, $recursive))
+        if(!@mkdir($path, $mode, $recursive))
             throw new FileSystemException("Unable to create directory: ".$path);
     }
 
@@ -120,8 +119,7 @@ class FileSystem
                 if($file !== "." && $file !== "..")
                     self::_copy("$src/$file", "$dst/$file");
             }
-        }
-        else {
+        } else {
             self::mkdir(dirname($dst));
             copy($src, $dst);
         }
@@ -141,7 +139,7 @@ class FileSystem
             if($file === "." || $file === "..")
                 continue;
             $file = Path::join([$path, $file]);
-            if(is_file)
+            if(is_file($file))
                 self::rmfile($file, $nothrow);
             else
                 self::rmdir($file, $nothrow);

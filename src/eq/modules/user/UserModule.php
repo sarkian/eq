@@ -3,10 +3,12 @@
 namespace eq\modules\user;
 
 use EQ;
+use eq\base\InvalidConfigException;
 use eq\base\ModuleBase;
 use eq\helpers\Str;
 
 /**
+ * @property string|array login_field
  * @property bool managed_sessions
  */
 class UserModule extends ModuleBase
@@ -21,11 +23,6 @@ class UserModule extends ModuleBase
         return $this->config("url_prefix", "");
     }
 
-    public function getManagedSessions()
-    {
-        return $this->managed_sessions;
-    }
-
     public function getFields()
     {
         $fields = [
@@ -34,10 +31,18 @@ class UserModule extends ModuleBase
         foreach($this->config("fields", []) as $name => $attrs) {
             $fields[$name] = $this->field($name);
         }
-        if(!isset($fields[$this->login_field]))
+        $this->login_field = $this->config("login_field", "name");
+        if(!$this->login_field)
+            throw new InvalidConfigException("Invalid login field");
+        if(is_array($this->login_field)) {
+            foreach($this->login_field as $field) {
+                if(!isset($fields[$field]))
+                    $fields[$field] = $this->field($field);
+            }
+        } elseif(!isset($fields[$this->login_field]))
             $fields[$this->login_field] = $this->field($this->login_field);
         // email
-        if($this->config("use_email", true)) {
+        if($this->config("use_email", false)) {
             $fields['email'] = $this->field("email");
             if($this->config("email_confirmation", false) && !isset($fields['email_confirm']))
                 $fields['email_confirm'] = $this->field("email_confirm");
@@ -67,9 +72,10 @@ class UserModule extends ModuleBase
         if($this->config("use_invite", false)) {
             $fields['invite'] = $this->field("invite");
         }
-        $this->login_field = $this->config("login_field", "name");
+        if($this->config("use_role", true)) {
+            $fields['role'] = $this->field("role");
+        }
         $this->managed_sessions = $this->config("managed_sessions", false);
-        EQ::dump($this->managed_sessions);
         return $fields;
     }
 
@@ -78,6 +84,11 @@ class UserModule extends ModuleBase
         if(!$this->login_field)
             $this->getFields();
         return $this->login_field;
+    }
+
+    public function getManagedSessions()
+    {
+        return $this->managed_sessions;
     }
 
     protected function field($name)
@@ -106,6 +117,8 @@ class UserModule extends ModuleBase
             $attrs['load'] = true;
         if(!isset($attrs['save']))
             $attrs['save'] = true;
+        if(!isset($attrs['required']))
+            $attrs['required'] = true;
         if(!isset($attrs['unique']))
             $attrs['unique'] = false;
         if(!isset($attrs['default']))

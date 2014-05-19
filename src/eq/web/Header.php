@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 10, 13:26
- */
 
 namespace eq\web;
 
@@ -75,7 +72,7 @@ class Header implements \ArrayAccess
             $hname = "HTTP_".strtoupper($name);
             return isset($_SERVER[$hname]) ? $_SERVER[$hname] : null;
         }
-        $this->headers[$name] = $value;
+        return $this->headers[$name] = $value;
     }
 
     public function status($code, $message = null)

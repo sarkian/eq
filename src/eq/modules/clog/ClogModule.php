@@ -141,7 +141,10 @@ class ClogModule extends ModuleBase
 
     public function __onDbQuery($dbname, $query)
     {
-
+        if(!$this->config("write_db_queries", false))
+            return;
+        list($file, $line) = Debug::callLocation(4);
+        $this->addMsg("log", "Query to DB '$dbname': $query", $file, $line);
     }
 
     public function getUrlPrefix()

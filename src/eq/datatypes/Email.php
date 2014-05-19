@@ -13,4 +13,9 @@ class Email extends Str
         return (bool) filter_var($value, FILTER_VALIDATE_EMAIL);
     }
 
+    public static function isA($value)
+    {
+        return self::validate($value);
+    }
+
 }

@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 14, 11:42
- */
 
 namespace eq\helpers;
 
@@ -15,15 +12,17 @@ class Str
     public static function method2cmd($method, $lcfirst = true)
     {
         if($lcfirst) $method = lcfirst($method);
-        $method = preg_replace_callback("/([A-Z])/",
-            create_function('$m', 'return "-".strtolower($m[1]);'), $method);
+        //        $method = preg_replace_callback("/([A-Z])/",
+        //            create_function('$m', 'return "-".strtolower($m[1]);'), $method);
+        $method = preg_replace_callback('/([A-Z])/', ['eq\helpers\Str', '_hypLower1'], $method);
         return $method;
     }
 
     public static function cmd2method($cmd, $ucfirst = true)
     {
-        $cmd  = preg_replace_callback("/\-([a-z])/", 
-            create_function('$m', 'return strtoupper($m[1]);'), $cmd);
+        //        $cmd  = preg_replace_callback('/\-([a-z])/',
+        //            create_function('$m', 'return strtoupper($m[1]);'), $cmd);
+        $cmd = preg_replace_callback('/\-([a-z])/', ['eq\helpers\Str', '_upper1'], $cmd);
         return $ucfirst ? ucfirst($cmd) : $cmd;
     }
 
@@ -31,26 +30,30 @@ class Str
     {
         if($lcfirst)
             $method = lcfirst($method);
-        $method = preg_replace_callback("/[^a-zA-Z]([A-Z])/", function($m) {
-            return strtolower($m[0]);
-        }, $method);
-        $method = preg_replace_callback("/([A-Z])/",
-            create_function('$m', 'return "_".strtolower($m[1]);'), $method);
+        //        $method = preg_replace_callback("/[^a-zA-Z]([A-Z])/", function($m) {
+        //            return strtolower($m[0]);
+        //        }, $method);
+        //        $method = preg_replace_callback("/([A-Z])/",
+        //            create_function('$m', 'return "_".strtolower($m[1]);'), $method);
+        $method = preg_replace_callback('/[^a-zA-Z]([A-Z])/',
+            ['eq\helpers\Str', '_lower0'], $method);
+        $method = preg_replace_callback('/([A-Z])/', ['eq\helpers\Str', '_undLower1'], $method);
         return $method;
     }
 
     public static function var2method($cmd, $ucfirst = true)
     {
-        // echo $cmd."\n";
-        $cmd  = preg_replace_callback('/\_([a-z0-9])/',
-            create_function('$m', 'return strtoupper($m[1]);'), $cmd);
+        //        $cmd  = preg_replace_callback('/\_([a-z0-9])/',
+        //            create_function('$m', 'return strtoupper($m[1]);'), $cmd);
+        $cmd = preg_replace_callback('/\_([a-z0-9])/', ['eq\helpers\Str', '_upper1'], $cmd);
         return $ucfirst ? ucfirst($cmd) : $cmd;
     }
 
     public static function cmdvar2method($cmd, $ucfirst = true)
     {
-        $cmd = preg_replace_callback('/[_\-]([a-z])/',
-            create_function('$m', 'return strtoupper($m[1]);'), $cmd);
+        //        $cmd = preg_replace_callback('/[_\-]([a-z])/',
+        //            create_function('$m', 'return strtoupper($m[1]);'), $cmd);
+        $cmd = preg_replace_callback('/[_\-]([a-z])/', ['eq\helpers\Str', '_upper1'], $cmd);
         return $ucfirst ? ucfirst($cmd) : $cmd;
     }
 
@@ -97,6 +100,26 @@ class Str
             $str .= $c;
         }
         return $str;
+    }
+
+    protected static function _hypLower1($m)
+    {
+        return "-".strtolower($m[1]);
+    }
+
+    protected static function _upper1($m)
+    {
+        return strtoupper($m[1]);
+    }
+
+    protected static function _lower0($m)
+    {
+        return strtolower($m[0]);
+    }
+
+    protected static function _undLower1($m)
+    {
+        return "_".strtolower($m[1]);
     }
 
 }

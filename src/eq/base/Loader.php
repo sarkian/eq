@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 24, 20:01
- */
 
 namespace eq\base;
 
@@ -74,7 +71,7 @@ class Loader
     }
 
     public static function autofindClass($name, $ns_prefix,
-                                $postfix = null, $namespaces = [])
+                                         $postfix = null, $namespaces = [])
     {
         if(!strncmp($name, '\\', 1))
             return self::classExists($name) ? $name : false;
@@ -122,7 +119,7 @@ class Loader
             $exp = self::createNSRegexp($ns);
             if(preg_match($exp, $cname)) {
                 $fname_rel = str_replace("\\", DIRECTORY_SEPARATOR,
-                    preg_replace($exp, "", $cname)).".php";
+                        preg_replace($exp, "", $cname)).".php";
                 $fname = $dir.DIRECTORY_SEPARATOR.$fname_rel;
                 if(file_exists($fname)) {
                     self::cacheAddClass($cname, $fname);
@@ -170,14 +167,13 @@ class Loader
         if(!self::$cache_file)
             return;
         $lines = file(self::$cache_file,
-            FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES);
+            FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         $cname = "";
         foreach($lines as $line) {
             if($cname) {
                 self::$cache[$cname] = $line;
                 $cname = "";
-            }
-            else
+            } else
                 $cname = $line;
         }
     }

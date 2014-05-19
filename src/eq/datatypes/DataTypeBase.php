@@ -11,13 +11,14 @@ abstract class DataTypeBase
 
     /**
      * @param string $type
-     * @return static DataTypeBase
+     * @return string|DataTypeBase
      * @throws DataTypeException
      */
     public static final function getClass($type)
     {
-        if(Loader::classExists($type) 
-                && isset(class_parents($type)[get_called_class()]))
+        if(Loader::classExists($type)
+            && isset(class_parents($type)[get_called_class()])
+        )
             return $type;
         $cbasename = Str::var2method($type);
         $cname = "\\".EQ::app()->app_namespace.'\datatypes\\'.$cbasename;
@@ -54,7 +55,7 @@ abstract class DataTypeBase
 
     public static function isEmpty($value)
     {
-        return !(bool) strlen( (string) $value );
+        return !(bool) strlen((string) $value);
     }
 
     public static function validate(/** @noinspection PhpUnusedParameterInspection */
@@ -86,6 +87,12 @@ abstract class DataTypeBase
     public static function cast($value)
     {
         return $value;
+    }
+
+    public static function isA(/** @noinspection PhpUnusedParameterInspection */
+        $value)
+    {
+        return true;
     }
 
     public static function sqlType(/** @noinspection PhpUnusedParameterInspection */
