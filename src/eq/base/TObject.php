@@ -1,11 +1,7 @@
 <?php
-/**
- * Last Change: 2014 May 04, 05:44
- */
 
 namespace eq\base;
 
-use EQ;
 use eq\helpers\Str;
 
 trait TObject
@@ -48,7 +44,7 @@ trait TObject
     {
         $setter = $this->setterName($name);
         if(method_exists($this, $setter))
-            return $this->{$setter}(null);
+            $this->{$setter}(null);
         elseif($this->getterExists($name))
             throw new InvalidCallException(
                 "Unsetting read-only property: ".get_class($this)."::".$name);
