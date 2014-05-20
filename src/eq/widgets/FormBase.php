@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 May 04, 05:44
- */
 
 namespace eq\widgets;
 
@@ -179,8 +176,7 @@ class FormBase extends WidgetBase
             return $this->label($name, [], $type);
     }
 
-    protected function nameCanHasAutofocus(/** @noinspection PhpUnusedParameterInspection */
-        $name)
+    protected function nameCanHasAutofocus($name)
     {
         return true;
     }

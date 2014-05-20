@@ -58,8 +58,7 @@ abstract class DataTypeBase
         return !(bool) strlen((string) $value);
     }
 
-    public static function validate(/** @noinspection PhpUnusedParameterInspection */
-        $value)
+    public static function validate($value)
     {
         return true;
     }
@@ -89,14 +88,12 @@ abstract class DataTypeBase
         return $value;
     }
 
-    public static function isA(/** @noinspection PhpUnusedParameterInspection */
-        $value)
+    public static function isA($value)
     {
         return true;
     }
 
-    public static function sqlType(/** @noinspection PhpUnusedParameterInspection */
-        $engine = null)
+    public static function sqlType($engine = null)
     {
         return "VARCHAR(255)";
     }

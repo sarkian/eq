@@ -53,13 +53,17 @@ class Loader
 
     public static function classExists($cname)
     {
-        if(class_exists($cname, false))
+        if(class_exists($cname, false)
+            || interface_exists($cname, false) || trait_exists($cname, true)
+        )
             return true;
         $fname = self::findClass($cname);
         if(!$fname)
             return false;
         require_once $fname;
-        if(!class_exists($cname, false))
+        if(!class_exists($cname, false)
+            && !interface_exists($cname, false) && !trait_exists($cname, false)
+        )
             return false;
         self::$cache[$cname] = $fname;
         return true;

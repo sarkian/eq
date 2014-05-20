@@ -178,8 +178,9 @@ class Users extends Model implements IIdentity
 
     public function fieldType($fieldname)
     {
-        if($this->scenario === "login" && $this->login_field_type && $fieldname ===
-            $this->login_field_name
+        if($this->scenario === "login"
+            && $this->login_field_type
+            && $fieldname === $this->login_field_name
         )
             return $this->login_field_type;
         return parent::fieldType($fieldname);

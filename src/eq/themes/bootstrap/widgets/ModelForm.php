@@ -15,8 +15,7 @@ class ModelForm extends \eq\widgets\ModelForm
         ], parent::inputOptions($options, $type, $name));
     }
 
-    protected function inputSubmitButtonOptions(/** @noinspection PhpUnusedParameterInspection */
-        $name)
+    protected function inputSubmitButtonOptions($name)
     {
         return [
             'class' => "btn btn-default",
@@ -45,8 +44,7 @@ class ModelForm extends \eq\widgets\ModelForm
         return $contents;
     }
 
-    protected function inputSubmitButtonWrap($contents, /** @noinspection PhpUnusedParameterInspection */
-                                             $name = null)
+    protected function inputSubmitButtonWrap($contents, $name = null)
     {
         return $contents;
     }
