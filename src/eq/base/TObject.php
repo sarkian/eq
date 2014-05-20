@@ -2,6 +2,8 @@
 
 namespace eq\base;
 
+use eq\helpers\Str;
+
 trait TObject
 {
 
@@ -50,14 +52,14 @@ trait TObject
 
     public function getterName($name)
     {
-        return 'get_'.$name;
-        //        return "get".Str::var2method($name);
+//        return 'get_'.$name;
+          return "get".Str::var2method($name);
     }
 
     public function setterName($name)
     {
-        return 'set_'.$name;
-        //        return "set".Str::var2method($name);
+//        return 'set_'.$name;
+          return "set".Str::var2method($name);
     }
 
     public function getterExists($name)
