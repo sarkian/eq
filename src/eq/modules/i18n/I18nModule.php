@@ -1,14 +1,12 @@
 <?php
-/**
- * Last Change: 2014 Apr 25, 19:55
- */
 
 namespace eq\modules\i18n;
 
 use EQ;
+use eq\base\ModuleBase;
 use eq\helpers\Arr;
 
-class I18nModule extends \eq\base\ModuleBase
+class I18nModule extends ModuleBase
 {
 
     protected $enabled_locales;
@@ -27,25 +25,21 @@ class I18nModule extends \eq\base\ModuleBase
             $this->addDir($dir, $key_prefix);
         $this->registerStaticMethod("t", [$this, "t"]);
         $this->registerStaticMethod("k", [$this, "k"]);
-        EQ::app()->bind("ready", [$this, "__onReady"]);
     }
 
-    public function test()
+    public function webInit()
     {
-
-    }
-
-    public function __onReady()
-    {
-        if(EQ::app()->type === "web") {
-            $locale = EQ::app()->cookie->_locale;
-            if(!$this->localeEnabled($locale)) {
-                $locale = $this->default_locale;
-                EQ::app()->cookie->_locale = $locale;
-            }
-        }
-        else
+        $locale = EQ::app()->cookie->_locale;
+        if(!$this->localeEnabled($locale)) {
             $locale = $this->default_locale;
+            EQ::app()->cookie->_locale = $locale;
+        }
+        EQ::app()->setLocale($locale);
+    }
+    
+    public function consoleInit()
+    {
+        $locale = $this->default_locale;
         EQ::app()->setLocale($locale);
     }
 
@@ -88,7 +82,7 @@ class I18nModule extends \eq\base\ModuleBase
     {
         if(!is_array($this->dirs))
             return;
-        EQ::app()->trigger("i18n.beforeLoadFiles");
+        $this->trigger("beforeLoadFiles", [$this]);
         $tokens = [];
         $keys = [];
         foreach($this->dirs as $dir => $key_prefix) {

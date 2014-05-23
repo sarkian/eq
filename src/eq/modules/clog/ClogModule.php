@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 May 04, 05:37
- */
 
 namespace eq\modules\clog;
 
@@ -18,6 +15,11 @@ class ClogModule extends ModuleBase
 {
 
     use TAutobind;
+
+    protected $title = "EQ Clog";
+    protected $description = [
+        'ru_RU' => "Лог PHP в консоли браузера",
+    ];
 
     protected $messages = [];
     protected $var_name;

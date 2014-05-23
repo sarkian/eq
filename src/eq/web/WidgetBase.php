@@ -1,16 +1,11 @@
 <?php
-/**
- * Last Change: 2014 Apr 30, 20:22
- */
 
 namespace eq\web;
 
-use EQ;
 use eq\base\TObject;
 use eq\helpers\Str;
 use eq\helpers\Path;
 use eq\cgen\ViewRenderer;
-use eq\web\WidgetException;
 
 abstract class WidgetBase
 {
@@ -22,6 +17,21 @@ abstract class WidgetBase
 
     protected $_file_ = __FILE__;
     protected $_dir_ = __DIR__;
+
+    protected $attrs = [];
+
+    /**
+     * @param string $name
+     * @param mixed $value
+     * @return WidgetBase|mixed
+     */
+    public function attr($name, $value = null)
+    {
+        if(is_null($value))
+            return isset($this->attrs[$name]) ? $this->attrs[$name] : null;
+        $this->attrs[$name] = $value;
+        return $this;
+    }
 
     public function render()
     {

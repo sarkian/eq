@@ -52,7 +52,6 @@ trait TEvent
                 continue;
             }
             $callbacks = $this->events[$event];
-            // $this->events[$event] = [];
             $method = "on".ucfirst($event);
             if(method_exists($this, $method))
                 $this->{$method}();

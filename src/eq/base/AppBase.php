@@ -52,7 +52,8 @@ abstract class AppBase extends ModuleAbstract
     protected static $default_static_methods = [];
 
     protected $_config;
-    protected $_changed_config = [];
+    protected $_original_config;
+//    protected $_changed_config = [];
     protected $_app_namespace;
     protected $_components = [];
     protected $_exception;
@@ -124,7 +125,8 @@ abstract class AppBase extends ModuleAbstract
             $this->modules_by_name[$name] = $module;
             $this->modules_by_class[get_class($module)] = $module;
             return $module;
-        } elseif($nothrow)
+        }
+        elseif($nothrow)
             return false;
         else
             throw new ModuleException("Module not found: $name");
@@ -302,11 +304,16 @@ abstract class AppBase extends ModuleAbstract
         return $this->locale;
     }
 
+    public function configOrig($key = null, $default = null)
+    {
+        return Arr::getItem($this->_original_config, $key, $default);
+    }
+
     public function config($key = null, $default = null)
     {
-        if(isset($this->_changed_config[$key]))
-            return $this->_changed_config[$key];
-        else
+//        if(!is_null($key) && isset($this->_changed_config[$key]))
+//            return $this->_changed_config[$key];
+//        else
             return Arr::getItem($this->_config, $key, $default);
     }
 
@@ -314,7 +321,8 @@ abstract class AppBase extends ModuleAbstract
     {
         if(!$this->configAccessWrite($key))
             return false;
-        $this->_changed_config[$key] = $value;
+//        $this->_changed_config[$key] = $value;
+        Arr::setItem($this->_config, $key, $value);
         return true;
     }
 
@@ -340,7 +348,7 @@ abstract class AppBase extends ModuleAbstract
     public function configAccessAppend($key)
     {
         $val = $this->configPermissionsValue($key);
-        return $val === "concat" || $val === "all" ? true : false;
+        return $val === "append" || $val === "all" ? true : false;
     }
 
     /**
@@ -485,6 +493,9 @@ abstract class AppBase extends ModuleAbstract
             $cname = ModuleBase::getClass($name);
             $this->loadModule($name, $cname);
         }
+        foreach($modules as $name => $conf) {
+            $this->trigger("modules.$name.ready", [$this->modules_by_name[$name]]);
+        }
     }
 
     /**
@@ -497,7 +508,12 @@ abstract class AppBase extends ModuleAbstract
         $module = $cname::instance(true);
         $this->modules_by_name[$name] = $module;
         $this->modules_by_class[$cname] = $module;
-        $this->config_permissions['modules'][$name] = $module->configPermissions();
+//        $this->config_permissions['modules'][$name] = $module->configPermissions();
+        $perms = $module->configPermissions();
+        if(is_array($perms)) {
+            foreach($module->configPermissions() as $pname => $pvalue)
+                $this->config_permissions["modules.$name.$pname"] = $pvalue;
+        }
         self::setAlias("@modules.$name", $module->location);
         $compname = preg_replace("/Module$/", "Component", $cname);
         if(Loader::classExists($compname))
@@ -506,7 +522,7 @@ abstract class AppBase extends ModuleAbstract
         if(method_exists($module, $method))
             $module->{$method}();
         $module->ready();
-        $this->trigger("modules.$name.ready");
+        $this->trigger("modules.$name.initialized", [$module]);
     }
 
     protected function registerComponent($name, $class,
@@ -617,8 +633,13 @@ abstract class AppBase extends ModuleAbstract
         if(!strlen($config['system']['app_namespace']))
             throw new InvalidConfigException(
                 "Ivalid config value: system.app_namespace");
+        foreach($config['modules'] as $key => $conf) {
+            if(is_null($conf))
+                $config['modules'][$key] = [];
+        }
         $this->_app_namespace = $config['system']['app_namespace'];
         $this->_config = $config;
+        $this->_original_config = $config;
     }
 
     protected function mergeConfig($config, $app_config, $keys)

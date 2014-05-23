@@ -10,26 +10,26 @@ class Bool extends DataTypeBase
 
     public static function validate($value)
     {
-        if(\is_bool($value))
+        if(is_bool($value))
             return true;
-        if(\is_string($value)) {
-            if(!\strlen($value))
+        if(is_string($value)) {
+            if(!strlen($value))
                 return true;
-            if(\in_array($value, \array_merge(self::$true_variants, self::$false_variants), true))
+            if(in_array(strtolower($value), array_merge(self::$true_variants, self::$false_variants), true))
                 return true;
             return false;
         }
-        if(\is_int($value) && ($value === 1 || $value === 0))
+        if(is_int($value) && ($value === 1 || $value === 0))
             return true;
-        if(\is_float($value) && ($value === 1.0) || $value === 0.0)
+        if(is_float($value) && ($value === 1.0) || $value === 0.0)
             return true;
         return false;
     }
 
     public static function filter($value)
     {
-        if(\is_string($value))
-            return \in_array($value, self::$true_variants, true) ? true : false;
+        if(is_string($value))
+            return in_array($value, self::$true_variants, true) ? true : false;
         return (bool) $value;
     }
 

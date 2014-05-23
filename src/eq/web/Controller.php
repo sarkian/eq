@@ -211,6 +211,8 @@ abstract class Controller
     {
         if(!$this->template)
             return false;
+        if(file_exists($this->template))
+            return $this->template;
         $fname = APPROOT."/templates/{$this->template}.php";
         file_exists($fname) or $fname = EQROOT."/templates/{$this->template}.php";
         if(file_exists($fname))

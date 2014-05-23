@@ -1,20 +1,24 @@
 <?php
-/**
- * Last Change: 2014 Apr 25, 18:35
- */
 
 namespace eq\modules\admin\controllers;
 
-class ModulesController extends \eq\web\Controller
+use EQ;
+use eq\base\TModuleClass;
+use eq\modules\admin\assets\AdminAsset;
+use eq\web\Controller;
+
+class ModulesController extends Controller
 {
 
-    use \eq\base\TModuleClass;
+    use TModuleClass;
 
     protected $template = "main";
 
     public function actionIndex()
     {
-        $this->render("modules/index");
+        AdminAsset::addJs("modules");
+        $modules = EQ::app()->available_modules;
+        $this->render("modules/index", ['modules' => $modules]);
     }
 
 }

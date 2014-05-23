@@ -1,20 +1,30 @@
 <?php
-/**
- * Last Change: 2014 Apr 25, 19:55
- */
 
 namespace eq\modules\admin\controllers;
 
 use EQ;
 use eq\base\ModuleBase;
 use eq\base\ModuleException;
+use eq\base\TModuleClass;
+use eq\web\Controller;
 
-class AdminController extends \eq\web\Controller
+class AdminController extends Controller
 {
+
+    use TModuleClass;
+
+    protected $template = "main";
+
+    protected function permissions()
+    {
+        return [
+            'user,guest' => ["deny", "#all"],
+        ];
+    }
 
     public function actionIndex()
     {
-        
+        $this->render("index");
     }
 
     public function actionTest()

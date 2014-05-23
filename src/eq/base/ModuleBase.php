@@ -7,6 +7,8 @@ use eq\helpers\Str;
 
 /**
  * @property string name
+ * @property string title
+ * @property string description
  * @property string shortname
  * @property string namespace
  * @property string location
@@ -66,6 +68,43 @@ abstract class ModuleBase extends ModuleAbstract
     private $_location;
     private $_enabled = false;
 
+    protected $title = "";
+    protected $description = "";
+
+    public function getTitle()
+    {
+        if(is_array($this->title) && $this->title) {
+            $titles = $this->title;
+            if(isset($titles[EQ::app()->locale]))
+                return $titles[EQ::app()->locale];
+            elseif(isset($titles['en_US']))
+                return $titles['en_US'];
+            else
+                return array_shift($titles);
+        }
+        elseif(is_string($this->title) && $this->title)
+            return $this->title;
+        else
+            return $this->name;
+    }
+
+    public function getDescription()
+    {
+        if(is_array($this->description) && $this->description) {
+            $descrs = $this->description;
+            if(isset($descrs[EQ::app()->locale]))
+                return $descrs[EQ::app()->locale];
+            elseif(isset($descrs['en_US']))
+                return $descrs['en_US'];
+            else
+                return array_shift($descrs);
+        }
+        elseif(is_string($this->description))
+            return $this->description;
+        else
+            return "";
+    }
+
     private final function __construct($enable = false)
     {
         if($enable) {
@@ -77,6 +116,11 @@ abstract class ModuleBase extends ModuleAbstract
     public final function isEnabled()
     {
         return $this->_enabled;
+    }
+
+    public final function canDisable()
+    {
+        return is_null(EQ::app()->configOrig("modules.".$this->name, null));
     }
 
     public final function getName()
@@ -155,6 +199,31 @@ abstract class ModuleBase extends ModuleAbstract
         return EQ::app()->configAccessAppend($this->configKey($key));
     }
 
+    public final function bind($events, $callable)
+    {
+        EQ::app()->bind($this->events($events), $callable);
+    }
+
+    public final function unbind($events, $callable = null)
+    {
+        EQ::app()->unbind($this->events($events), $callable);
+    }
+
+    public final function trigger($events, $args = [])
+    {
+        EQ::app()->trigger($this->events($events), $args);
+    }
+
+    public final function disableEvents($events)
+    {
+        EQ::app()->disableEvents($this->events($events));
+    }
+
+    public final function route($route)
+    {
+        return implode(".", ["modules", $this->name, $route]);
+    }
+
     public function getUrlPrefix()
     {
         return "";
@@ -168,6 +237,15 @@ abstract class ModuleBase extends ModuleAbstract
     protected final function configKey($key)
     {
         return implode(".", ["modules", $this->name, $key]);
+    }
+
+    protected final function events($events)
+    {
+        if(!is_array($events))
+            $events = [$events];
+        foreach($events as $i => $event)
+            $events[$i] = $this->configKey($event);
+        return $events;
     }
 
     protected final function registerStaticMethod($name, $method)

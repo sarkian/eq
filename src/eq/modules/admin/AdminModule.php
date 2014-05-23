@@ -5,23 +5,67 @@ namespace eq\modules\admin;
 use EQ;
 use eq\base\ModuleBase;
 use eq\base\TAutobind;
+use eq\modules\admin\assets\AdminAsset;
+use eq\modules\i18n\I18nModule;
+use eq\modules\navigation\NavigationModule;
 
 class AdminModule extends ModuleBase
 {
 
     use TAutobind;
 
-    protected $config;
+    protected $title = "EQ Admin";
+    protected $description = [
+        'ru_RU' => "Администрирование сайта",
+    ];
 
-    protected function init()
+    protected $nav_items = [];
+
+    public function webInit()
     {
-        $this->autobind();
+        EQ::app()->bind("modules.eq:i18n.beforeLoadFiles", function(I18nModule $module) {
+            $module->addDir($this->location."/locale", "admin");
+        });
+        $this->nav_items = [
+            'home' => [
+                'link' => "/",
+                'icon' => "home",
+                'tooltip' => EQ::t("Back to site"),
+            ],
+            'modules' => [
+                'title' => EQ::t("Modules"),
+                'items' => [
+                    [
+                        'route' => $this->route("modules.index"),
+                        'title' => EQ::t("Manage"),
+                    ],
+                    "#divider",
+                ],
+            ],
+        ];
+        EQ::app()->bind("modules.eq:navigation.navRender.admin",
+        function(NavigationModule $module) {
+            foreach($this->nav_items as $item)
+                $module->addItem("admin", $item);
+        });
+        EQ::app()->bind("beforeRender", function() {
+            AdminAsset::register();
+        });
     }
 
-    public function __onI18n_beforeLoadFiles()
+    public function getDepends()
     {
-        /** @noinspection PhpUndefinedMethodInspection */
-        EQ::app()->module("eq:i18n")->addDir(__DIR__."/locale", "admin");
+        return [
+            "eq:navigation",
+        ];
+    }
+
+    public function addPage($name, $item)
+    {
+        if(isset($this->nav_items[$name]))
+            $this->nav_items[$name]['items'][] = $item;
+        else
+            $this->nav_items[$name] = $item;
     }
 
 }

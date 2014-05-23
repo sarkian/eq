@@ -11,6 +11,7 @@ use eq\web\IIdentity;
 
 /**
  * @property int id
+ * @property string status
  * @property string name
  * @property string email
  * @property string firstname

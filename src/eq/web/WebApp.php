@@ -9,6 +9,7 @@ use eq\base\LoaderException;
 use eq\controllers\DebugController;
 use eq\controllers\ErrorsController;
 use eq\data\Model;
+use eq\modules\navigation\NavigationComponent;
 use eq\modules\user\models\Users;
 use eq\php\ErrorException;
 use eq\base\UncaughtExceptionException;
@@ -64,6 +65,7 @@ final class WebApp extends AppBase
     protected function configPermissions()
     {
         return [
+            'modules' => "append",
             'site.*' => "all",
         ];
     }
@@ -175,7 +177,7 @@ final class WebApp extends AppBase
                 echo $out;
             }
             else {
-                throw new HttpException(404);
+                throw new HttpException(404, "Page not found: ".$this->request->uri);
             }
         }
         catch(HttpRedirectException $e_redir) {

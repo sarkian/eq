@@ -1,11 +1,10 @@
 <?php
-/**
- * Last Change: 2014 Apr 30, 20:38
- */
 
 namespace eq\themes\bootstrap;
 
-class BootstrapTheme extends \eq\web\ThemeBase
+use eq\web\ThemeBase;
+
+class BootstrapTheme extends ThemeBase
 {
 
     public function getAssets()

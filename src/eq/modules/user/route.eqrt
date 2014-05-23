@@ -1,3 +1,7 @@
-*       /login      user.login
-*       /register   user.register
-GET     /logout     user.logout
+*       /login                          user.login
+*       /register                       user.register
+GET     /logout                         user.logout
+
+GET     /admin/users                    admin.index
+
+GET     /admin/users/invites            invites.index

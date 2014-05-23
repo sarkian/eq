@@ -72,6 +72,11 @@ trait TModuleClass
         return EQ::app()->config($key, $default);
     }
 
+    public function route($route)
+    {
+        return implode(".", ["modules", $this->module_name, $route]);
+    }
+
     protected function findViewFile($view_file)
     {
         $fname = Path::join([$this->module_location, "views", $view_file.".php"]);

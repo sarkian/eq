@@ -6,6 +6,8 @@ use EQ;
 use eq\base\InvalidConfigException;
 use eq\base\ModuleBase;
 use eq\helpers\Str;
+use eq\modules\admin\AdminModule;
+use eq\modules\navigation\NavigationModule;
 
 /**
  * @property string|array login_field
@@ -14,9 +16,63 @@ use eq\helpers\Str;
 class UserModule extends ModuleBase
 {
 
+    protected $title = "EQ User";
+    protected $description = [
+        'en_US' => "Authorization, user management",
+        'ru_RU' => "Авторизация, управление пользователями",
+    ];
+
     private $fields_defaults;
     private $login_field;
     private $managed_sessions = false;
+
+    public function webInit()
+    {
+        $site_nav = $this->config("site_nav", "site");
+        $use_icons = $this->config("use_nav_icons", true);
+        EQ::app()->bind("modules.eq:navigation.navRender.$site_nav",
+        function(NavigationModule $module) use($use_icons) {
+            $module->addItem("site", [
+                'route' => "modules.eq:user.user.login",
+                'title' => EQ::t("Login"),
+                'icon' => $use_icons ? "user" : "",
+                'perms' => "guest",
+            ]);
+            if($this->config("registration_enabled", true))
+                $module->addItem("site", [
+                    'route' => "modules.eq:user.user.register",
+                    'title' => EQ::t("Register"),
+                    'icon' => $use_icons ? "plus" : "",
+                    'perms' => "guest",
+                ]);
+            $module->addItem("site", [
+                'route' => "modules.eq:user.user.logout",
+                'title' => EQ::t("Logout"),
+                'icon' => $use_icons ? "off" : "",
+                'perms' => "user,admin",
+            ]);
+        });
+        EQ::app()->bind("modules.eq:admin.ready", function(AdminModule $module) {
+            $items = [];
+            $items[] = [
+                'route' => $this->route("admin.index"),
+                'title' => EQ::t("Manage"),
+            ];
+            if($this->config("use_invites", false)) {
+                $items[] = [
+                    'route' => $this->route("invites.index"),
+                    'title' => EQ::t("Invites"),
+                ];
+            }
+            $module->addPage("users", [
+                'title' => EQ::t("Users"),
+                'items' => $items,
+            ]);
+            $module->addPage("modules", [
+                'title' => $this->title,
+            ]);
+        });
+    }
 
     public function getUrlPrefix()
     {
@@ -39,7 +95,8 @@ class UserModule extends ModuleBase
                 if(!isset($fields[$field]))
                     $fields[$field] = $this->field($field);
             }
-        } elseif(!isset($fields[$this->login_field]))
+        }
+        elseif(!isset($fields[$this->login_field]))
             $fields[$this->login_field] = $this->field($this->login_field);
         // email
         if($this->config("use_email", false)) {
@@ -69,7 +126,7 @@ class UserModule extends ModuleBase
             $fields['lastname'] = $this->field("lastname");
         }
         // invite
-        if($this->config("use_invite", false)) {
+        if($this->config("use_invites", false)) {
             $fields['invite'] = $this->field("invite");
         }
         if($this->config("use_role", true)) {

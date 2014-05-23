@@ -7,6 +7,9 @@ use eq\helpers\Str;
 trait TObject
 {
 
+    private static $_getters = [];
+    private static $_setters = [];
+
     public function __get($name)
     {
         $getter = $this->getterName($name);
@@ -52,14 +55,16 @@ trait TObject
 
     public function getterName($name)
     {
-//        return 'get_'.$name;
-          return "get".Str::var2method($name);
+        if(!isset(self::$_getters[$name]))
+            self::$_getters[$name] = "get".Str::var2method($name);
+        return self::$_getters[$name];
     }
 
     public function setterName($name)
     {
-//        return 'set_'.$name;
-          return "set".Str::var2method($name);
+        if(!isset(self::$_setters[$name]))
+            self::$_setters[$name] = "set".Str::var2method($name);
+        return self::$_setters[$name];
     }
 
     public function getterExists($name)

@@ -17,7 +17,7 @@ class UserController extends Controller
     {
         return [
             'guest' => ["deny", "logout"],
-            'user,admin' => ["deny", "login", "/"],
+            'user,admin' => ["deny", "login,register", "/"],
         ];
     }
 

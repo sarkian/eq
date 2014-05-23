@@ -336,6 +336,7 @@ html {
 body {
     font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 15px;
+    /*font-size: 14px;*/
     line-height: 1.42857143;
     color: #ffffff;
     background-color: #222222;
@@ -5826,6 +5827,7 @@ a.list-group-item-danger.active:focus {
 
 .panel {
     margin-bottom: 21px;
+    /*margin-bottom: 20px;*/
     background-color: #303030;
     border: 1px solid transparent;
     border-radius: 4px;

@@ -1,8 +1,14 @@
+<?php
+/**
+ * @var eq\themes\bootstrap\widgets\Navbar $bar
+ */
+?>
 <div class="<?= $bar->nav_class ?>" role="navigation">
     <div class="container-fluid">
 
         <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#<?= $bar->collapse_id ?>">
+            <button type="button" class="navbar-toggle" data-toggle="collapse"
+                    data-target="#<?= $bar->collapse_id ?>">
                 <span class="sr-only">Toggle navigation</span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
@@ -15,15 +21,10 @@
 
         <div class="collapse navbar-collapse" id="<?= $bar->collapse_id ?>">
             <ul class="nav navbar-nav">
-                <? foreach($bar->links as $name => $link): ?>
-                    <? if($bar->isLinkActive($name)): ?><li class="active"><? else: ?><li><? endif; ?>
-                        <a href="<?= $link['link'] ?>">
-                            <? if(isset($link['icon']) && $link['icon']): ?>
-                                <span class="glyphicon glyphicon-<?= $link['icon'] ?>"></span>
-                            <? endif; ?>
-                            <?= $link['title'] ?>
-                        </a>
-                    </li>
+                <? foreach($bar->items as $name => $item): ?>
+                    <? if($bar->isItemVisible($item)): ?>
+                        <?= $bar->renderItem($item); ?>
+                    <? endif; ?>
                 <? endforeach; ?>
             </ul>
         </div>

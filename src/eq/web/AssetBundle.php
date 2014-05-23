@@ -3,11 +3,12 @@
 namespace eq\web;
 
 use EQ;
+use eq\base\Object;
 use eq\helpers\Str;
 use eq\helpers\FileSystem;
 use eq\base\Loader;
 
-class AssetBundle extends \eq\base\Object
+class AssetBundle extends Object
 {
 
     // protected $source_path = "@eq/src/eq/assets/scripts";
