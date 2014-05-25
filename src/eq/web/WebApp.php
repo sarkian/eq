@@ -64,8 +64,8 @@ final class WebApp extends AppBase
 
     protected function configPermissions()
     {
-        return [
-            'modules' => "append",
+        return EQ_RECOVERY ? [] : [
+            'modules.*' => "all",
             'site.*' => "all",
         ];
     }
@@ -73,10 +73,10 @@ final class WebApp extends AppBase
     public function __construct($config)
     {
         parent::$_app = $this;
-        parent::__construct($config);
-        self::setAlias("@www", 
+        self::setAlias("@www",
             realpath(self::getAlias($this->config("web.content_root"))));
         self::setAlias("@web", "");
+        parent::__construct($config);
         $this->bind("beforeRender", [$this, "__beforeRender"]);
         foreach($this->config("web.preload_assets", []) as $asset)
             $this->client_script->addBundle($asset, EQ_DBG);
@@ -196,8 +196,12 @@ final class WebApp extends AppBase
             // $this->unbind("exception");
             $this->clearOutBuff();
             $this->processException($e_base);
-        } catch(Exception $e_unc) {
+        }
+        catch(Exception $e_unc) {
             $this->processUncaughtException($e_unc);
+        }
+        finally {
+            $this->trigger("shutdown");
         }
     }
 

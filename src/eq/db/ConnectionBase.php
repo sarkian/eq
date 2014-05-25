@@ -66,6 +66,16 @@ abstract class ConnectionBase extends Object
         return $this->schema;
     }
 
+    public function beginTransaction()
+    {
+        $this->pdo->beginTransaction();
+    }
+
+    public function commit()
+    {
+        $this->pdo->commit();
+    }
+
     public static function create($name, $config)
     {
         $driver = Arr::getItem($config, "driver", null);

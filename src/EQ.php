@@ -1,17 +1,17 @@
 <?php
-/**
- * Last Change: 2014 Apr 14, 11:04
- */
 
 define("OS_WIN", strstr(PHP_OS, "WIN") ? true : false);
 
 define("EQROOT", realpath(__DIR__."/.."));
 
+defined("EQ_RECOVERY") or define("EQ_RECOVERY", false);
+defined("EQ_DAEMON") or define("EQ_DAEMON", false);
+
 defined("EQ_DBG") or define("EQ_DBG", true);
-defined("EQ_WARNING") or define("EQ_WARNING", true);
-defined("EQ_NOTICE") or define("EQ_NOTICE", true);
-defined("EQ_DEPRECATED") or define("EQ_DEPRECATED", true);
-defined("EQ_STRICT") or define("EQ_STRICT", true);
+defined("EQ_WARNING") or define("EQ_WARNING", EQ_DBG);
+defined("EQ_NOTICE") or define("EQ_NOTICE", EQ_DBG);
+defined("EQ_DEPRECATED") or define("EQ_DEPRECATED", EQ_DBG);
+defined("EQ_STRICT") or define("EQ_STRICT", EQ_DBG);
 
 require_once EQROOT."/src/eq/base/ExceptionBase.php";
 require_once EQROOT."/src/eq/base/LoaderException.php";

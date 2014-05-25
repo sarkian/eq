@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 15, 20:32
- */
 
 namespace eq\helpers;
 
@@ -11,25 +8,61 @@ use eq\base\ShellSyntaxException;
 class Shell
 {
 
-    public static function exec($cmd, $input = null)
+    public static function exec($cmd, $input = null, &$ret = null)
     {
+        $thr = func_num_args() < 3;
         $descspec = [
             0 => ["pipe", "r"],
             1 => ["pipe", "w"],
             2 => ["pipe", "w"],
         ];
         $proc = proc_open($cmd, $descspec, $pipes);
-        if(!is_resource($proc))
-            throw new ShellExecException("Cant open process: $cmd");
-        fwrite($pipes[0], $input);
+        if(!is_resource($proc)) {
+            if($thr)
+                throw new ShellExecException("Cant open process: $cmd");
+            else
+                return false;
+        }
+        if(!is_null($input))
+            fwrite($pipes[0], $input);
         fclose($pipes[0]);
         $out = stream_get_contents($pipes[1]);
         fclose($pipes[1]);
         $err = trim(stream_get_contents($pipes[2]), " \r\n\t");
         fclose($pipes[2]);
         $ret = proc_close($proc);
-        if($ret !== 0)
-            throw new ShellExecException("Shell returned $ret: $cmd: $err");
+        if($thr && $ret !== 0)
+            throw new ShellExecException("Shell returned $ret: $cmd: $err", $ret);
+        return $out;
+    }
+
+    public static function suexec($cmd, $user, $password, $input = null, &$ret = null)
+    {
+        $thr = func_num_args() < 5;
+        $command = "su ".self::escapeArg($user)." -c ".self::escapeArg($cmd);
+        $descspec = [
+            0 => ["pty", "r"],
+            1 => ["pty", "w"],
+            2 => ["pty", "w"],
+        ];
+        $proc = proc_open($command, $descspec, $pipes);
+        if(!is_resource($proc)) {
+            if($thr)
+                throw new ShellExecException("Cant open process: $cmd");
+            else
+                return false;
+        }
+        sleep(1);
+        fwrite($pipes[0], $password."\r\n");
+//        sleep(1);
+        fclose($pipes[0]);
+        $out = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        $err = trim(stream_get_contents($pipes[2]), " \r\n\t");
+        fclose($pipes[2]);
+        $ret = proc_close($proc);
+        if($thr && $ret !== 0)
+            throw new ShellExecException("Shell returned $ret: $cmd: $err", $ret);
         return $out;
     }
 

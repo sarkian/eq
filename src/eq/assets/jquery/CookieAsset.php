@@ -4,7 +4,7 @@ namespace eq\assets\jquery;
 
 use eq\web\AssetBundle;
 
-class CellEditAsset extends AssetBundle
+class CookieAsset extends AssetBundle
 {
 
     protected $source_path = "@eq/src/eq/assets/scripts/jquery";
@@ -12,11 +12,11 @@ class CellEditAsset extends AssetBundle
     protected $base_url = "@web/assets";
 
     protected $js = [
-        "jquery.cell-edit-0.0.1.js",
+        "jquery.cookie.js",
     ];
 
     protected $depends = [
         "jquery",
     ];
 
-}
+} 

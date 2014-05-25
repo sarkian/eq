@@ -1,8 +1,5 @@
 #!/usr/bin/env php
 <?php
-/**
- * Last Change: 2014 Mar 14, 15:12
- */
 
 if($argc < 3)
     die("Wrong arguments\n");
@@ -14,6 +11,8 @@ if(!$config_file)
 $config = unserialize(file_get_contents($config_file));
 if(!is_array($config))
     die("Cant load config file: ".$config_file."\n");
+
+define("EQ_DAEMON", true);
 
 require_once __DIR__."/../src/EQ.php";
 

@@ -40,6 +40,7 @@ class ErrorHandler
             case E_PARSE:
                 EQ::app()->trigger("error", [$message, $file, $line]);
                 self::throwError();
+                break;
             case E_WARNING:
             case E_COMPILE_WARNING:
             case E_USER_WARNING:
@@ -69,7 +70,7 @@ class ErrorHandler
         }
     }
 
-    public static function onException($e)
+    public static function onException(\Exception $e)
     {
         restore_exception_handler();
         if(EQ::app()) {

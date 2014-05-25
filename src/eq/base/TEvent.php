@@ -2,10 +2,13 @@
 
 namespace eq\base;
 
+use EQ;
+
 trait TEvent
 {
 
     protected $events = [];
+    protected $triggered = [];
     protected $disabled_events = [];
 
     public function bind($events, $callable)
@@ -44,6 +47,8 @@ trait TEvent
         if(!is_array($events))
             $events = [$events];
         foreach($events as $event) {
+            if(!EQ_DAEMON)
+                $this->triggered[$event][] = $args;
             if(!isset($this->events[$event]))
                 continue;
             $key = array_search($event, $this->disabled_events);
@@ -59,6 +64,18 @@ trait TEvent
                 call_user_func_array($callback, $args);
             }
         return $this;
+    }
+
+    public function retrigger($events, $callback)
+    {
+        if(!is_array($events))
+            $events = [$events];
+        foreach($events as $event) {
+            if(!isset($this->triggered[$event]) || !is_array($this->triggered[$event]))
+                continue;
+            foreach($this->triggered[$event] as $args)
+                call_user_func_array($callback, $args);
+        }
     }
 
     public function disableEvents($events)

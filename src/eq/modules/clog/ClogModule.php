@@ -34,6 +34,21 @@ class ClogModule extends ModuleBase
         $this->project_root = realpath(EQ::getAlias(
             $this->config("project_root", "@app")));
         $this->autobind();
+        if($this->config("retrigger", false)) {
+            EQ::app()->retrigger("log", [$this, "__onLog"]);
+            EQ::app()->retrigger("warn", [$this, "__onWarn"]);
+            EQ::app()->retrigger("err", [$this, "__onErr"]);
+            EQ::app()->retrigger("todo", [$this, "__onTodo"]);
+            EQ::app()->retrigger("fixme", [$this, "__onFixme"]);
+            EQ::app()->retrigger("dump", [$this, "__onDump"]);
+            EQ::app()->retrigger("exception", [$this, "__onException"]);
+            EQ::app()->retrigger("error", [$this, "__onError"]);
+            EQ::app()->retrigger("warning", [$this, "__onWarning"]);
+            EQ::app()->retrigger("deprecated", [$this, "__onDeprecated"]);
+            EQ::app()->retrigger("notice", [$this, "__onNotice"]);
+            EQ::app()->retrigger("strict", [$this, "__onStrict"]);
+            EQ::app()->retrigger("dbQuery", [$this, "__onDbQuery"]);
+        }
     }
 
     public function __onRequest()

@@ -30,7 +30,11 @@ class ModuleHtmlHelper
     public function panelClass()
     {
         $class = ["panel", "module-panel"];
-        if(!$this->enabled)
+        if($this->module->errors)
+            $class[] = "panel-danger";
+        elseif($this->module->warnings)
+            $class[] = "panel-warning";
+        elseif(!$this->enabled)
             $class[] = "panel-default";
         elseif($this->can_disable)
             $class[] = "panel-primary";
@@ -43,6 +47,7 @@ class ModuleHtmlHelper
     {
         $options = [
             'type' => "checkbox",
+            'class' => "module-checkbox",
         ];
         if($this->enabled)
             $options['checked'] = "checked";
@@ -61,13 +66,16 @@ class ModuleHtmlHelper
             $module = EQ::app()->module($mname, true);
             if($module) {
                 $href = "#".$mname;
+                if($this->module->isEnabled() && !$module->isEnabled())
+                    $opts['class'] = "warning";
             }
             else {
                 $href = "#";
+                $opts['class'] = "error";
             }
             $links[] = Html::link($mname, $href, $opts);
         }
-        return Html::tag("b", [], EQ::t("Dependencies").": ").implode(" ", $links);
+        return EQ::t("Dependencies").": ".implode(", ", $links);
     }
 
 }

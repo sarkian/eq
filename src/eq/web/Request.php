@@ -6,6 +6,7 @@
 namespace eq\web;
 
 use eq\base\Object;
+use eq\datatypes\DataTypeBase;
 use eq\helpers\Arr;
 
 /**
@@ -76,6 +77,18 @@ class Request extends Object
     public function post($name, $default = null)
     {
         return Arr::getItem($_POST, $name, $default);
+    }
+
+    public function filterGet($name, $type, $default = null)
+    {
+        $type = DataTypeBase::getClass($type);
+        return $type::filter(Arr::getItem($_GET, $name, $default));
+    }
+
+    public function filterPost($name, $type, $default = null)
+    {
+        $type = DataTypeBase::getClass($type);
+        return $type::filter(Arr::getItem($_POST, $name, $default));
     }
 
 }

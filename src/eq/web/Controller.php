@@ -63,6 +63,16 @@ abstract class Controller
         );
     }
 
+    protected function beforeRender()
+    {
+
+    }
+
+    protected function beforeEcho()
+    {
+
+    }
+
     protected function init() {}
 
     protected function processPermissions()
@@ -175,6 +185,7 @@ abstract class Controller
     protected function render($view, $view_vars = [])
     {
         EQ::app()->trigger("beforeRender");
+        $this->beforeRender();
         self::$__view_vars__ = $view_vars;
         $view_file = $this->findViewFile($view);
         if(!$view_file)
@@ -184,6 +195,7 @@ abstract class Controller
         $this->renderingEnd($content);
         $out = ob_get_clean();
         EQ::app()->trigger("beforeEcho");
+        $this->beforeEcho();
         if($this->template) {
             $out = preg_replace('/\{\{\$HEAD_CONTENT\}\}/',
                 EQ::app()->client_script->renderHead(), $out, 1);

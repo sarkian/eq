@@ -1,11 +1,10 @@
 <?php
-/**
- * Last Change: 2014 Apr 09, 15:24
- */
 
 namespace eq\assets;
 
-class BootstrapDarklyAsset extends \eq\web\AssetBundle
+use eq\web\AssetBundle;
+
+class BootstrapDarklyAsset extends AssetBundle
 {
 
     protected $source_path = "@eq/src/eq/assets/scripts/bootstrap";

@@ -4,7 +4,7 @@ namespace eq\assets\eq;
 
 use eq\web\AssetBundle;
 
-class JsDataAsset extends AssetBundle
+class AjaxAsset extends AssetBundle
 {
 
     protected $source_path = "@eq/src/eq/assets/scripts/eq";
@@ -12,11 +12,12 @@ class JsDataAsset extends AssetBundle
     protected $base_url = "@web/assets/eq";
 
     protected $js = [
-        "eq.js-data-0.0.1.js",
+        "eq.ajax-0.0.1.js",
     ];
 
     protected $depends = [
         "eq.base",
+        "jquery",
     ];
 
-}
+} 

@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 May 04, 05:42
- */
 
 namespace eq\base;
 
@@ -11,6 +8,7 @@ use eq\db\Pool;
 use eq\helpers\Str;
 use eq\helpers\Arr;
 use eq\helpers\FileSystem;
+use eq\modules\dbconfig\DbconfigComponent;
 use eq\task\TaskApp;
 use eq\web\WebApp;
 use eq\web\WidgetBase;
@@ -36,6 +34,7 @@ use glip\Git;
  * @method static string t($token)
  * @method static string k($token)
  * @method ConnectionBase db(string $name)
+ * @property DbconfigComponent dbconfig
  */
 abstract class AppBase extends ModuleAbstract
 {
@@ -486,14 +485,34 @@ abstract class AppBase extends ModuleAbstract
         ];
     }
 
+    protected function configPermissions()
+    {
+        return EQ_RECOVERY ? [] : [
+            'modules.*' => "all",
+            'site.*' => "all",
+        ];
+    }
+
     protected function loadModules()
     {
+        $classes = [];
+        foreach($this->config("modules", []) as $name => $conf) {
+            if(!isset($conf['enabled']) || !$conf['enabled'])
+                continue;
+            $cname = ModuleBase::getClass($name);
+            $classes[$name] = $cname;
+            $cname::preInit();
+        }
         $modules = $this->config("modules", []);
         foreach($modules as $name => $conf) {
-            $cname = ModuleBase::getClass($name);
+            if(!isset($conf['enabled']) || !$conf['enabled'])
+                continue;
+            $cname = isset($classes[$name]) ? $classes[$name] : ModuleBase::getClass($name);
             $this->loadModule($name, $cname);
         }
         foreach($modules as $name => $conf) {
+            if(!isset($conf['enabled']) || !$conf['enabled'])
+                continue;
             $this->trigger("modules.$name.ready", [$this->modules_by_name[$name]]);
         }
     }
@@ -504,8 +523,11 @@ abstract class AppBase extends ModuleAbstract
      */
     protected function loadModule($name, $cname)
     {
+        if(isset($this->modules_by_name[$name]))
+            return;
         $this->trigger("modules.$name.init");
         $module = $cname::instance(true);
+        $this->processModuleDependencies($module);
         $this->modules_by_name[$name] = $module;
         $this->modules_by_class[$cname] = $module;
 //        $this->config_permissions['modules'][$name] = $module->configPermissions();
@@ -523,6 +545,20 @@ abstract class AppBase extends ModuleAbstract
             $module->{$method}();
         $module->ready();
         $this->trigger("modules.$name.initialized", [$module]);
+    }
+
+    protected function processModuleDependencies(ModuleBase $module)
+    {
+        foreach($module->depends as $mname) {
+            $cname = ModuleBase::getClass($mname, false);
+            if($cname)
+                $this->loadModule($mname, $cname);
+            else {
+                $message = \EQ::t("Module not found").": $mname";
+                $module->addError($message);
+                \EQ::err($message);
+            }
+        }
     }
 
     protected function registerComponent($name, $class,

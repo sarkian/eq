@@ -25,13 +25,15 @@ body {
 
 
 /* Modules */
+/* TODO: move to theme */
 
 .module-panel {
-
+    display: none;
 }
 
 .module-panel .panel-heading {
     padding: 0;
+    border-bottom: none;
 }
 
 .module-panel .panel-title {
@@ -48,7 +50,7 @@ body {
 }
 
 .module-panel .panel-heading a {
-    color: #dddddd;
+    color: #ffffff;
 }
 
 .module-panel .enabled-toggle {
@@ -61,14 +63,32 @@ body {
     margin-top: 3px;
 }
 
+.module-panel .panel-body {
+    color: #dddddd;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.module-panel .panel-body p {
+    margin: 0;
+}
+
+.module-panel .panel-body hr {
+    margin: 6px 0;
+}
+
 .panel-cant-disable {
-    border: 1px solid #334967 !important;
+    border: 1px solid #293a52 !important;
     color: #eeeeee;
 }
 
 .panel-cant-disable .panel-heading {
-    background-color: #334967;
-    border-color: #334967;
+    background-color: #293a52;
+    border-color: #293a52;
+}
+
+.panel-cant-disable .panel-heading a {
+    color: #bbbbbb;
 }
 
 .module-panel .module-name {
@@ -81,5 +101,22 @@ body {
 }
 
 .module-panel .module-description {
+    color: #eeeeee;
+}
+
+.module-panel .module-description i {
     color: #bbbbbb;
+}
+
+.module-dependencies a {
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+    font-size: 14px;
+}
+
+.module-dependencies a.error {
+    color: #ff5b4d;
+}
+
+.module-dependencies a.warning {
+
 }

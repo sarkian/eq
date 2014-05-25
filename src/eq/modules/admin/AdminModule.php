@@ -48,15 +48,13 @@ class AdminModule extends ModuleBase
             foreach($this->nav_items as $item)
                 $module->addItem("admin", $item);
         });
-        EQ::app()->bind("beforeRender", function() {
-            AdminAsset::register();
-        });
     }
 
     public function getDepends()
     {
         return [
             "eq:navigation",
+            "eq:dbconfig",
         ];
     }
 

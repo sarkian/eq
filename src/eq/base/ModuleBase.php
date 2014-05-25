@@ -14,11 +14,18 @@ use eq\helpers\Str;
  * @property string location
  * @property string url_prefix
  * @property array depends
+ * @property array errors
+ * @property array warnings
  */
 abstract class ModuleBase extends ModuleAbstract
 {
 
     use TObject;
+
+    private static $_instances = [];
+
+    private $errors = [];
+    private $warnings = [];
 
     /**
      * @param string $name
@@ -51,14 +58,19 @@ abstract class ModuleBase extends ModuleAbstract
 
     /**
      * @param bool $enable
-     * @internal param bool $noinit
      * @return ModuleBase
      */
     protected static final function instance($enable = false)
     {
-        $modules = EQ::app()->modules_by_class;
         $cname = get_called_class();
-        return isset($modules[$cname]) ? $modules[$cname] : new $cname($enable);
+        if(!isset(self::$_instances[$cname]) || !self::$_instances[$cname] instanceof $cname)
+            self::$_instances[$cname] = new $cname($enable);
+        return self::$_instances[$cname];
+    }
+
+    protected static function preInit()
+    {
+
     }
 
 
@@ -165,6 +177,16 @@ abstract class ModuleBase extends ModuleAbstract
         return $this->_location;
     }
 
+    public final function getErrors()
+    {
+        return $this->errors;
+    }
+
+    public final function getWarnings()
+    {
+        return $this->warnings;
+    }
+
     public final function findClass($classname)
     {
         $name = trim(str_replace(".", "\\", $classname), "\\");
@@ -251,6 +273,16 @@ abstract class ModuleBase extends ModuleAbstract
     protected final function registerStaticMethod($name, $method)
     {
         EQ::app()->registerStaticMethod($name, $method);
+    }
+
+    protected final function addError($message)
+    {
+        $this->errors[] = $message;
+    }
+
+    protected final function addWarning($message)
+    {
+        $this->warnings[] = $message;
     }
 
     protected function init()

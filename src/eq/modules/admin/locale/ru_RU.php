@@ -12,6 +12,7 @@ return [
         'No dependencies' => "Зависимостей нет",
         'enabled' => "включён",
         'disabled' => "выключен",
+        'Module not found' => "Модуль не найден",
     ],
     'keys' => [
 

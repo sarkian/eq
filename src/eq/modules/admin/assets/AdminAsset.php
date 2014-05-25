@@ -45,6 +45,8 @@ class AdminAsset extends AssetBundle
     {
         return [
             "jquery",
+            "eq.userdata",
+            "jquery.cookie",
         ];
     }
 

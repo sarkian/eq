@@ -6,6 +6,7 @@ use EQ;
 use eq\base\ModuleBase;
 use eq\base\ModuleException;
 use eq\base\TModuleClass;
+use eq\modules\admin\assets\AdminAsset;
 use eq\web\Controller;
 
 class AdminController extends Controller
@@ -20,6 +21,11 @@ class AdminController extends Controller
         return [
             'user,guest' => ["deny", "#all"],
         ];
+    }
+
+    protected function beforeRender()
+    {
+        AdminAsset::register();
     }
 
     public function actionIndex()

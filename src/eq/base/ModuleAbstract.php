@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 24, 04:22
- */
 
 namespace eq\base;
 
@@ -11,6 +8,11 @@ abstract class ModuleAbstract
     protected static function instance()
     {
         
+    }
+
+    protected static function preInit()
+    {
+
     }
 
     protected function registerStaticMethod($name, $method)
@@ -26,6 +28,16 @@ abstract class ModuleAbstract
     protected function ready()
     {
         
+    }
+
+    protected function addError($message)
+    {
+
+    }
+
+    protected function addWarning($message)
+    {
+
     }
 
 }

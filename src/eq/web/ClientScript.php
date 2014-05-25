@@ -173,7 +173,7 @@ class ClientScript
     }
 
     /**
-     * @param \eq\web\AssetBundle $bundle
+     * @param \eq\web\AssetBundle|string $bundle
      * @param bool $reload
      * @return \eq\web\ClientScript
      */
