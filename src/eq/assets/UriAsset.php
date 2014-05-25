@@ -4,11 +4,11 @@ namespace eq\assets;
 
 use eq\web\AssetBundle;
 
-class LodashAsset extends AssetBundle
+class UriAsset extends AssetBundle
 {
 
     protected $js = [
-        "lodash.min.js",
+        "uri.js",
     ];
 
-}
+} 

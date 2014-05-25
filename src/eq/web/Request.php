@@ -79,6 +79,11 @@ class Request extends Object
         return Arr::getItem($_POST, $name, $default);
     }
 
+    public function request($name, $default = null)
+    {
+        return Arr::getItem($_REQUEST, $name, $default);
+    }
+
     public function filterGet($name, $type, $default = null)
     {
         $type = DataTypeBase::getClass($type);
@@ -89,6 +94,12 @@ class Request extends Object
     {
         $type = DataTypeBase::getClass($type);
         return $type::filter(Arr::getItem($_POST, $name, $default));
+    }
+
+    public function filterRequest($name, $type, $default = null)
+    {
+        $type = DataTypeBase::getClass($type);
+        return $type::filter(Arr::getItem($_REQUEST, $name, $default));
     }
 
 }

@@ -30,8 +30,6 @@ class ModulesController extends Controller
 
     public function actionIndex()
     {
-        if(EQ::app()->request->filterGet("ajax", "bool", false))
-            $this->template = null;
         AdminAsset::addJs("modules");
         $modules = EQ::app()->available_modules;
         $this->render("modules/index", ['modules' => $modules]);

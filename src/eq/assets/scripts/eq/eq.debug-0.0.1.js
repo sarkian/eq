@@ -124,14 +124,14 @@
         cmessage = cmessage || callStack().join('\n');
         side = side === 'left' || side === 'right' ? side : 'left';
         show('warning', message, title, cmessage, side);
-    }
+    };
 
     Debug.prototype.info = function(message, title, cmessage, side) {
         title = title || 'Info';
         cmessage = cmessage || callStack().join('\n');
         side = side === 'left' || side === 'right' ? side : 'left';
         show('info', message, title, cmessage, side);
-    }
+    };
 
 
     EQ.registerComponent('dbg', Debug);

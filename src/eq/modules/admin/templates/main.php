@@ -5,13 +5,12 @@
     {{$HEAD_CONTENT}}
 </head>
 <body>
+{{$BODY_BEGIN_CONTENT}}
 
     <?= EQ::app()->module("eq:navigation")->renderNav("admin") ?>
 
     <div class="container">
-        {{$BODY_BEGIN_CONTENT}}
         <?= $content ?>
-        {{$BODY_END_CONTENT}}
     </div>
 
     <div id="footer">
@@ -20,5 +19,6 @@
         </div>
     </div>
 
+{{$BODY_END_CONTENT}}
 </body>
 </html>
