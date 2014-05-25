@@ -29,16 +29,37 @@
 
     Ajax.prototype.init = function() {
         this.container = findContainer();
+        EQ.trigger('ajax.ready');
     };
 
     Ajax.prototype.reload = function() {
+        EQ.trigger('ajax.reload');
+        var url = new URI(document.location.href);
+        url.query.ajax = true;
+        this.container.load(url.toString(), function() {
+            EQ.trigger('ajax.ready');
+        });
+    };
 
+    Ajax.prototype.url = function(path) {
+        // TODO: передача префикса через jsdata
+        return '/ajax/' + path;
+    };
+
+    Ajax.prototype.exec = function(path, data, on_success, on_error) {
+        var url = EQ.ajax.url(path);
+        $.post(url, data, 'json').done(function(data) {
+            console.log(data);
+        }).fail(function(data) {
+            console.log(data);
+        });
     };
 
 
     EQ.registerComponent('ajax', Ajax);
-    $(EQ.ajax.init);
+    $(function() {
+        EQ.ajax.init();
+    });
 
 })();
-
 

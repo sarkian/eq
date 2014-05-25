@@ -1,4 +1,4 @@
-$(function() {
+(function() {
 
     window.ModulePanel = function(el) {
         var self = this;
@@ -16,6 +16,10 @@ $(function() {
     };
 
     ModulePanel._panels = {};
+
+    ModulePanel.clean = function() {
+        ModulePanel._panels = {};
+    };
 
     ModulePanel.register = function(el) {
         el = $(el);
@@ -66,6 +70,22 @@ $(function() {
         });
     };
 
+    ModulePanel.update = function() {
+        ModulePanel.clean();
+        $('.module-panel').each(function(i, el) {
+            ModulePanel.register(el);
+        });
+        $('.module-dependencies a[data-module-name]').click(function() {
+            var mname = $(this).data('module-name');
+            ModulePanel.get(mname).scrollTo();
+            return false;
+        });
+        if(EQ.udata.get('admin.modules.showSystem', 0) == 1)
+            ModulePanel.showAll();
+        else
+            ModulePanel.showNotSystem();
+    };
+
     ModulePanel.prototype = {
 
         show: function() {
@@ -93,19 +113,35 @@ $(function() {
         },
 
         scrollTo: function() {
-
+            var el = this._el;
+            var dest = el.position().top - 70;
+            $('html,body').animate({
+                scrollTop: dest
+            }, 300, 'swing', function() {
+                if(this !== document.body)
+                    return;
+                setTimeout(function() {
+                    el.removeClass('scrolled-to');
+                }, 300);
+            });
+            el.addClass('scrolled-to');
         }
 
     };
 
-
-    $('.module-panel').each(function(i, el) {
-        ModulePanel.register(el);
+    EQ.bind('ajax.ready', function() {
+        ModulePanel.update();
     });
+//    ModulePanel.update();
 
-    if(EQ.udata.get('admin.modules.showSystem', 0) == 1)
-        ModulePanel.showAll();
-    else
-        ModulePanel.showNotSystem();
 
-});
+//    $('.module-panel').each(function(i, el) {
+//        ModulePanel.register(el);
+//    });
+//
+//    if(EQ.udata.get('admin.modules.showSystem', 0) == 1)
+//        ModulePanel.showAll();
+//    else
+//        ModulePanel.showNotSystem();
+
+})();

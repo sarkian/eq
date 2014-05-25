@@ -16,6 +16,10 @@ use eq\modules\admin\ModuleHtmlHelper;
             <label class="checkbox enabled-toggle">
                 <?= $helper->enabledCheckbox() ?>
             </label>
+            <? if($module->isEnabledAsDependency()): ?>
+                <span class="glyphicon glyphicon-transfer enabled-as-dependency"
+                    title="<?= EQ::t("Enabled as dependency") ?>"></span>
+            <? endif; ?>
         </div>
         <div class="module-name"><?= $module->name ?></div>
         <div class="panel-body">

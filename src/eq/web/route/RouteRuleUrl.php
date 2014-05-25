@@ -28,7 +28,7 @@ class RouteRuleUrl
     protected $vars = [];
     protected $mask = [];
 
-    public function __construct($url, $fname, $lnum, $prefix = "")
+    public function __construct($url, $fname = null, $lnum = null, $prefix = "")
     {
         $this->fname = $fname;
         $this->lnum = $lnum;

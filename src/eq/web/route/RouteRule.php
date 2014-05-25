@@ -1,12 +1,10 @@
 <?php
-/**
- * Last Change: 2014 May 04, 05:43
- */
 
 namespace eq\web\route;
 
 use eq\base\TObject;
 use eq\datatypes\DataTypeBase;
+use EQ;
 
 /**
  * @property bool dynamic_controller
@@ -181,6 +179,15 @@ class RouteRule
         $this->path->validateVariables($this->url->vars);
     }
 
+    public function parsePath($path)
+    {
+        $this->setMethod("*");
+        $this->url = new RouteRuleUrl(explode("?", EQ::app()->request->uri)[0]);
+        $this->path = new RouteRulePath($path);
+        $this->_dynamic_controller = true;
+        $this->_dynamic_action = true;
+    }
+
     public function matchMethod($method)
     {
         return $this->method === "*" ? true : $this->method === $method;
@@ -195,8 +202,9 @@ class RouteRule
         foreach($this->url_vars as $var => $type) {
             if(!isset($matches[$i]))
                 $this->exceptParsing("URL variable not found: $var");
-            $type = DataTypeBase::getClass($type);
-            $vars[$var] = $type::filter($matches[$i]);
+//            $type = DataTypeBase::getClass($type);
+//            $vars[$var] = $type::filter($matches[$i]);
+            $vars[$var] = $matches[$i];
             $i++;
         }
         return $vars;

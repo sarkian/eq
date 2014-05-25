@@ -6,13 +6,11 @@ use EQ;
 use eq\base\TModuleClass;
 use eq\modules\admin\assets\AdminAsset;
 use eq\web\Controller;
-use eq\web\TAjaxController;
 
 class ModulesController extends Controller
 {
 
     use TModuleClass;
-    use TAjaxController;
 
     protected $template = "main";
 
@@ -21,11 +19,6 @@ class ModulesController extends Controller
         return [
             'user,guest' => ["deny", "#all"],
         ];
-    }
-
-    protected function beforeRender()
-    {
-        AdminAsset::register();
     }
 
     public function actionIndex()

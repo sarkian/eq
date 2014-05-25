@@ -8,6 +8,7 @@ use eq\db\Pool;
 use eq\helpers\Str;
 use eq\helpers\Arr;
 use eq\helpers\FileSystem;
+use eq\modules\ajax\AjaxComponent;
 use eq\modules\dbconfig\DbconfigComponent;
 use eq\task\TaskApp;
 use eq\web\WebApp;
@@ -35,6 +36,7 @@ use glip\Git;
  * @method static string k($token)
  * @method ConnectionBase db(string $name)
  * @property DbconfigComponent dbconfig
+ * @property AjaxComponent ajax
  */
 abstract class AppBase extends ModuleAbstract
 {

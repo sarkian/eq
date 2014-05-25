@@ -1,11 +1,9 @@
 <?php
-/**
- * Last Change: 2014 May 04, 05:09
- */
 
 namespace eq\web\route;
 
 use EQ;
+use eq\base\TEvent;
 use eq\base\TObject;
 use eq\helpers\Str;
 use eq\base\Loader;
@@ -102,6 +100,18 @@ class Route
         return $this->vars;
     }
 
+    public function redirect($path)
+    {
+        $this->found = false;
+        $rules = $this->rules;
+        $rule = new RouteRule();
+        $rule->parsePath($path);
+        $this->rules = [$rule];
+        $this->processRequest();
+        $this->vars = $_REQUEST;
+        $this->rules = $rules;
+    }
+
     public function createUrl($path, $vars = [], $url_vars = [])
     {
         if(is_array($path))
@@ -121,9 +131,9 @@ class Route
          throw new RouteException("Unable to create URL for path: $path");
     }
 
-    public function processRequest()
+    public function processRequest($url = null)
     {
-        $url = explode("?", $_SERVER['REQUEST_URI'])[0];
+        $url or $url = explode("?", $_SERVER['REQUEST_URI'])[0];
         foreach($this->rules as $rule) {
             if(!$rule->matchMethod($_SERVER['REQUEST_METHOD']))
                 continue;
@@ -147,10 +157,12 @@ class Route
                     $this->action_name = $rule->action_name;
                 if($this->findPath()) {
                     $this->found = true;
+                    EQ::app()->trigger("route.found", [$url]);
                     return;
                 }
             }
         }
+        EQ::app()->trigger("route.notFound", [$url]);
     }
 
     protected function findPath()

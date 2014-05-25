@@ -13,6 +13,7 @@ return [
         'enabled' => "включён",
         'disabled' => "выключен",
         'Module not found' => "Модуль не найден",
+        'Enabled as dependency' => "Включён как зависимость",
     ],
     'keys' => [
 

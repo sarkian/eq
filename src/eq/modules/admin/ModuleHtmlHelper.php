@@ -66,6 +66,7 @@ class ModuleHtmlHelper
             $module = EQ::app()->module($mname, true);
             if($module) {
                 $href = "#".$mname;
+                $opts['data-module-name'] = $mname;
                 if($this->module->isEnabled() && !$module->isEnabled())
                     $opts['class'] = "warning";
             }

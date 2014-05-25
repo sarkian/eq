@@ -21,7 +21,7 @@ class RouteRulePath
     protected $dynamic_controller = false;
     protected $dynamic_action = false;
 
-    public function __construct($path, $fname, $lnum, $prefix = "")
+    public function __construct($path, $fname = null, $lnum = null, $prefix = "")
     {
         $this->fname = $fname;
         $this->lnum = $lnum;

@@ -1,11 +1,10 @@
 <?php
-/**
- * Last Change: 2014 Apr 20, 01:15
- */
 
 namespace eq\web\route;
 
-class RouteException extends \eq\base\ExceptionBase
+use eq\base\ExceptionBase;
+
+class RouteException extends ExceptionBase
 {
 
     protected $type = "RouteException";

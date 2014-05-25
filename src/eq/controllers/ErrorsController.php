@@ -4,8 +4,9 @@ namespace eq\controllers;
 
 use EQ;
 use eq\modules\clog\Clog;
+use eq\web\Controller;
 
-class ErrorsController extends \eq\web\Controller
+class ErrorsController extends Controller
 {
 
     protected $template = "error";
@@ -37,6 +38,7 @@ class ErrorsController extends \eq\web\Controller
     protected function messages()
     {
         return [
+            400 => "Bad Request",
             404 => "Page not found",
             500 => "Internal Server Error",
         ];

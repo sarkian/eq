@@ -21,11 +21,15 @@ class AdminModule extends ModuleBase
 
     protected $nav_items = [];
 
-    public function webInit()
+    public function init()
     {
-        EQ::app()->bind("modules.eq:i18n.beforeLoadFiles", function(I18nModule $module) {
+        EQ::app()->bind("modules.eq:i18n.beforeLoadFiles", function (I18nModule $module) {
             $module->addDir($this->location."/locale", "admin");
         });
+    }
+
+    public function webInit()
+    {
         $this->nav_items = [
             'home' => [
                 'link' => "/",
@@ -48,6 +52,9 @@ class AdminModule extends ModuleBase
             foreach($this->nav_items as $item)
                 $module->addItem("admin", $item);
         });
+        EQ::app()->bind("beforeRender", function() {
+            AdminAsset::register();
+        });
     }
 
     public function getDepends()
@@ -55,6 +62,7 @@ class AdminModule extends ModuleBase
         return [
             "eq:navigation",
             "eq:dbconfig",
+            "eq:ajax",
         ];
     }
 
