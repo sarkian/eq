@@ -1,17 +1,15 @@
 (function() {
 
-    window.ModulePanel = function(el) {
+    window.ModulePanel = function(mname, el) {
         var self = this;
+        this._mname = mname;
         this._el = el;
         this._heading = el.find('.panel-heading');
         this._checkbox = this._heading.find('input[type=checkbox]');
         this._checkbox.change(function() {
             if(!self.canDisable())
                 return;
-            if($(this).is(':checked'))
-                self.setEnabled();
-            else
-                self.setDisabled();
+            EQ.ajax.exec('modules.eq:admin.modules.toggle', {module_name: mname}, true);
         });
     };
 
@@ -25,7 +23,7 @@
         el = $(el);
         var mname = el.data('module-name');
         if(!ModulePanel._panels[mname])
-            ModulePanel._panels[mname] = new ModulePanel(el);
+            ModulePanel._panels[mname] = new ModulePanel(mname, el);
     };
 
     ModulePanel.get = function(mname) {
@@ -33,8 +31,10 @@
     };
 
     ModulePanel.each = function(callback) {
-        for(var mname in ModulePanel._panels)
-            callback(mname, ModulePanel._panels[mname]);
+        for(var mname in ModulePanel._panels) {
+            if(ModulePanel._panels.hasOwnProperty(mname))
+                callback(mname, ModulePanel._panels[mname]);
+        }
     };
 
     ModulePanel.hideSystem = function() {

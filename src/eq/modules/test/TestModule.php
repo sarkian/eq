@@ -18,7 +18,7 @@ class TestModule extends ModuleBase
     {
         return [
             "eq:cron",
-            "eq:unknown",
+//            "eq:unknown",
         ];
     }
 

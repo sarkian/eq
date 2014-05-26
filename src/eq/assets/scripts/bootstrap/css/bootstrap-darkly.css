@@ -5486,8 +5486,10 @@ a.thumbnail.active {
 }
 
 .alert-warning {
-    background-color: #f39c12;
-    border-color: #f39c12;
+    /*background-color: #f39c12;*/
+    /*border-color: #f39c12;*/
+    background-color: #b3710e;
+    border-color: #b3710e;
     color: #ffffff;
 }
 

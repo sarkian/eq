@@ -4,7 +4,8 @@ namespace eq\modules\i18n;
 
 use EQ;
 use eq\base\ModuleBase;
-use eq\helpers\Arr;
+use eq\php\PhpExceptionBase;
+use eq\web\Jsdata;
 
 class I18nModule extends ModuleBase
 {
@@ -15,6 +16,7 @@ class I18nModule extends ModuleBase
     protected $dirs = [];
     protected $tokens = [];
     protected $keys = [];
+    protected $js = [];
 
     public function init()
     {
@@ -35,6 +37,10 @@ class I18nModule extends ModuleBase
             EQ::app()->cookie->_locale = $locale;
         }
         EQ::app()->setLocale($locale);
+        EQ::app()->bind("jsdata.register", function(Jsdata $jsdata) {
+            if($this->js)
+                $jsdata->set("i18n", $this->js);
+        });
     }
     
     public function consoleInit()
@@ -75,7 +81,16 @@ class I18nModule extends ModuleBase
         $this->loadFiles();
         if(!isset($this->keys[$key]))
             throw new I18nException("Undefined key: $key");
-        return $this->keys[$key];
+        $args = func_get_args();
+        array_shift($args);
+        array_unshift($args, $this->keys[$key]);
+        // TODO: запилить нормальную обработку ошибки
+        try {
+            return call_user_func_array("sprintf", $args);
+        }
+        catch(PhpExceptionBase $e) {
+            return "";
+        }
     }
 
     protected function loadFiles()
@@ -85,6 +100,7 @@ class I18nModule extends ModuleBase
         $this->trigger("beforeLoadFiles", [$this]);
         $tokens = [];
         $keys = [];
+        $js = [];
         foreach($this->dirs as $dir => $key_prefix) {
             $files = array_filter(
                 glob("$dir/".EQ::app()->locale.".php"), "is_file");
@@ -104,12 +120,16 @@ class I18nModule extends ModuleBase
                         $keys_ = $data['keys'];
                     $keys[] = $keys_;
                 }
+                if(isset($data['js']) && is_array($data['js']))
+                    $js[] = $data['js'];
             }
         }
         if($tokens)
             $this->tokens = call_user_func_array("array_merge", $tokens);
         if($keys)
             $this->keys = call_user_func_array("array_merge", $keys);
+        if($js)
+            $this->js = call_user_func_array("array_merge", $js);
         $this->dirs = null;
     }
 

@@ -509,13 +509,19 @@ abstract class AppBase extends ModuleAbstract
         foreach($modules as $name => $conf) {
             if(!isset($conf['enabled']) || !$conf['enabled'])
                 continue;
-            $cname = isset($classes[$name]) ? $classes[$name] : ModuleBase::getClass($name);
-            $this->loadModule($name, $cname);
+            $cname = isset($classes[$name]) ? $classes[$name] : ModuleBase::getClass($name, false);
+            if($cname)
+                $this->loadModule($name, $cname);
+            else {
+                \EQ::warn("Module not found: $name");
+                $this->trigger("moduleNotFound", [$name]);
+            }
         }
         foreach($modules as $name => $conf) {
             if(!isset($conf['enabled']) || !$conf['enabled'])
                 continue;
-            $this->trigger("modules.$name.ready", [$this->modules_by_name[$name]]);
+            if(isset($this->modules_by_name[$name]))
+                $this->trigger("modules.$name.ready", [$this->modules_by_name[$name]]);
         }
     }
 

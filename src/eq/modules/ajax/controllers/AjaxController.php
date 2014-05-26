@@ -2,8 +2,11 @@
 
 namespace eq\modules\ajax\controllers;
 
+use eq\cgen\reflection\ReflectionClass;
 use eq\modules\ajax\AjaxErrorException;
 use eq\modules\ajax\AjaxException;
+use eq\modules\ajax\AjaxReflectionAction;
+use eq\modules\ajax\AjaxResponse;
 use eq\web\Controller;
 use EQ;
 use eq\web\ControllerException;
@@ -19,65 +22,14 @@ class AjaxController extends Controller
         try {
             $route = EQ::app()->route;
             $route->redirect($path);
-            if($route->found) {
-                $cname = $route->controller_class;
-                $method = $route->action_method;
-                $controller = new $cname();
-                if(!$controller instanceof Controller)
-                    throw new ControllerException(
-                        'Controller class must be a subclass of eq\web\Controller: '.$cname);
-                $action = new ReflectionAction($controller, $method);
-                $tag = $action->docblock->tag("ajax");
-                if(!$tag->exists())
-                    throw new HttpException(404);
-                try {
-                    $val = $tag->wfirst();
-                    $success = true;
-                    $error = "";
-                    try {
-                        $res = $action->call($route->vars);
-                    }
-                    catch(AjaxErrorException $e) {
-                        $success = false;
-                        $error = $e->getMessage();
-                        $res = null;
-                    }
-                    catch(\Exception $e) {
-                        $success = false;
-                        $error = EQ_DBG ? $e->getMessage() : EQ::t("Application error");
-                        $res = null;
-                    }
-                    switch($val) {
-                        case null:
-                            EQ::app()->header("Content-type", "application/json");
-                            echo json_encode([
-                                'success' => $success,
-                                'error' => $error,
-                                'data' => $res,
-                            ]);
-                            break;
-                        case "json":
-                            EQ::app()->header("Content-type", "application/json");
-                            echo json_encode($res);
-                            break;
-                        case "raw":
-                            echo $res;
-                            break;
-                        default:
-                            throw new AjaxException("Invalid @ajax tag value: $val");
-                    }
-                }
-                catch(RouteException $e) {
-                    throw new HttpException(400);
-                }
-            }
-            else {
+            if(!$route->found)
                 throw new HttpException(404);
-            }
+            $action = new AjaxReflectionAction($route->controller_class, $route->action_method);
+            $action->call($route->vars);
         }
         catch(RouteException $e) {
             throw new HttpException(404);
         }
     }
 
-} 
+}

@@ -23,6 +23,7 @@ defined("EQ_ASSETS_DBG") or define("EQ_ASSETS_DBG", EQ_DBG);
 
 /**
  * @property ClientScript client_script
+ * @property Jsdata jsdata
  * @property ThemeBase theme
  * @property Route route
  * @property Request request
@@ -164,9 +165,6 @@ final class WebApp extends AppBase
                 $cname = $this->route->controller_class;
                 $method = $this->route->action_method;
                 $controller = new $cname();
-                if(!$controller instanceof Controller)
-                    throw new ControllerException(
-                        'Controller class must be a subclass of eq\web\Controller: '.$cname);
                 $action = new ReflectionAction($controller, $method);
                 ob_start();
                 $result = $action->call($this->route->vars);
@@ -274,7 +272,8 @@ final class WebApp extends AppBase
                 'class' => 'eq\web\ClientScript',
             ],
             'jsdata' => [
-                'class' => 'eq\web\JSData',
+                'class' => 'eq\web\Jsdata',
+                'preload' => true,
             ],
         ]);
     }
@@ -296,6 +295,7 @@ final class WebApp extends AppBase
 
     protected function processHttpException(HttpException $e)
     {
+        EQ::app()->header->status($e->getStatus(), EQ_DBG ? $e->getMessage() : null);
         EQ::app()->header("Content-type", "text/html");
         $cname = $this->app_namespace.'\controllers\ErrorsController';
         try {

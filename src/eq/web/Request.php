@@ -69,6 +69,11 @@ class Request extends Object
         return $this->method === "POST";
     }
 
+    public function isAjax()
+    {
+        return isset($_REQUEST['ajax']);
+    }
+
     public function get($name, $default = null)
     {
         return Arr::getItem($_GET, $name, $default);

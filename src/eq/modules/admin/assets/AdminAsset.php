@@ -48,6 +48,7 @@ class AdminAsset extends AssetBundle
             "eq.userdata",
 //            "eq.ajax",
             "jquery.cookie",
+            "pnotify",
         ];
     }
 

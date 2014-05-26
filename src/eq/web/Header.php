@@ -8,7 +8,7 @@ class Header implements \ArrayAccess
 {
 
     protected $status_code = 200;
-    protected $status_message = "OK";
+    protected $status_message = null;
     protected $headers = [];
 
     public function __construct()
@@ -18,7 +18,10 @@ class Header implements \ArrayAccess
 
     public function __beforeEcho()
     {
-        header("HTTP/1.1 {$this->status_code} {$this->status_message}");
+        if($this->status_message || !function_exists('http_response_code'))
+            header("HTTP/1.1 {$this->status_code} {$this->status_message}");
+        else
+            http_response_code($this->status_code);
         foreach($this->headers as $name => $value)
             header("$name: $value");
     }
@@ -77,7 +80,6 @@ class Header implements \ArrayAccess
 
     public function status($code, $message = null)
     {
-        // TODO messages by code
         $this->status_code = (int) $code;
         if(is_string($message) && $message)
             $this->status_message = $message;

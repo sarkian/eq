@@ -12,10 +12,12 @@ return [
         'No dependencies' => "Зависимостей нет",
         'enabled' => "включён",
         'disabled' => "выключен",
-        'Module not found' => "Модуль не найден",
         'Enabled as dependency' => "Включён как зависимость",
     ],
     'keys' => [
+        'removedModule' => "Модуль <b>%s</b> был удалён",
+    ],
+    'js' => [
 
     ],
 ];

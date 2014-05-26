@@ -1,27 +1,15 @@
 <?php
-/**
- * Last Change: 2014 Apr 10, 13:40
- */
 
 namespace eq\web;
 
 use EQ;
+use eq\assets\eq\BaseAsset;
 use eq\base\TObject;
 use eq\helpers\Debug;
 use eq\web\html\Html;
-use eq\base\InvalidArgumentException;
-use eq\base\LoaderException;
-use eq\base\ClientScriptException;
 use eq\assets\JqueryAsset;
 use eq\helpers\FileSystem;
 
-/**
- * ClientScript 
- * 
- * @author Sarkian <root@dustus.org> 
- * @doc docs/eq/web/ClientScript.md
- * @test tests/eq/web/ClientScriptTest.php
- */
 class ClientScript
 {
 
@@ -190,6 +178,15 @@ class ClientScript
             $this->bundles[$cname] = $bundle;
         }
         return $this;
+    }
+
+    public function notify($message, $type = "info", $options = [])
+    {
+        BaseAsset::register();
+        $message = json_encode($message);
+        $type = json_encode($type);
+        $options = json_encode($options, JSON_FORCE_OBJECT);
+        $this->addJs("EQ.notify($message, $type, $options);", self::POS_READY);
     }
 
     public function renderHead()

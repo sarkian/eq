@@ -42,16 +42,73 @@
     };
 
     Ajax.prototype.url = function(path) {
-        // TODO: передача префикса через jsdata
-        return '/ajax/' + path;
+//        if(EQ.isComponentRegistered('data'))
+            return EQ.data.get('ajax.url_prefix', '/ajax') + '/' + path;
+//        else
+//            return '/ajax/' + path;
     };
 
-    Ajax.prototype.exec = function(path, data, on_success, on_error) {
-        var url = EQ.ajax.url(path);
+    /**
+     * exec(path, data, on_success, on_error)
+     * exec(path, data)
+     * exec(path, on_success)
+     * exec(path, on_success, on_error)
+     */
+    Ajax.prototype.exec = function(path, _data, _on_success, _on_error, _reload) {
+        var url = EQ.ajax.url(path),
+            data = _data,
+            on_success = _on_success,
+            on_error = _on_error,
+            reload = _reload;
+        if(typeof _data === 'function') {
+            on_success = _data;
+            on_error = _on_success;
+            data = {};
+        }
+        if(typeof _data === 'boolean' || typeof _data === 'string') {
+            reload = _data;
+            data = {};
+        }
+        if(typeof _on_success === 'boolean' || typeof _on_success === 'string') {
+            reload = _on_success;
+        }
+        if(typeof _on_error === 'boolean' || typeof _on_error === 'string') {
+            reload = _on_error;
+        }
+        var process_warns = function(warnings) {
+            if(typeof warnings !== 'object')
+                return;
+            for(var i in warnings) {
+                if(!warnings.hasOwnProperty(i))
+                    continue;
+                var msg = warnings[i];
+                if(typeof msg === 'string' && msg.length)
+                    EQ.notify(msg, 'warning');
+            }
+        };
+        on_success = typeof _on_success === 'function' ? _on_success :
+        function(message, data, warnings) {
+            EQ.notify(message, 'success');
+            process_warns(warnings);
+            if(reload === true || reload === 'success')
+                EQ.ajax.reload();
+        };
+        on_error = typeof _on_error === 'function' ? _on_error :
+        function(message, data, warnings) {
+            EQ.notify(message, 'error');
+            process_warns(warnings);
+            if(reload === true || reload === 'error')
+                EQ.ajax.reload();
+        };
         $.post(url, data, 'json').done(function(data) {
-            console.log(data);
+            if(data.success)
+                on_success(data.message, data.data, data.warnings);
+            else
+                on_error(data.message, data.data, data.warnings);
         }).fail(function(data) {
-            console.log(data);
+            on_error(EQ.t('Application error', null, []));
+            if(reload === true || reload === 'error')
+                EQ.ajax.reload();
         });
     };
 

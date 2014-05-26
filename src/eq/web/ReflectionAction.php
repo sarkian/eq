@@ -20,7 +20,7 @@ class ReflectionAction extends \ReflectionMethod
     protected $instance;
     protected $_docblock = null;
 
-    public function __construct($instance, $name)
+    public function __construct(Controller $instance, $name)
     {
         parent::__construct($instance, $name);
         $this->instance = $instance;

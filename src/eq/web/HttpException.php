@@ -3,8 +3,9 @@
 namespace eq\web;
 
 use EQ;
+use eq\base\ExceptionBase;
 
-class HttpException extends \eq\base\ExceptionBase
+class HttpException extends ExceptionBase
 {
 
     protected $type = "HttpException";

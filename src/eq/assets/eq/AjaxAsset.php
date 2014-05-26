@@ -16,9 +16,9 @@ class AjaxAsset extends AssetBundle
     ];
 
     protected $depends = [
-        "eq.base",
         "jquery",
         "uri",
+        "eq.base",
     ];
 
 } 

@@ -197,6 +197,7 @@ abstract class Controller
         EQ::app()->trigger("beforeEcho");
         $this->beforeEcho();
         if($this->template) {
+            EQ::app()->trigger("client_script.render");
             $out = preg_replace('/\{\{\$HEAD_CONTENT\}\}/',
                 EQ::app()->client_script->renderHead(), $out, 1);
             $out = preg_replace('/\{\{\$BODY_BEGIN_CONTENT\}\}/',

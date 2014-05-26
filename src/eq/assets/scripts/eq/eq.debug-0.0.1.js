@@ -137,8 +137,18 @@
     EQ.registerComponent('dbg', Debug);
 
     EQ.bind('error', function(e) {
-        console.log(callStack().join('\n'));
-        show('error', e.message, e.name, e.stack, 'left');
+        if(e instanceof Error)
+            show('error', e.message, e.name, e.stack, 'left');
+        else
+            show('error', e, '', e, 'left');
+    });
+
+    EQ.bind(['warn', 'warning'], function(msg) {
+        show('warning', msg, '', msg, 'left');
+    });
+
+    EQ.bind(['log', 'info'], function(msg) {
+        show('info', msg, '', msg, 'left');
     });
 
     EQ.dispatchOn('DOMContentLoaded', 'EQDbgReady');

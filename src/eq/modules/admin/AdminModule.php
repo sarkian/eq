@@ -14,12 +14,21 @@ class AdminModule extends ModuleBase
 
     use TAutobind;
 
+    protected static $removed_modules = [];
+
     protected $title = "EQ Admin";
     protected $description = [
         'ru_RU' => "Администрирование сайта",
     ];
 
     protected $nav_items = [];
+
+    protected static function preInit()
+    {
+        EQ::app()->bind("moduleNotFound", function($mname) {
+            self::$removed_modules[] = $mname;
+        });
+    }
 
     public function init()
     {
@@ -54,6 +63,11 @@ class AdminModule extends ModuleBase
         });
         EQ::app()->bind("beforeRender", function() {
             AdminAsset::register();
+            foreach(self::$removed_modules as $mname) {
+                $message = EQ::k("admin.removedModule", $mname);
+                EQ::app()->client_script->notify($message, "notice");
+                EQ::app()->dbconfig->remove("modules.$mname");
+            }
         });
     }
 

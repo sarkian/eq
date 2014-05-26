@@ -41,6 +41,8 @@ class Users extends Model implements IIdentity
     protected $login_field_field = null;
     protected $login_field_type = null;
 
+    protected $_auth = null;
+
     public function __get($name)
     {
         return parent::__get($name);
@@ -140,12 +142,16 @@ class Users extends Model implements IIdentity
 
     public function isAuth()
     {
-        return $this->loadSession();
+        if(is_null($this->_auth))
+            $this->_auth = $this->loadSession();
+        return $this->_auth;
     }
 
     public function isAdmin()
     {
-        if($this->fieldExists("role"))
+        if(!$this->isAuth())
+            return false;
+        elseif($this->fieldExists("role"))
             return $this->role === self::ROLE_ADMIN;
         else
             return false;

@@ -6,6 +6,7 @@ use EQ;
 use eq\assets\eq\AjaxAsset;
 use eq\base\ModuleBase;
 use eq\modules\i18n\I18nModule;
+use eq\web\Jsdata;
 
 class AjaxModule extends ModuleBase
 {
@@ -26,6 +27,9 @@ class AjaxModule extends ModuleBase
     {
         EQ::app()->bind("beforeRender", function() {
             AjaxAsset::register();
+        });
+        EQ::app()->bind("jsdata.register", function(Jsdata $jsdata) {
+            $jsdata->set("ajax.url_prefix", $this->config("url_prefix", "/ajax"));
         });
     }
 

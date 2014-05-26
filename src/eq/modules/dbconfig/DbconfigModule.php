@@ -61,10 +61,18 @@ class DbconfigModule extends ModuleBase
 
     public function remove($name)
     {
-        if(!in_array($name, $this->removed))
-            $this->removed[] = $name;
-        unset($this->data[$name]);
-        EQ::app()->configWrite($name, null);
+        if(!$name)
+            return;
+        $expr = "/^".preg_quote($name, "/")."/";
+        foreach($this->data as $key => $value) {
+            if(!preg_match($expr, $key))
+                continue;
+            if(!in_array($key, $this->removed))
+                $this->removed[] = $key;
+            unset($this->data[$key]);
+            EQ::app()->configWrite($key, null);
+        }
+        EQ::log("REMOVE");
     }
 
     public function commit()
@@ -88,7 +96,7 @@ class DbconfigModule extends ModuleBase
 
     public function __destruct()
     {
-//        $this->commit();
+        $this->commit();
     }
 
 }

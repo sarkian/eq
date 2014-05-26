@@ -24,6 +24,17 @@ body {
 }
 
 
+/* Notifies */
+
+.eq-notify .alert {
+    margin: 5px 0;
+}
+
+.eq-notify .ui-pnotify-icon {
+    margin-top: 2px;
+}
+
+
 /* Modules */
 /* TODO: move to theme */
 
