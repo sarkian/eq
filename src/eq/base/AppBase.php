@@ -552,8 +552,12 @@ abstract class AppBase extends ModuleAbstract
         }
         self::setAlias("@modules.$name", $module->location);
         $compname = preg_replace("/Module$/", "Component", $cname);
-        if(Loader::classExists($compname))
-            $this->registerComponent($module->shortname, $compname);
+        if(Loader::classExists($compname)) {
+            if($this->isComponentRegistered($module->shortname))
+                \EQ::warn("Component already registered: {$module->shortname} (module: $name)");
+            else
+                $this->registerComponent($module->shortname, $compname);
+        }
         $method = $this->type."Init";
         if(method_exists($module, $method))
             $module->{$method}();
@@ -575,15 +579,19 @@ abstract class AppBase extends ModuleAbstract
         }
     }
 
-    protected function registerComponent($name, $class,
-        $config = [], $preload = false)
+    protected function isComponentRegistered($name)
     {
-        if(isset($this->_components[$name]) 
-                || isset($this->system_components[$name]) 
-                || isset($this->_config['components'][$name])
-                || isset($this->registered_components[$name]))
+        return isset($this->_components[$name])
+            || isset($this->system_components[$name])
+            || isset($this->_config['components'][$name])
+            || isset($this->registered_components[$name]);
+    }
+
+    protected function registerComponent($name, $class, $config = null, $preload = false)
+    {
+        if($this->isComponentRegistered($name))
             throw new ComponentException("Component already registered: $name");
-        if($preload) {
+        if($preload || is_object($class)) {
             $obj = is_object($class) ? $class : new $class($config);
             $this->_components[$name] = $obj;
         }

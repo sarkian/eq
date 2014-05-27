@@ -26,6 +26,11 @@ class UserModule extends ModuleBase
     private $login_field;
     private $managed_sessions = false;
 
+    public function init()
+    {
+        $this->registerComponent("user", 'eq\modules\user\models\Users');
+    }
+
     public function webInit()
     {
         $site_nav = $this->config("site_nav", "site");

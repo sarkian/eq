@@ -276,6 +276,11 @@ abstract class ModuleBase extends ModuleAbstract
         return $events;
     }
 
+    protected final function registerComponent($name, $class, $config = null, $preload = false)
+    {
+        EQ::app()->registerComponent($name, $class, $config, $preload);
+    }
+
     protected final function registerStaticMethod($name, $method)
     {
         EQ::app()->registerStaticMethod($name, $method);

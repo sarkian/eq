@@ -288,7 +288,6 @@ final class WebApp extends AppBase
         return [
             'user' => [
                 'class' => $user_class,
-                'config' => null,
             ],
         ];
     }

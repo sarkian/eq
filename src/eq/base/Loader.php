@@ -22,6 +22,8 @@ class Loader
         self::$cache_file = $cache_file;
         if($cache_file && file_exists($cache_file))
             self::cacheLoad();
+        if(defined("EQROOT") && file_exists(EQROOT."/vendor/autoload.php"))
+            require_once EQROOT."/vendor/autoload.php";
     }
 
     public static function addDir($dir)
