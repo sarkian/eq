@@ -94,7 +94,7 @@ class Query
         } catch(PDOException $e) {
             throw new SQLException($e->getMessage(), $e->getCode(), $e);
         } finally {
-            EQ::app()->trigger("dbQuery", [$this->db->name, $stmt->queryString]);
+            EQ::app()->trigger("dbQuery", $this->db->name, $stmt->queryString);
         }
         return $stmt;
     }

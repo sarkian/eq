@@ -38,30 +38,30 @@ class ErrorHandler
             case E_USER_ERROR:
             case E_RECOVERABLE_ERROR:
             case E_PARSE:
-                EQ::app()->trigger("error", [$message, $file, $line]);
+                EQ::app()->trigger("error", $message, $file, $line);
                 self::throwError();
                 break;
             case E_WARNING:
             case E_COMPILE_WARNING:
             case E_USER_WARNING:
-                EQ::app()->trigger("warning", [$message, $file, $line]);
+                EQ::app()->trigger("warning", $message, $file, $line);
                 if(EQ_WARNING)
                     self::throwWarning();
                 break;
             case E_DEPRECATED:
             case E_USER_DEPRECATED:
-                EQ::app()->trigger("deprecated", [$message, $file, $line]);
+                EQ::app()->trigger("deprecated", $message, $file, $line);
                 if(EQ_DEPRECATED)
                     self::throwDeprecated();
                 break;
             case E_NOTICE:
             case E_USER_NOTICE:
-                EQ::app()->trigger("notice", [$message, $file, $line]);
+                EQ::app()->trigger("notice", $message, $file, $line);
                 if(EQ_NOTICE)
                     self::throwNotice();
                 break;
             case E_STRICT:
-                EQ::app()->trigger("strict", [$message, $file, $line]);
+                EQ::app()->trigger("strict", $message, $file, $line);
                 if(EQ_STRICT)
                     self::throwStrict();
                 break;
@@ -87,8 +87,7 @@ class ErrorHandler
         $err = error_get_last();
         if($err['type'] === E_ERROR) {
             if(\EQ::app()) {
-                \EQ::app()->trigger("error",
-                    [$err['message'], $err['file'], $err['line']]);
+                \EQ::app()->trigger("error", $err['message'], $err['file'], $err['line']);
                 \EQ::app()->processFatalError($err);
             }
             else

@@ -157,12 +157,12 @@ class Route
                     $this->action_name = $rule->action_name;
                 if($this->findPath()) {
                     $this->found = true;
-                    EQ::app()->trigger("route.found", [$url]);
+                    EQ::app()->trigger("route.found", $url);
                     return;
                 }
             }
         }
-        EQ::app()->trigger("route.notFound", [$url]);
+        EQ::app()->trigger("route.notFound", $url);
     }
 
     protected function findPath()

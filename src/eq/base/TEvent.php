@@ -42,10 +42,18 @@ trait TEvent
         return $this;
     }
 
+    /**
+     * @param $events
+     * @param mixed $args, ...
+     * @return $this
+     */
     public function trigger($events, $args = [])
     {
         if(!is_array($events))
             $events = [$events];
+        $fargs = func_get_args();
+        if(!is_array($args) || count($fargs) > 2)
+            $args = array_slice($fargs, 1);
         foreach($events as $event) {
             if(!EQ_DAEMON)
                 $this->triggered[$event][] = $args;

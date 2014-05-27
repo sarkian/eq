@@ -13,7 +13,7 @@ abstract class ExceptionBase extends \Exception
         is_int($code) or $code = 0;
         parent::__construct($message, $code, $previous);
         if(\class_exists("EQ", false) && \EQ::app())
-            \EQ::app()->trigger("exception", [$this]);
+            \EQ::app()->trigger("exception", $this);
     }
     
     public function getType()

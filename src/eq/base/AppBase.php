@@ -8,8 +8,7 @@ use eq\db\Pool;
 use eq\helpers\Str;
 use eq\helpers\Arr;
 use eq\helpers\FileSystem;
-use eq\modules\ajax\AjaxComponent;
-use eq\modules\dbconfig\DbconfigComponent;
+use eq\modules\dbconfig\DbconfigModule;
 use eq\task\TaskApp;
 use eq\web\WebApp;
 use eq\web\WidgetBase;
@@ -35,8 +34,7 @@ use glip\Git;
  * @method static string t($token)
  * @method static string k($token)
  * @method ConnectionBase db(string $name)
- * @property DbconfigComponent dbconfig
- * @property AjaxComponent ajax
+ * @property DbconfigModule dbconfig
  */
 abstract class AppBase extends ModuleAbstract
 {
@@ -297,7 +295,7 @@ abstract class AppBase extends ModuleAbstract
             textdomain($this->app_namespace);
         }
         $this->locale = $locale;
-        $this->trigger("localeChanged", [$locale]);
+        $this->trigger("localeChanged", $locale);
     }
 
     public function getLocale()
@@ -431,7 +429,7 @@ abstract class AppBase extends ModuleAbstract
     public static function todo($msg)
     {
         // TODO check for repeats
-        \EQ::app()->trigger("todo", [$msg]);
+        \EQ::app()->trigger("todo", $msg);
     }
 
     /**
@@ -440,7 +438,7 @@ abstract class AppBase extends ModuleAbstract
     public static function fixme($msg)
     {
         // TODO check for repeats
-        \EQ::app()->trigger("fixme", [$msg]);
+        \EQ::app()->trigger("fixme", $msg);
     }
 
     /**
@@ -519,7 +517,7 @@ abstract class AppBase extends ModuleAbstract
                 $this->loadModule($name, $cname);
             else {
                 \EQ::warn("Module not found: $name");
-                $this->trigger("moduleNotFound", [$name]);
+                $this->trigger("moduleNotFound", $name);
             }
         }
         foreach($modules as $name => $conf) {
@@ -527,7 +525,7 @@ abstract class AppBase extends ModuleAbstract
                     && (!isset($modules_o[$name]['enabled']) || !$modules_o[$name]['enabled']))
                 continue;
             if(isset($this->modules_by_name[$name]))
-                $this->trigger("modules.$name.ready", [$this->modules_by_name[$name]]);
+                $this->trigger("modules.$name.ready", $this->modules_by_name[$name]);
         }
     }
 
@@ -562,7 +560,7 @@ abstract class AppBase extends ModuleAbstract
         if(method_exists($module, $method))
             $module->{$method}();
         $module->ready();
-        $this->trigger("modules.$name.initialized", [$module]);
+        $this->trigger("modules.$name.initialized", $module);
     }
 
     protected function processModuleDependencies(ModuleBase $module)
