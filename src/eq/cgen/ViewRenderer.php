@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 10, 13:37
- */
 
 namespace eq\cgen;
 
@@ -20,6 +17,11 @@ class ViewRenderer
         $__view_result_string__ = ob_get_contents();
         ob_end_clean();
         return($__view_result_string__);
+    }
+
+    public static function hasTwig()
+    {
+
     }
 
 }

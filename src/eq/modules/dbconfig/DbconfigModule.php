@@ -41,8 +41,14 @@ class DbconfigModule extends ModuleBase
             $this->data[$name] = $value;
             EQ::app()->configWrite($name, $value);
         }
-        $this->registerComponent("dbconfig", $this);
         EQ::app()->bind("shutdown", [$this, "commit"]);
+    }
+
+    public function getComponents()
+    {
+        return [
+            'dbconfig' => $this,
+        ];
     }
 
     public function get($name, $default = null)

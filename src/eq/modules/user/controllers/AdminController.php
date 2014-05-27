@@ -19,11 +19,6 @@ class AdminController extends Controller
         ];
     }
 
-    protected function beforeRender()
-    {
-        AdminAsset::register();
-    }
-
     public function getTemplate()
     {
         return EQ::getAlias("@modules.eq:admin/templates/main.php");
@@ -34,4 +29,4 @@ class AdminController extends Controller
         $this->render("admin/index");
     }
 
-} 
+}

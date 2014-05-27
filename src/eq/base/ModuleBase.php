@@ -16,6 +16,8 @@ use eq\helpers\Str;
  * @property array depends
  * @property array errors
  * @property array warnings
+ * @property array components
+ * @property array static_methods
  */
 abstract class ModuleBase extends ModuleAbstract
 {
@@ -262,6 +264,16 @@ abstract class ModuleBase extends ModuleAbstract
         return [];
     }
 
+    public function getComponents()
+    {
+        return [];
+    }
+
+    public function getStaticMethods()
+    {
+        return [];
+    }
+
     protected final function configKey($key)
     {
         return implode(".", ["modules", $this->name, $key]);
@@ -274,16 +286,6 @@ abstract class ModuleBase extends ModuleAbstract
         foreach($events as $i => $event)
             $events[$i] = $this->configKey($event);
         return $events;
-    }
-
-    protected final function registerComponent($name, $class, $config = null, $preload = false)
-    {
-        EQ::app()->registerComponent($name, $class, $config, $preload);
-    }
-
-    protected final function registerStaticMethod($name, $method)
-    {
-        EQ::app()->registerStaticMethod($name, $method);
     }
 
     protected final function addError($message)

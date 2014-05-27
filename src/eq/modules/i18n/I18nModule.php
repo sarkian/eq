@@ -25,8 +25,14 @@ class I18nModule extends ModuleBase
         $dirs = $this->config("dirs", ["@app/locale" => EQ::app()->app_namespace]);
         foreach($dirs as $dir => $key_prefix)
             $this->addDir($dir, $key_prefix);
-        $this->registerStaticMethod("t", [$this, "t"]);
-        $this->registerStaticMethod("k", [$this, "k"]);
+    }
+
+    public function getStaticMethods()
+    {
+        return [
+            't' => [$this, "t"],
+            'k' => [$this, "k"],
+        ];
     }
 
     public function webInit()

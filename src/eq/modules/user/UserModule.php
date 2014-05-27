@@ -26,9 +26,11 @@ class UserModule extends ModuleBase
     private $login_field;
     private $managed_sessions = false;
 
-    public function init()
+    public function getComponents()
     {
-        $this->registerComponent("user", 'eq\modules\user\models\Users');
+        return [
+            'user' => 'eq\modules\user\models\Users',
+        ];
     }
 
     public function webInit()

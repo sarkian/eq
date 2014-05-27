@@ -15,16 +15,6 @@ abstract class ModuleAbstract
 
     }
 
-    protected function registerComponent($name, $class, $config = null, $preload = false)
-    {
-        
-    }
-
-    protected function registerStaticMethod($name, $method)
-    {
-        
-    }
-
     protected function configPermissions()
     {
         return [];

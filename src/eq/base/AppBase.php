@@ -549,13 +549,8 @@ abstract class AppBase extends ModuleAbstract
                 $this->config_permissions["modules.$name.$pname"] = $pvalue;
         }
         self::setAlias("@modules.$name", $module->location);
-        $compname = preg_replace("/Module$/", "Component", $cname);
-        if(Loader::classExists($compname)) {
-            if($this->isComponentRegistered($module->shortname))
-                \EQ::warn("Component already registered: {$module->shortname} (module: $name)");
-            else
-                $this->registerComponent($module->shortname, $compname);
-        }
+        $this->registerModuleComponents($module);
+        $this->registerModuleStaticMethods($module);
         $method = $this->type."Init";
         if(method_exists($module, $method))
             $module->{$method}();
@@ -577,7 +572,84 @@ abstract class AppBase extends ModuleAbstract
         }
     }
 
-    protected function isComponentRegistered($name)
+    protected function registerModuleComponents(ModuleBase $module)
+    {
+        $components = $module->components;
+        if(!is_array($components)) {
+            $message = "Invalid module components: ".$module->name;
+            $module->addError($message);
+            \EQ::err($message);
+            return;
+        }
+        foreach($components as $name => $conf)
+            $this->registerModuleComponent($module, $name, $conf);
+    }
+
+    protected function registerModuleComponent(ModuleBase $module, $name, $conf)
+    {
+        $err = function($message) use($module) {
+            $message .= " (module: {$module->name})";
+            $module->addError($message);
+            \EQ::err($message);
+            return false;
+        };
+        if(!is_string($name) || !$name)
+            return $err("Invalid component name: $name");
+        if($this->isComponentRegistered($name))
+            return $err("Component already registered: $name");
+        if(!is_array($conf)) {
+            if((!is_string($conf) && !is_object($conf)) || !$conf) {
+                return $err("Invalid component: $name");
+            }
+            $this->registerComponent($name, $conf);
+        }
+        else {
+            if(!isset($conf['class']) || !$conf['class']
+                    || (!is_string($conf['class']) && !is_object($conf['class']))) {
+                return $err("Invalid component class: $name");
+            }
+            $this->registerComponent(
+                $name,
+                $conf['class'],
+                isset($conf['config']) ? $conf['config'] : null,
+                isset($conf['preload']) ? $conf['preload'] : false
+            );
+        }
+        return true;
+    }
+
+    protected function registerModuleStaticMethods(ModuleBase $module)
+    {
+        $methods = $module->static_methods;
+        if(!is_array($methods)) {
+            $message = "Invalid module static methods: ".$module->name;
+            $module->addError($message);
+            \EQ::err($message);
+            return;
+        }
+        foreach($methods as $name => $method)
+            $this->registerModuleStaticMethod($module, $name, $method);
+    }
+
+    protected function registerModuleStaticMethod(ModuleBase $module, $name, $method)
+    {
+        $err = function($message) use($module) {
+            $message .= " (module: {$module->name})";
+            $module->addError($message);
+            \EQ::err($message);
+            return false;
+        };
+        if(!is_string($name) || !$name)
+            return $err("Invalid static method name: $name");
+        if($this->isStaticMethodRegistered($name))
+            return $err("Static method already registered: $name");
+        if(!is_callable($method))
+            return $err("Static method is not callable: $name");
+        $this->registerStaticMethod($name, $method);
+        return true;
+    }
+
+    public function isComponentRegistered($name)
     {
         return isset($this->_components[$name])
             || isset($this->system_components[$name])
@@ -601,9 +673,14 @@ abstract class AppBase extends ModuleAbstract
         return $this;
     }
 
+    public function isStaticMethodRegistered($name)
+    {
+        return method_exists(get_called_class(), $name) || isset(static::$static_methods[$name]);
+    }
+
     protected function registerStaticMethod($name, $method)
     {
-        if(method_exists(get_called_class(), $name))
+        if($this->isStaticMethodRegistered($name))
             throw new ComponentException("Static method already exists: $name");
         if(!is_callable($method))
             throw new ComponentException("Method is not callable: $name");
