@@ -498,7 +498,8 @@ abstract class AppBase extends ModuleAbstract
     protected function loadModules()
     {
         $classes = [];
-        foreach($this->config("modules", []) as $name => $conf) {
+        $modules_o = $this->config("modules", []);
+        foreach($modules_o as $name => $conf) {
             if(!isset($conf['enabled']) || !$conf['enabled'])
                 continue;
             $cname = ModuleBase::getClass($name);
@@ -507,7 +508,11 @@ abstract class AppBase extends ModuleAbstract
         }
         $modules = $this->config("modules", []);
         foreach($modules as $name => $conf) {
-            if(!isset($conf['enabled']) || !$conf['enabled'])
+            if(isset($modules_o[$name]['enabled'])) {
+                if(!$modules_o[$name]['enabled'])
+                    continue;
+            }
+            elseif(!isset($conf['enabled']) || !$conf['enabled'])
                 continue;
             $cname = isset($classes[$name]) ? $classes[$name] : ModuleBase::getClass($name, false);
             if($cname)
@@ -518,7 +523,8 @@ abstract class AppBase extends ModuleAbstract
             }
         }
         foreach($modules as $name => $conf) {
-            if(!isset($conf['enabled']) || !$conf['enabled'])
+            if((!isset($conf['enabled']) || !$conf['enabled'])
+                    && (!isset($modules_o[$name]['enabled']) || !$modules_o[$name]['enabled']))
                 continue;
             if(isset($this->modules_by_name[$name]))
                 $this->trigger("modules.$name.ready", [$this->modules_by_name[$name]]);

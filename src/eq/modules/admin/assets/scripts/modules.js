@@ -7,9 +7,8 @@
         this._heading = el.find('.panel-heading');
         this._checkbox = this._heading.find('input[type=checkbox]');
         this._checkbox.change(function() {
-            if(!self.canDisable())
-                return;
-            EQ.ajax.exec('modules.eq:admin.modules.toggle', {module_name: mname}, true);
+            if(self.canToggle())
+                EQ.ajax.exec('modules.eq:admin.modules.toggle', {data: {module_name: mname}});
         });
     };
 
@@ -39,21 +38,21 @@
 
     ModulePanel.hideSystem = function() {
         ModulePanel.each(function(m, p) {
-            if(!p.canDisable())
+            if(!p.canToggle())
                 p.hide();
         });
     };
 
     ModulePanel.showSystem = function() {
         ModulePanel.each(function(m, p) {
-            if(!p.canDisable())
+            if(!p.canToggle())
                 p.show();
         });
     };
 
     ModulePanel.showNotSystem = function() {
         ModulePanel.each(function(m, p) {
-            if(p.canDisable())
+            if(p.canToggle())
                 p.show();
         });
     };
@@ -108,7 +107,7 @@
             this._el.removeClass('panel-primary panel-default').addClass('panel-danger');
         },
 
-        canDisable: function() {
+        canToggle: function() {
             return !this._checkbox.is(':disabled');
         },
 

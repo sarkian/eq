@@ -20,7 +20,7 @@ class ModuleHtmlHelper
     {
         $this->module = $module;
         $this->enabled = $module->isEnabled();
-        $this->can_disable = $module->canDisable();
+        $this->can_disable = $module->canToggle();
         $this->title = htmlentities($module->title);
         $this->description = $module->description;
         $this->description = $this->description ?

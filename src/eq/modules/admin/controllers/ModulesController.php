@@ -38,7 +38,7 @@ class ModulesController extends Controller
         $module = EQ::app()->module($module_name, true);
         if(!$module)
             $res->error("Module not found");
-        if($module->isEnabled() && !$module->canDisable())
+        if($module->isEnabled() && !$module->canToggle())
             $res->error("Cant disable module");
         EQ::app()->dbconfig->set("modules.$module_name.enabled", !$module->isEnabled());
     }

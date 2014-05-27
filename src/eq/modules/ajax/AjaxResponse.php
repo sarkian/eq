@@ -65,7 +65,7 @@ final class AjaxResponse
             $this->data = null;
         if(!$leave_warnings)
             $this->warnings = [];
-        throw new AjaxErrorException();
+        throw new AjaxErrorException($this->message);
     }
 
     public function warning($message)

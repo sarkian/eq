@@ -135,10 +135,10 @@ abstract class ModuleBase extends ModuleAbstract
         return $this->_enabled && !EQ::app()->config("modules.".$this->name.".enabled");
     }
 
-    public final function canDisable()
+    public final function canToggle()
     {
         return !$this->isEnabledAsDependency()
-            && !EQ::app()->configOrig("modules.".$this->name.".enabled");
+            && is_null(EQ::app()->configOrig("modules.".$this->name.".enabled"));
     }
 
     public final function getName()
