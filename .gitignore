@@ -1,3 +1,6 @@
 .git
 .idea
 .vimprj
+composer.phar
+composer.json
+vendor
