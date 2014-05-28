@@ -13,8 +13,8 @@ use eq\task\TaskApp;
 use eq\web\WebApp;
 use eq\web\WidgetBase;
 use Exception;
-use glip\Binary;
-use glip\Git;
+use Glip_Binary;
+use Glip_Git;
 
 /**
  * @property string type
@@ -369,15 +369,15 @@ abstract class AppBase extends ModuleAbstract
         if($version)
             return $version;
         try {
-            $repo = new Git(EQROOT."/.git");
+            $repo = new Glip_Git(EQROOT."/.git");
             $bname = $repo->getCurrentBranch();
             $branch = $repo->getTip($bname);
             $commit = $repo->getObject($branch);
-            $hash = substr(Binary::sha1_hex($branch), 0, 7);
+            $hash = substr(Glip_Binary::sha1_hex($branch), 0, 7);
             return "[$bname: $hash - ".$commit->summary
                 ." (".date("y-m-d", $commit->committer->time).")]";
         } catch(Exception $e) {
-            return "0.7 (unknown)";
+            return "[dev]";
         }
     }
 
