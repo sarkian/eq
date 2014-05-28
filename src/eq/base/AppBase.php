@@ -369,6 +369,18 @@ abstract class AppBase extends ModuleAbstract
         if($version)
             return $version;
         try {
+            $fname = EQROOT."/composer.json";
+            if(file_exists($fname)) {
+                $data = @json_decode(@file_get_contents($fname), JSON_OBJECT_AS_ARRAY);
+                if($data && isset($data['version']) && $data['version'])
+                    return $data['version'];
+                elseif($data && isset($data['extra']['branch-alias']['dev-master'])
+                        && $data['extra']['branch-alias']['dev-master'])
+                    return $data['extra']['branch-alias']['dev-master'];
+            }
+        }
+        catch(Exception $e) {}
+        try {
             $repo = new Glip_Git(EQROOT."/.git");
             $bname = $repo->getCurrentBranch();
             $branch = $repo->getTip($bname);
@@ -376,8 +388,9 @@ abstract class AppBase extends ModuleAbstract
             $hash = substr(Glip_Binary::sha1_hex($branch), 0, 7);
             return "[$bname: $hash - ".$commit->summary
                 ." (".date("y-m-d", $commit->committer->time).")]";
-        } catch(Exception $e) {
-            return "[dev]";
+        }
+        catch(Exception $e) {
+            return "[UNKNOWN VERSION]";
         }
     }
 
