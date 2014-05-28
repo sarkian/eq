@@ -122,9 +122,13 @@ class Route
                 continue;
             if($url_vars) {
                 $uvars = [];
-                foreach($url_vars as $name => $value)
-                    $uvars[] = $name."=".urlencode($value);
-                $url .= "?".implode("&", $uvars);
+                if(is_array($url_vars)) {
+                    foreach($url_vars as $name => $value)
+                        $uvars[] = is_string($name) ? $name."=".urlencode($value) : urlencode($value);
+                    $url .= "?".implode("&", $uvars);
+                }
+                else
+                    $url .= "?".$url_vars;
             }
             return $url;
         }

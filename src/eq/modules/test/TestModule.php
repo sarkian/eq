@@ -4,6 +4,7 @@ namespace eq\modules\test;
 
 use EQ;
 use eq\base\ModuleBase;
+use eq\base\ModuleException;
 
 class TestModule extends ModuleBase
 {
@@ -24,7 +25,7 @@ class TestModule extends ModuleBase
 
     protected function init()
     {
-
+//        throw new ModuleException("test");
     }
 
 }

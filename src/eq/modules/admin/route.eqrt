@@ -1,2 +1,4 @@
 GET     /admin                          admin.index
 GET     /admin/modules                  modules.index
+
+*       /admin/{action}                 admin.{action}

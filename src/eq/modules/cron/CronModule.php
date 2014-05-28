@@ -1,15 +1,18 @@
 <?php
-/**
- * Last Change: 2014 Apr 25, 13:06
- */
 
 namespace eq\modules\cron;
 
 use EQ;
+use eq\base\ModuleBase;
+use eq\base\ModuleException;
 
-class CronModule extends \eq\base\ModuleBase
+class CronModule extends ModuleBase
 {
 
-
+    protected function init()
+    {
+//        EQ::log("init");
+//        throw new ModuleException("test");
+    }
 
 }

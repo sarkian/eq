@@ -79,16 +79,16 @@ final class WebApp extends AppBase
         self::setAlias("@web", "");
         parent::__construct($config);
         $this->bind("beforeRender", [$this, "__beforeRender"]);
-        foreach($this->config("web.preload_assets", []) as $asset)
-            $this->client_script->addBundle($asset, EQ_DBG);
+//        foreach($this->config("web.preload_assets", []) as $asset)
+//            $this->client_script->addBundle($asset, EQ_DBG);
     }
 
     public function __beforeRender()
     {
         $this->unbind("beforeRender", [$this, "__beforeRender"]);
         $this->getTheme()->registerAssets();
-        // foreach($this->config("web.preload_assets", []) as $asset)
-            // $this->client_script->addBundle($asset, EQ_DBG);
+        foreach($this->config("web.preload_assets", []) as $asset)
+            $this->client_script->addBundle($asset, EQ_DBG);
     }
 
     /**
@@ -214,6 +214,7 @@ final class WebApp extends AppBase
 
     public function processException(ExceptionBase $e)
     {
+        $this->trigger("exception", $e);
         if(defined('EQ_DBG') && EQ_DBG) {
             $cname = $this->app_namespace.'\\controllers\\DebugController';
             try {

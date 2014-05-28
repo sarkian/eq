@@ -29,7 +29,7 @@ class ClogModule extends ModuleBase
     protected $project_root;
     protected $url;
 
-    public function init()
+    public function webInit()
     {
         $this->project_root = realpath(EQ::getAlias(
             $this->config("project_root", "@app")));
@@ -49,9 +49,10 @@ class ClogModule extends ModuleBase
             EQ::app()->retrigger("strict", [$this, "__onStrict"]);
             EQ::app()->retrigger("dbQuery", [$this, "__onDbQuery"]);
         }
+//        $this->onRequest();
     }
 
-    public function __onRequest()
+    public function onRequest()
     {
         foreach($this->config("urls_blacklist", ["/favicon.ico", "*.map"]) as $url) {
             if(fnmatch($url, EQ::app()->request->uri))
@@ -61,7 +62,8 @@ class ClogModule extends ModuleBase
             return;
         if($this->checkLogKey()) {
 
-        } else {
+        }
+        else {
             FileSystem::mkdir("@runtime/clog");
             $this->tmpfname = tempnam(EQ::getAlias("@runtime/clog"), "clog_");
             $this->logkey = basename($this->tmpfname);
