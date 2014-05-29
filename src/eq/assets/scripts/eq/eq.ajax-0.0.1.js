@@ -42,7 +42,11 @@
     };
 
     Ajax.prototype.url = function(path) {
-        return EQ.data.get('ajax.url_prefix', '/ajax') + '/' + path;
+        var page_url = new URI(document.location.href);
+        var url = new URI(EQ.data.get('ajax.url_prefix', '/ajax') + '/' + path);
+        if(page_url.query.hasOwnProperty('EQ_RECOVERY'))
+            url.query.EQ_RECOVERY = null;
+        return url.toString();
     };
 
     Ajax.prototype.exec = function(path, _options) {

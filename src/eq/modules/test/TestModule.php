@@ -18,14 +18,14 @@ class TestModule extends ModuleBase
     public function getDepends()
     {
         return [
-            "eq:cron",
+//            "eq:cron",
 //            "eq:unknown",
         ];
     }
 
     protected function init()
     {
-//        throw new ModuleException("test");
+        throw new ModuleException("test");
     }
 
 }

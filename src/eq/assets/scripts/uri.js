@@ -13,16 +13,10 @@ function URIQueryString(query) {
         var vars = query.split('&');
         for(var i = 0; i < vars.length; i++) {
             var pair = vars[i].split('=');
-            if(typeof this[pair[0]] === 'undefined') {
-                this[pair[0]] = pair[1];
-            }
-            else if(typeof this[pair[0]] === 'string') {
-                var arr = [ this[pair[0]], pair[1] ];
-                this[pair[0]] = arr;
-            }
-            else {
-                this[pair[0]].push(pair[1]);
-            }
+            if(!pair[0].length)
+                continue;
+            this[decodeURIComponent(pair[0])] = typeof pair[1] === 'undefined'
+                ? null : decodeURIComponent(pair[1]);
         }
     }
 }
@@ -30,10 +24,12 @@ function URIQueryString(query) {
 URIQueryString.prototype.toString = function() {
     var vars = [];
     for(var name in this) {
+        if(!this.hasOwnProperty(name))
+            continue;
         var value = this[name];
         if(typeof value === 'function')
             continue;
-        var strval = typeof value === 'undefined'
+        var strval = typeof value === 'undefined' || value === null
             ? encodeURIComponent(name)
             : encodeURIComponent(name) + '=' + encodeURIComponent(value);
         vars.push(strval);

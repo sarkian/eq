@@ -6,6 +6,7 @@ use EQ;
 use eq\base\AppBase;
 use eq\base\ExceptionBase;
 use eq\base\LoaderException;
+use eq\base\ModuleBase;
 use eq\controllers\DebugController;
 use eq\controllers\ErrorsController;
 use eq\data\Model;
@@ -79,8 +80,6 @@ final class WebApp extends AppBase
         self::setAlias("@web", "");
         parent::__construct($config);
         $this->bind("beforeRender", [$this, "__beforeRender"]);
-//        foreach($this->config("web.preload_assets", []) as $asset)
-//            $this->client_script->addBundle($asset, EQ_DBG);
     }
 
     public function __beforeRender()
@@ -115,18 +114,6 @@ final class WebApp extends AppBase
     public function getActionName()
     {
         return $this->action_name;
-    }
-
-    public function getRouteFiles()
-    {
-        $conf = $this->config("web.route", []);
-        $files = array_combine($conf, array_fill(0, count($conf), ["", ""]));
-        foreach($this->modules_by_name as $name => $module) {
-            $fname = $module->location."/route.eqrt";
-            if(file_exists($fname))
-                $files[$fname] = [$module->url_prefix, "modules.$name"];
-        }
-        return $files;
     }
 
     public function getHttpException()
@@ -247,6 +234,17 @@ final class WebApp extends AppBase
         );
     }
 
+    protected function loadModule($name, $cname)
+    {
+        if(isset($this->modules_by_name[$name]))
+            return $this->modules_by_name[$name];
+        $module = parent::loadModule($name, $cname);
+        $fname = $module->location."/route.eqrt";
+        if(file_exists($fname))
+            $this->route->addFile($fname, $module->url_prefix, "modules.".$module->name);
+        return $module;
+    }
+
     protected function systemComponents()
     {
         return array_merge(parent::systemComponents(), [
@@ -286,11 +284,11 @@ final class WebApp extends AppBase
             $user_class = 'eq\models\Users';
         if(!isset(class_implements($user_class)['eq\web\IIdentity']))
             throw new ComponentException('User class must be implements eq\web\IIdentity');
-        return [
+        return array_merge(parent::defaultComponents(), [
             'user' => [
                 'class' => $user_class,
             ],
-        ];
+        ]);
     }
 
     protected function processHttpException(HttpException $e)

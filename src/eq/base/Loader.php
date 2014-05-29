@@ -5,7 +5,7 @@ namespace eq\base;
 use EQ;
 use eq\helpers\Str;
 
-// TODO херня этот кэш
+// TODO: cache??
 class Loader
 {
 

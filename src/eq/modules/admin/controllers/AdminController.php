@@ -3,12 +3,14 @@
 namespace eq\modules\admin\controllers;
 
 use EQ;
+use eq\base\Cache;
 use eq\base\InvalidCallException;
 use eq\base\LoaderException;
 use eq\base\ModuleBase;
 use eq\base\ModuleException;
 use eq\base\TModuleClass;
 use eq\base\UncaughtExceptionException;
+use eq\helpers\Arr;
 use eq\modules\admin\assets\AdminAsset;
 use eq\php\ErrorException;
 use eq\php\NoticeException;
@@ -28,11 +30,6 @@ class AdminController extends Controller
         ];
     }
 
-    protected function beforeRender()
-    {
-        AdminAsset::register();
-    }
-
     public function actionIndex()
     {
         $this->render("index");
@@ -42,8 +39,7 @@ class AdminController extends Controller
     {
         EQ::app()->header("Content-type", "text/plain");
 
-        echo EQ::app()->createUrl("modules.eq:clog.clog.process",
-            ['key' => "KEY"], ["EQ_RECOVERY", 'some' => "ok"]);
+        print_r(EQ::app()->available_modules);
 
 //        try {
 //            var_dump(class_exists("nonexistent"));

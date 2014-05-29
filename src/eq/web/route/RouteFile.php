@@ -1,14 +1,12 @@
 <?php
-/**
- * Last Change: 2014 Apr 22, 22:24
- */
 
 namespace eq\web\route;
 
 use eq\base\TObject;
 
 /**
- * @property array rules
+ * @property RouteRule[] rules
+ * @property array rules_data
  */
 class RouteFile
 {
@@ -32,6 +30,14 @@ class RouteFile
     public function getRules()
     {
         return $this->rules;
+    }
+
+    public function getRulesData()
+    {
+        $data = [];
+        foreach($this->rules as $rule)
+            $data[] = $rule->saveData();
+        return $data;
     }
 
 }

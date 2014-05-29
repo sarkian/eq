@@ -63,6 +63,36 @@ class Arr
         $val = $value;
     }
 
+    public static function unsetItem(&$src, $key)
+    {
+        $val = &$src;
+        $keys = self::keyarr($key);
+        if(!$keys)
+            throw new InvalidCallException("Invalid key: ".self::keystr($key));
+        $lastkey = array_pop($keys);
+        foreach($keys as $k) {
+            if(!isset($val[$k]) || !is_array($val[$k]))
+                return;
+            $val = &$val[$k];
+        }
+        unset($val[$lastkey]);
+    }
+
+    public static function itemExists($src, $key)
+    {
+        $keys = self::keyarr($key);
+        $val = $src;
+        if(!$keys)
+            throw new InvalidCallException("Invalid key: ".self::keystr($key));
+        $lastkey = array_pop($keys);
+        foreach($keys as $k) {
+            if(!isset($val[$k]) || !is_array($val[$k]))
+                return false;
+            $val = $val[$k];
+        }
+        return isset($val[$lastkey]);
+    }
+
     protected static function keystr($key)
     {
         return is_string($key) ? $key : implode(".", $key);

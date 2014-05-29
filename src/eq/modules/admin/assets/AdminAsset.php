@@ -3,6 +3,7 @@
 namespace eq\modules\admin\assets;
 
 use eq\web\AssetBundle;
+use EQ;
 
 class AdminAsset extends AssetBundle
 {
@@ -46,7 +47,7 @@ class AdminAsset extends AssetBundle
         return [
             "jquery",
             "eq.userdata",
-//            "eq.ajax",
+            "eq.ajax",
             "jquery.cookie",
             "pnotify",
         ];
@@ -54,9 +55,10 @@ class AdminAsset extends AssetBundle
 
     public function getJs()
     {
-        return array_merge([
+        $js = array_merge([
             "admin.js",
         ], self::$_js);
+        return $js;
     }
 
     public function getCss()
@@ -66,4 +68,4 @@ class AdminAsset extends AssetBundle
         ], self::$_css);
     }
 
-} 
+}

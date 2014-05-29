@@ -49,7 +49,7 @@ class ClogModule extends ModuleBase
             EQ::app()->retrigger("strict", [$this, "__onStrict"]);
             EQ::app()->retrigger("dbQuery", [$this, "__onDbQuery"]);
         }
-//        $this->onRequest();
+        $this->onRequest();
     }
 
     public function onRequest()
@@ -69,7 +69,7 @@ class ClogModule extends ModuleBase
             $this->logkey = basename($this->tmpfname);
             EQ::app()->header("X-EQ-CLog-LogKey", $this->logkey);
             EQ::app()->header("X-EQ-CLog-URL", EQ::app()->createAbsoluteUrl(
-                "modules.eq:clog.clog.process", ['key' => $this->logkey]));
+                "modules.eq:clog.clog.process", ['key' => $this->logkey], ["EQ_RECOVERY"]));
         }
     }
 

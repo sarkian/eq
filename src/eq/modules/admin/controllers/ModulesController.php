@@ -3,6 +3,7 @@
 namespace eq\modules\admin\controllers;
 
 use EQ;
+use eq\base\ModuleException;
 use eq\base\TModuleClass;
 use eq\modules\admin\assets\AdminAsset;
 use eq\modules\ajax\AjaxResponse;
@@ -40,10 +41,18 @@ class ModulesController extends Controller
             $res->error("Module not found");
         if($module->isEnabled() && !$module->canToggle())
             $res->error("Cant disable module");
-        EQ::app()->dbconfig->set("modules.$module_name.enabled", !$module->isEnabled());
+        $enabled = (EQ_RECOVERY && !$module->isEnabled())
+            ? (bool) EQ::app()->dbconfig->get("modules.{$module->name}.enabled", false)
+            : $module->isEnabled();
+        EQ::app()->dbconfig->set("modules.$module_name.enabled", !$enabled);
     }
 
     public function actionRemove(AjaxResponse $res, $module_name)
+    {
+        // TODO: implement
+    }
+
+    public function actionInfo(AjaxResponse $res, $module_name)
     {
         // TODO: implement
     }

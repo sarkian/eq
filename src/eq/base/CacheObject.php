@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 23, 22:58
- */
 
 namespace eq\base;
 
@@ -10,11 +7,12 @@ use eq\helpers\Arr;
 class CacheObject
 {
 
+    protected $loaded_data = [];
     protected $data = [];
-    protected $modified = false;
 
     public function __construct($data)
     {
+        $this->loaded_data = $data;
         $this->data = $data;
     }
 
@@ -27,26 +25,32 @@ class CacheObject
     {
         if(!is_array($data))
             $data = [];
-        $this->data = $data;
-        $this->modified = true;
+        return $this->data = $data;
+    }
+
+    public function getValue($key, $default = null)
+    {
+        return Arr::getItem($this->data, $key, $default);
+    }
+
+    public function setValue($key, $value)
+    {
+        Arr::setItem($this->data, $key, $value);
+    }
+
+    public function valueExists($key)
+    {
+        return Arr::itemExists($this->data, $key);
+    }
+
+    public function unsetValue($key)
+    {
+        Arr::unsetItem($this->data, $key);
     }
 
     public function isModified()
     {
-        return $this->modified;
-    }
-
-    public function call($name, $value = null)
-    {
-        if(is_null($value))
-            return Arr::getItem($this->data, $name, null);
-        Arr::setItem($this->data, $name, $value);
-        $this->modified = true;
-    }
-
-    public function get($name, $default = null)
-    {
-        return Arr::getItem($this->data, $name, $default);
+        return $this->data !== $this->loaded_data;
     }
 
 }

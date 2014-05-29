@@ -62,6 +62,8 @@ class AdminModule extends ModuleBase
                 $module->addItem("admin", $item);
         });
         EQ::app()->bind("beforeRender", function() {
+            if(!EQ::app()->user->isAdmin())
+                return;
             AdminAsset::register();
             foreach(self::$removed_modules as $mname) {
                 $message = EQ::k("admin.removedModule", $mname);

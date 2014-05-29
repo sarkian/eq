@@ -3,6 +3,7 @@
 namespace eq\web\route;
 
 use EQ;
+use eq\base\Cache;
 use eq\base\TEvent;
 use eq\base\TObject;
 use eq\helpers\Str;
@@ -38,36 +39,28 @@ class Route
 
     public function __construct()
     {
-        foreach(EQ::app()->route_files as $fname => $fdata) {
-            $fname = EQ::getAlias($fname);
-            if(!is_array($fdata))
-                $fdata = [];
-            $url_prefix = isset($fdata[0]) ? $fdata[0] : "";
-            $path_prefix = isset($fdata[1]) ? $fdata[1] : "";
-            $this->files[$fname] = [
-                $url_prefix,
-                $path_prefix,
-                filemtime($fname),
-            ];
-        }
-        if($this->isModified()) {
-            foreach($this->files as $fname => $fdata) {
-                $file = new RouteFile($fname, $fdata[0], $fdata[1]);
-                $this->rules = array_merge($this->rules, $file->rules);
-            }
-            EQ::cache("route.files", $this->files);
-            $rcache = [];
-            foreach($this->rules as $rule)
-                $rcache[] = $rule->saveData();
-            EQ::cache("route.rules", $rcache);
+        foreach(EQ::app()->config("web.route", []) as $file)
+            $this->addFile(EQ::getAlias($file));
+    }
+
+    public function addFile($path, $url_prefix = "", $path_prefix = "")
+    {
+        if(isset($this->files[$path]))
+            return;
+        if($this->isFileModified($path, $url_prefix, $path_prefix)) {
+            $file = new RouteFile($path, $url_prefix, $path_prefix);
+            $this->rules = array_merge($this->rules, $file->rules);
+            $fdata = [$url_prefix, $path_prefix, filemtime($path), $file->rules_data];
+            Cache::setValue("route", ["files", $path], $fdata);
         }
         else {
-            foreach(EQ::cache("route.rules") as $data) {
+            foreach(Cache::getValue("route", ["files", $path, 3]) as $data) {
                 $rule = new RouteRule();
                 $rule->loadData($data);
                 $this->rules[] = $rule;
             }
         }
+        $this->files[$path] = [$url_prefix, $path_prefix];
     }
 
     public function getFound()
@@ -169,6 +162,22 @@ class Route
         EQ::app()->trigger("route.notFound", $url);
     }
 
+    protected function isFileModified($path, $url_prefix, $path_prefix)
+    {
+        $fdata = Cache::getValue("route", ["files", $path], []);
+        if(!is_array($fdata) || !$fdata)
+            return true;
+        if(!isset($fdata[0], $fdata[1], $fdata[2], $fdata[3]))
+            return true;
+        if($fdata[0] !== $url_prefix || $fdata[1] !== $path_prefix)
+            return true;
+        if($fdata[2] !== filemtime($path))
+            return true;
+        if(!is_array($fdata[3]))
+            return true;
+        return false;
+    }
+
     protected function findPath()
     {
         $cname = $this->findController();
@@ -213,17 +222,6 @@ class Route
         if(!isset($this->vars[$m[1]]))
             throw new RouteException("Undefined variable in path: $vname");
         return $this->vars[$vname];
-    }
-
-    protected function isModified()
-    {
-        $cache = EQ::cache("route.files");
-        foreach($this->files as $fname => $fdata) {
-            if(!isset($cache[$fname]) || $cache[$fname] !== $fdata)
-                return true;
-            unset($cache[$fname]);
-        }
-        return $cache ? true : false;
     }
 
 }

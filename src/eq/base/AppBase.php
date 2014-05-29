@@ -104,7 +104,8 @@ abstract class AppBase extends ModuleAbstract
         }
         catch(ExceptionBase $e) {
             $this->processException($e);
-        } catch(Exception $ue) {
+        }
+        catch(Exception $ue) {
             $this->processUncaughtException($ue);
         }
     }
@@ -466,10 +467,8 @@ abstract class AppBase extends ModuleAbstract
     {
         if(is_null($name))
             return \EQ::app()->cache;
-        elseif(is_null($value))
-            return \EQ::app()->cache->{$name};
         else
-            return \EQ::app()->cache->{$name} = $value;
+            return \EQ::app()->cache->data($name, $value);
     }
 
     protected static function systemStaticMethods()
@@ -484,14 +483,6 @@ abstract class AppBase extends ModuleAbstract
     protected static function defaultStaticMethods()
     {
         return [
-            'cache' => function($name = null, $value = null) {
-                if(is_null($name))
-                    return \EQ::app()->cache;
-                elseif(is_null($value))
-                    return \EQ::app()->cache->{$name};
-                else
-                    return \EQ::app()->cache->{$name} = $value;
-            },
             't' => function($text) { return $text; },
             'k' => function($key)  { return $key;  },
             // 'log' => function($msg) {  },
@@ -510,6 +501,8 @@ abstract class AppBase extends ModuleAbstract
     {
         $classes = [];
         $modules_o = $this->config("modules", []);
+        $init_method = $this->type."Init";
+        $ready_method = $this->type."Ready";
         foreach($modules_o as $name => $conf) {
             if(!isset($conf['enabled']) || !$conf['enabled'])
                 continue;
@@ -526,8 +519,15 @@ abstract class AppBase extends ModuleAbstract
             elseif(!isset($conf['enabled']) || !$conf['enabled'])
                 continue;
             $cname = isset($classes[$name]) ? $classes[$name] : ModuleBase::getClass($name, false);
-            if($cname)
-                $this->loadModule($name, $cname);
+            if($cname) {
+                $this->trigger("modules.$name.init");
+                $this->trigger("modules.$name.{$this->type}Init");
+                $module = $this->loadModule($name, $cname);
+                if(method_exists($module, $init_method))
+                    $module->{$init_method}();
+                $module->ready();
+                $this->trigger("modules.$name.ready");
+            }
             else {
                 \EQ::warn("Module not found: $name");
                 $this->trigger("moduleNotFound", $name);
@@ -545,11 +545,12 @@ abstract class AppBase extends ModuleAbstract
     /**
      * @param string $name
      * @param string|ModuleBase $cname
+     * @return \eq\base\ModuleBase
      */
     protected function loadModule($name, $cname)
     {
         if(isset($this->modules_by_name[$name]))
-            return;
+            return $this->modules_by_name[$name];
         $this->trigger("modules.$name.init");
         $module = $cname::instance(true);
         $this->processModuleDependencies($module);
@@ -564,11 +565,7 @@ abstract class AppBase extends ModuleAbstract
         self::setAlias("@modules.$name", $module->location);
         $this->registerModuleComponents($module);
         $this->registerModuleStaticMethods($module);
-        $method = $this->type."Init";
-        if(method_exists($module, $method))
-            $module->{$method}();
-        $module->ready();
-        $this->trigger("modules.$name.initialized", $module);
+        return $module;
     }
 
     protected function processModuleDependencies(ModuleBase $module)

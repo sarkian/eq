@@ -131,7 +131,10 @@
     EQ.bind('ajax.ready', function() {
         ModulePanel.update();
     });
-//    ModulePanel.update();
+
+    $(function() {
+//        ModulePanel.update();
+    });
 
 
 //    $('.module-panel').each(function(i, el) {

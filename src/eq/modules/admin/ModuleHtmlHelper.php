@@ -19,7 +19,8 @@ class ModuleHtmlHelper
     public function __construct(ModuleBase $module)
     {
         $this->module = $module;
-        $this->enabled = $module->isEnabled();
+        $this->enabled = (EQ_RECOVERY && !$module->isEnabled())
+            ? $this->isEnabledInConfig() : $module->isEnabled();
         $this->can_disable = $module->canToggle();
         $this->title = htmlentities($module->title);
         $this->description = $module->description;
@@ -77,6 +78,11 @@ class ModuleHtmlHelper
             $links[] = Html::link($mname, $href, $opts);
         }
         return EQ::t("Dependencies").": ".implode(", ", $links);
+    }
+
+    protected function isEnabledInConfig()
+    {
+        return (bool) EQ::app()->dbconfig->get("modules.{$this->module->name}.enabled", false);
     }
 
 }

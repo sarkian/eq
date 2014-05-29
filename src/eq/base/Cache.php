@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 24, 01:58
- */
 
 namespace eq\base;
 
@@ -9,26 +6,48 @@ use EQ;
 use eq\helpers\FileSystem;
 use eq\cgen\php\PhpValue;
 
+/**
+ * @method static array getData(string $name)
+ * @method static array setData(string $name, array $data)
+ * @method static mixed getValue(string $name, mixed $key, mixed $default = null)
+ * @method static mixed setValue(string $name, mixed $key, mixed $value)
+ * @method static mixed valueExists(string $name, mixed $key)
+ * @method static void  unsetValue(string $name, mixed $key)
+ * @method static bool  isModified(string $name)
+ */
 class Cache
 {
 
+    /**
+     * @var CacheObject[]
+     */
     protected $data = [];
 
-    public function __get($name)
+    public static function __callStatic($fname, $args)
     {
-        return $this->load($name);
+        if(!count($args))
+            throw new InvalidCallException("Missing argument: name");
+        $name = array_shift($args);
+        $cache = EQ::app()->cache->get($name);
+        if(!method_exists($cache, $fname))
+            throw new InvalidCallException("Unknown method: CacheObject::".$fname);
+        return call_user_func_array([$cache, $fname], $args);
     }
 
-    public function __set($name, $value)
+    public function get($name)
     {
-        $this->load($name);
-        $this->data[$name]->setData($value);
+        if(!isset($this->data[$name]))
+            $this->load($name);
+        return $this->data[$name];
     }
 
-    public function __call($name, $args)
+    public function data($name, $value = null)
     {
-        $this->load($name);
-        return call_user_func_array([$this->data[$name], "call"], $args);
+        $cache = $this->get($name);
+        if(is_null($value))
+            return $cache->getData();
+        else
+            return $cache->setData($value);
     }
 
     public function load($name)
