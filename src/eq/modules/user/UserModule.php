@@ -7,6 +7,7 @@ use eq\base\InvalidConfigException;
 use eq\base\ModuleBase;
 use eq\helpers\Str;
 use eq\modules\admin\AdminModule;
+use eq\modules\i18n\I18nModule;
 use eq\modules\navigation\NavigationModule;
 
 /**
@@ -31,6 +32,13 @@ class UserModule extends ModuleBase
         return [
             'user' => 'eq\modules\user\models\Users',
         ];
+    }
+
+    protected static function preInit()
+    {
+        EQ::app()->bind("modules.eq:i18n.beforeLoadFiles", function (I18nModule $module) {
+            $module->addDir(__DIR__."/locale", "user");
+        });
     }
 
     public function webInit()

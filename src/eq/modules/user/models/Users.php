@@ -217,8 +217,6 @@ class Users extends Model implements IIdentity
         if(!$parts)
             return $last;
         $label = implode(", ", $parts);
-        //        if(count($parts) > 1)
-        //            $label .= ",";
         $label .= " ".EQ::t("or")." ".$last;
         return $label;
     }
@@ -334,12 +332,15 @@ class Users extends Model implements IIdentity
             $rules = [
                 $this->login_field_field => $this->login_field_value,
             ];
+            $val = $this->login_field_value;
             if($this->load($rules)) {
                 if(!$this->verifyPassword($pass)) {
                     $this->addRawError(EQ::t("Invalid login or password"), $this->login_field_name);
+                    $this->data[$this->login_field_name] = $val;
                     $this->pass = $pass;
                     return;
                 }
+                $this->_auth = null;
                 $this->saveSession();
             }
         });

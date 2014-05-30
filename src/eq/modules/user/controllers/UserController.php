@@ -33,6 +33,7 @@ class UserController extends Controller
         $form = EQ::widget($this->config("login_form_widget", "ModelForm"), $model);
         if(EQ::app()->request->isPost()) {
             $model->apply($form->getData());
+            EQ::dump($model->isAuth());
             if($model->isAuth())
                 $this->redir($this->module->config("login_redirect_url", "{main.index}"));
         }
