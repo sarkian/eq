@@ -5,123 +5,109 @@
 <title><?= $this->page_title ?></title>
 <style type="text/css">
 
-html, body {
-    margin: 0;
-    padding: 0;
-}
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
 
-body {
-    background-color: #333;
-    color: #f0f0f0;
-    font-family: verdana, arial;
-    font-size: 14px;
-}
+    html {
+        position: relative;
+        min-height: 100%;
+    }
 
-html, body, .container {
-    width: 100%;
-    height: 100%;
-}
+    body {
+        margin-bottom: 40px;
+        padding-bottom: 30px;
+        background-color: #333;
+        color: #f0f0f0;
+        font-family: verdana, arial;
+        font-size: 14px;
+    }
 
-.clearfix:after {
-    content: ".";
-	display: block;
-	height: 0;
-	clear: both;
-	visibility: hidden;
-}
+    #footer {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 40px;
+    }
 
-.clearfix {
-    display: inline-block;
-}
-
-* html .clearfix {
-    height: 1%;
-}
-
-.clearfix {
-    display: block;
-}
-
-body > .container {
-    height: auto; min-height: 100%;
-}
-
-.footer {
-    position: relative;
-	margin-top: -50px;
-	height: 50px;
-	clear: both;
-} 
-
-.powered {
-    margin: 0 100px;
-    padding: 0 2px;
-    border-top: 1px #666 solid;
-    text-align: right;
-    font-style: italic;
-    font-size: 12px;
-    color: #999;
-}
+    .powered {
+        font-size: 12px;
+        font-style: italic;
+        text-align: right;
+        border-top: 1px #555555 solid;
+        margin: 0 3%;
+        padding: 0 2px;
+        color: #888888;
+    }
 
 
 
 
-.content {
-    padding: 0 20px;
-}
+    .content {
+        padding: 0 20px;
+    }
 
-a {
-    color: #b9c6ff;
-    text-decoration: none;
-}
+    hr {
+        margin-top: 16px;
+        margin-bottom: 16px;
+        border: 0;
+        border-top: 1px solid #666;
+    }
 
-a:hover {
-    text-decoration: underline;
-}
+    .filename {
+        color: #66D9EF;
+    }
 
-td {
-    vertical-align: top;
-    padding: 5px;
-}
+    a {
+        color: #b9c6ff;
+        text-decoration: none;
+    }
 
-.etype {
-    margin: 0;
-    padding: 20px 0 10px 0;
-}
+    a:hover {
+        text-decoration: underline;
+    }
 
-.red {
-    color: #ff7777;
-}
+    td {
+        vertical-align: top;
+        padding: 5px;
+    }
 
-.code {
-    font-family: monospace;
-    background: #222;
-    padding: 0.2em 0.5em;
-}
+    .etype {
+        margin: 0;
+        padding: 20px 0 10px 0;
+    }
 
-.trace-step {
-    padding: 0 2em;
-    margin: 0.5em;
-}
+    .red {
+        color: #ff7777;
+    }
 
-.trace-step span {
-    display: block;
-}
+    .code {
+        font-family: monospace;
+        background: #222;
+        padding: 0.2em 0.5em;
+    }
 
-.trace-step span:first-child {
-    margin-left: -2em;
-}
+    .trace-step {
+        /*padding: 0 2em;*/
+        margin: 10px;
+    }
+
+    .stepnum {
+        margin-left: -14px;
+    }
 
 </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="content clearfix">
+        <div class="content">
             <?= $content ?>
         </div>
     </div>
-    <div class="footer">
+
+    <div id="footer">
         <div class="powered">
             <?= EQ::powered() ?>
         </div>

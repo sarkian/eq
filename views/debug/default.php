@@ -1,8 +1,3 @@
-<?php
-    use \eq\base\SQLException;
-    use \eq\web\html\Html;
-    use \eq\dev\DevPath;
-?>
 <h3 class="etype"><?= $etype ?></h3>
 <hr />
 <table class="main-info">
@@ -18,32 +13,30 @@
     </tr>
     <tr>
         <td class="red">File:</td>
-        <td><?= Html::link(
-            DevPath::createProjectFilePath($e->getFile()),
-            DevPath::createIdeLink($e->getFile(), $e->getLine())
-        ) ?> line <?= $e->getLine() ?></td>
+        <td>
+            <span class="filename"><?= htmlentities(EQ::unalias($e->getFile())) ?></span>
+            line <?= $e->getLine() ?>
+        </td>
     </tr>
 </table>
 <hr />
 <h4>Stack Trace:</h4>
-<? $step = 0; ?>
+<? $step = 1; ?>
 <? foreach($e->_getTrace() as $call): ?>
-    <p class="trace-step">
-        <span class="red">#<?= $step++ ?></span>
-        <span class="code">
+    <div class="trace-step">
+        <div class="red stepnum">#<?= $step++ ?></div>
+        <div class="code">
             <? if(isset($call['file'], $call['line'])): ?>
-                <?= Html::link(
-                    DevPath::createProjectFilePath($call['file']),
-                    DevPath::createIdeLink($call['file'], $call['line'])
-                ) ?> line <?= $call['line'] ?>
+                <span class="filename"><?= htmlentities(EQ::unalias($call['file'])) ?></span>
+                line <?= $call['line'] ?>
             <? else: ?>
                 ...
             <? endif; ?>
-        </span>
-        <span class="code">
+        </div>
+        <div class="code">
             <? if(isset($call['class'], $call['type'])): ?>
                 <?= $call['class'].$call['type'].$call['function'] ?>()
             <? endif; ?>
-        </span>
-    </p>
+        </div>
+    </div>
 <? endforeach; ?>
