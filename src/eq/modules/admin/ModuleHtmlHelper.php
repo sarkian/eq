@@ -3,37 +3,35 @@
 namespace eq\modules\admin;
 
 use eq\base\ModuleBase;
+use eq\base\WrapContainerItem;
 use eq\web\html\Html;
 use EQ;
 
-class ModuleHtmlHelper
+class ModuleHtmlHelper extends WrapContainerItem
 {
 
-    public $title;
-    public $description;
+    /**
+     * @var ModuleBase
+     */
+    protected $obj;
 
-    protected $module;
-    protected $enabled;
-    protected $can_disable;
+    public $enabled;
+    public $can_disable;
 
     public function __construct(ModuleBase $module)
     {
-        $this->module = $module;
+        parent::__construct($module);
         $this->enabled = (EQ_RECOVERY && !$module->isEnabled())
             ? $this->isEnabledInConfig() : $module->isEnabled();
         $this->can_disable = $module->canToggle();
-        $this->title = htmlentities($module->title);
-        $this->description = $module->description;
-        $this->description = $this->description ?
-            htmlentities($this->description) : "<i>".EQ::t("No description")."</i>";
     }
 
-    public function panelClass()
+    public function getPanelClass()
     {
         $class = ["panel", "module-panel"];
-        if($this->module->errors)
+        if($this->obj->errors)
             $class[] = "panel-danger";
-        elseif($this->module->warnings)
+        elseif($this->obj->warnings)
             $class[] = "panel-warning";
         elseif(!$this->enabled)
             $class[] = "panel-default";
@@ -44,45 +42,18 @@ class ModuleHtmlHelper
         return implode(" ", $class);
     }
 
-    public function enabledCheckbox()
+    public function getDependencies()
     {
-        $options = [
-            'type' => "checkbox",
-            'class' => "module-checkbox",
-        ];
-        if($this->enabled)
-            $options['checked'] = "checked";
-        if(!$this->can_disable)
-            $options['disabled'] = "disabled";
-        return Html::tag("input", $options);
-    }
-
-    public function dependencies()
-    {
-        if(!$this->module->depends)
-            return EQ::t("No dependencies");
-        $links = [];
-        foreach($this->module->depends as $mname) {
-            $opts = ['onclick' => "return false;"];
-            $module = EQ::app()->module($mname, true);
-            if($module) {
-                $href = "#".$mname;
-                $opts['data-module-name'] = $mname;
-                if($this->module->isEnabled() && !$module->isEnabled())
-                    $opts['class'] = "warning";
-            }
-            else {
-                $href = "#";
-                $opts['class'] = "error";
-            }
-            $links[] = Html::link($mname, $href, $opts);
+        $deps = [];
+        foreach($this->obj->dependencies as $mname) {
+            $deps[$mname] = EQ::app()->module($mname, true);
         }
-        return EQ::t("Dependencies").": ".implode(", ", $links);
+        return $deps;
     }
 
     protected function isEnabledInConfig()
     {
-        return (bool) EQ::app()->dbconfig->get("modules.{$this->module->name}.enabled", false);
+        return (bool) EQ::app()->dbconfig->get("modules.{$this->obj->name}.enabled", false);
     }
 
 }

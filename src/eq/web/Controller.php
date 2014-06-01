@@ -28,7 +28,7 @@ abstract class Controller
         $this->processPermissions();
     }
 
-    public static function className()
+    public static function cls()
     {
         return get_called_class();
     }
@@ -125,48 +125,6 @@ abstract class Controller
         }
     }
 
-    protected function _processPermissions()
-    {
-        $perms = $this->permissions();
-        $action = EQ::app()->action_name;
-        $default = ["allow", "all"];
-        if(isset(EQ::app()->user) && EQ::app()->user->isAuth()) {
-            if(EQ::app()->user->isAdmin())
-                $perms = isset($perms['admin']) ? $perms['admin'] : $default;
-            else $perms = isset($perms['user']) ? $perms['user'] : $default;
-        }
-        else
-            $perms = isset($perms['guest']) ? $perms['guest'] : $default;
-        if(!isset($perms[0], $perms[1]))
-            throw new ControllerException("Invalid permissions");
-        $callback = isset($perms[2]) ? $perms[2] : 404;
-        if(!is_callable($callback)) {
-            if(!is_int($callback) && !is_string($callback))
-                throw new ControllerException("Invalid permissions");
-            $status = $callback;
-            $callback = function() use($status) {
-                if(is_string($status))
-                    EQ::app()->redirect($status);
-                else
-                    throw new HttpException($status);
-            };
-        }
-        if($perms[0] === "allow") {
-            if($perms[1] === "all")
-                return;
-            if(!in_array(EQ::app()->action_name, explode(',', $perms[1])))
-                $callback();
-            //exit;
-        }
-        if($perms[0] === "deny") {
-            if($perms[1] === "all")
-                $callback();
-            elseif(in_array(EQ::app()->action_name, explode(",", $perms[1])))
-                $callback();
-            //exit;
-        }
-    }
-
     protected function redir($url, $status = 302, $message = "Found")
     {
         EQ::app()->redirect($url, $status, $message);
@@ -215,9 +173,15 @@ abstract class Controller
             $view_file = EQ::app()->controller_name.'/'.$view_file;
         if(file_exists($view_file))
             return $view_file;
-        $view_file_path = APPROOT."/views/$view_file.php";
-        file_exists($view_file_path) or $view_file_path = EQROOT."/views/$view_file.php";
-        return file_exists($view_file_path) ? $view_file_path : false;
+        if(file_exists(APPROOT."/views/$view_file.php"))
+            return APPROOT."/views/$view_file.php";
+        if(file_exists(APPROOT."/views/$view_file.twig"))
+            return APPROOT."/views/$view_file.twig";
+        if(file_exists(EQROOT."/views/$view_file.php"))
+            return EQROOT."/views/$view_file.php";
+        if(file_exists(EQROOT."/views/$view_file.twig"))
+            return EQROOT."/views/$view_file.twig";
+        return false;
     }
 
     protected function findTemplate()

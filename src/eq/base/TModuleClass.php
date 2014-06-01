@@ -79,9 +79,13 @@ trait TModuleClass
 
     protected function findViewFile($view_file)
     {
-        $fname = Path::join([$this->module_location, "views", $view_file.".php"]);
-        /** @noinspection PhpUndefinedClassInspection */
-        /** @noinspection PhpUndefinedMethodInspection */
+        $fbname = Path::join([$this->module_location, "views", $view_file]);
+        if(preg_match('/\.php$|\.twig$/', $view_file))
+            $fname = $fbname;
+        else {
+            $fname = $fbname.".php";
+            file_exists($fname) or $fname = $fbname.".twig";
+        }
         return file_exists($fname) ? $fname : parent::findViewFile($view_file);
     }
 
@@ -93,8 +97,6 @@ trait TModuleClass
         if(!$tpl)
             return false;
         $fname = Path::join([$this->module_location, "templates", "$tpl.php"]);
-        /** @noinspection PhpUndefinedClassInspection */
-        /** @noinspection PhpUndefinedMethodInspection */
         return file_exists($fname) ? $fname : parent::findTemplate();
     }
 

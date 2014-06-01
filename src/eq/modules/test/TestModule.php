@@ -15,17 +15,17 @@ class TestModule extends ModuleBase
         'ru_RU' => "Тестовый модуль",
     ];
 
-    public function getDepends()
+    public function getDependencies()
     {
         return [
-//            "eq:cron",
+            "eq:cron",
 //            "eq:unknown",
         ];
     }
 
     protected function init()
     {
-        throw new ModuleException("test");
+
     }
 
 }

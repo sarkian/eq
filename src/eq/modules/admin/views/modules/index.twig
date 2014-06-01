@@ -1,0 +1,69 @@
+<h3>{{ t('Modules') }}</h3>
+<hr />
+
+{% for module in modules %}
+    <div class="{{ module.panel_class }}" data-module-name="{{ module.name }}">
+
+        <div class="panel-heading">
+            <a name="{{ module.name }}"><h3 class="panel-title">{{ module.title }}</h3></a>
+            <label class="checkbox enabled-toggle">
+                <input type="checkbox" class="module-checkbox"
+                       {% if module.enabled %} checked="checked" {% endif %}
+                       {% if not module.can_disable %} disabled="disabled" {% endif %}
+                       />
+            </label>
+            {% if module.isEnabledAsDependency() %}
+                <span class="glyphicon glyphicon-transfer enabled-as-dependency"
+                      title="{{ t('Enabled as dependency') }}"></span>
+            {% endif %}
+        </div>
+
+        <div class="module-name">{{ module.name }}</div>
+
+        <div class="panel-body">
+            <p class="module-description">
+                {% if module.description %}
+                    {{ module.description }}
+                {% else %}
+                    <i>{{ t('No description') }}</i>
+                {% endif %}
+            </p>
+            <hr />
+            <p class="module-dependencies">
+                {% if module.dependencies %}
+                    {{ t('Dependencies') }}:
+                    {% for mname, depmod in module.dependencies %}
+                        <a
+                                {% if depmod %}
+                                    href="#{{ mname }}"
+                                    data-module-name="{{ mname }}"
+                                    {% if module.isEnabled() and not depmod.isEnabled() %}
+                                        class="warning"
+                                    {% endif %}
+                                {% else %}
+                                    href="#"
+                                    class="error"
+                                {% endif %}
+                                >{{ mname }}</a>
+                        {% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                {% else %}
+                    {{ t('No dependencies') }}
+                {% endif %}
+            </p>
+        </div>
+
+        {% if module.errors or module.warnings %}
+            <ul class="list-group">
+                {% for msg in module.errors %}
+                    <li class="list-group-item list-group-item-danger">{{ msg }}</li>
+                {% endfor %}
+                {% for msg in module.warnings %}
+                    <li class="list-group-item list-group-item-warning">{{ msg }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+    </div>
+{% endfor %}
+

@@ -570,7 +570,7 @@ abstract class AppBase extends ModuleAbstract
 
     protected function processModuleDependencies(ModuleBase $module)
     {
-        foreach($module->depends as $mname) {
+        foreach($module->dependencies as $mname) {
             $cname = ModuleBase::getClass($mname, false);
             if($cname)
                 $this->loadModule($mname, $cname);

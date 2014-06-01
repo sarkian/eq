@@ -10,6 +10,27 @@ trait TObject
     private static $_getters = [];
     private static $_setters = [];
 
+    public static function isA($obj)
+    {
+        if(!is_object($obj))
+            return false;
+        if($obj instanceof Object)
+            return true;
+        $classes = class_parents($obj);
+        array_unshift($classes, $obj);
+        foreach($classes as $cls) {
+            $traits = class_uses($cls);
+            if(isset($traits['eq\base\TObject']))
+                return true;
+        }
+        return false;
+    }
+
+    public static function cls()
+    {
+        return get_called_class();
+    }
+
     public function __get($name)
     {
         $getter = $this->getterName($name);
@@ -39,8 +60,7 @@ trait TObject
     public function __isset($name)
     {
         $getter = $this->getterName($name);
-        return method_exists($this, $getter)
-            ? $this->{$getter}() !== null : false;
+        return method_exists($this, $getter) ? $this->{$getter}() !== null : false;
     }
 
     public function __unset($name)

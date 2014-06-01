@@ -2,10 +2,26 @@
 
 namespace eq\cgen;
 
+use eq\base\LoaderException;
+use EQ;
+
 class ViewRenderer
 {
 
-    public static function renderFile($__view_file__, $__input_vars_array__ = [])
+    protected static $_has_twig = null;
+    protected static $_twig_env = null;
+
+    public static function renderFile($file, $vars = [])
+    {
+        $parts = explode(".", $file);
+        $ext = array_pop($parts);
+        if($ext === "twig")
+            return self::renderTwigFile($file, $vars);
+        else
+            return self::renderPhpFile($file, $vars);
+    }
+
+    public static function renderPhpFile($__view_file__, $__input_vars_array__ = [])
     {
         ob_start();
         foreach($__input_vars_array__ as $__input_var_name__ => $__input_var_value__) {
@@ -19,9 +35,36 @@ class ViewRenderer
         return($__view_result_string__);
     }
 
+    public static function renderTwigFile($file, $vars = [])
+    {
+        return self::twigEnv()->render($file, $vars);
+    }
+
     public static function hasTwig()
     {
+        if(is_null(self::$_has_twig)) {
+            try {
+                self::$_has_twig = class_exists("Twig_Environment");
+            }
+            catch(LoaderException $e) {
+                self::$_has_twig = false;
+            }
+        }
+        return self::$_has_twig;
+    }
 
+    public static function twigEnv()
+    {
+        if(is_null(self::$_twig_env)) {
+            $loader = new \Twig_Loader_Filesystem("/");
+            self::$_twig_env = new \Twig_Environment($loader, [
+                'cache' => EQ::getAlias("@runtime/twig"),
+                'debug' => EQ_DBG,
+            ]);
+            self::$_twig_env->addFunction(new \Twig_SimpleFunction("t", ["EQ", "t"]));
+            self::$_twig_env->addFunction(new \Twig_SimpleFunction("k", ["EQ", "k"]));
+        }
+        return self::$_twig_env;
     }
 
 }

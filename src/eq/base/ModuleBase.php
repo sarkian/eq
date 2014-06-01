@@ -13,7 +13,7 @@ use eq\helpers\Str;
  * @property string namespace
  * @property string location
  * @property string url_prefix
- * @property array depends
+ * @property array dependencies
  * @property array errors
  * @property array warnings
  * @property array components
@@ -259,7 +259,7 @@ abstract class ModuleBase extends ModuleAbstract
         return "";
     }
 
-    public function getDepends()
+    public function getDependencies()
     {
         return [];
     }

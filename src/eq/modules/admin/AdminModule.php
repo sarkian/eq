@@ -73,7 +73,7 @@ class AdminModule extends ModuleBase
         });
     }
 
-    public function getDepends()
+    public function getDependencies()
     {
         return [
             "eq:navigation",

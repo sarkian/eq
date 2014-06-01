@@ -3,9 +3,10 @@
 namespace eq\modules\admin\controllers;
 
 use EQ;
-use eq\base\ModuleException;
 use eq\base\TModuleClass;
+use eq\base\WrapContainer;
 use eq\modules\admin\assets\AdminAsset;
+use eq\modules\admin\ModuleHtmlHelper;
 use eq\modules\ajax\AjaxResponse;
 use eq\web\Controller;
 
@@ -28,7 +29,7 @@ class ModulesController extends Controller
         if(EQ::app()->request->isAjax())
             $this->template = null;
         AdminAsset::addJs("modules");
-        $modules = EQ::app()->available_modules;
+        $modules = new WrapContainer(EQ::app()->available_modules, ModuleHtmlHelper::cls());
         $this->render("modules/index", ['modules' => $modules]);
     }
 
