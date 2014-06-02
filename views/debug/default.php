@@ -75,7 +75,7 @@ if($ns)
                 <? endif; ?>
             </span>
             <? if(isset($call['file'], $call['line'])): ?>
-                <a href="#" class="toggle-code-link"
+                <a href="#" class="toggle-code-link" title="Show/hide code"
                         onclick="toggleCode('<?= $i ?>'); return false;"><></a>
             <? endif; ?>
         </div>

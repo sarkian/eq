@@ -211,12 +211,12 @@
 
     .trace-step-code .gradient-top {
         top: 0;
-        background: linear-gradient(to bottom, rgba(18, 18, 18, 1), rgba(18, 18, 18, 0));
+        background: linear-gradient(to bottom, rgba(21, 21, 21, 1), rgba(21, 21, 21, 0));
     }
 
     .trace-step-code .gradient-bottom {
         bottom: 0;
-        background: linear-gradient(to top, rgba(18, 18, 18, 1), rgba(18, 18, 18, 0));
+        background: linear-gradient(to top, rgba(21, 21, 21, 1), rgba(21, 21, 21, 0));
     }
 
     /* Highlighter */
