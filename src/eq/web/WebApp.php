@@ -185,9 +185,7 @@ final class WebApp extends AppBase
         catch(Exception $e_unc) {
             $this->processUncaughtException($e_unc);
         }
-        finally {
-            $this->trigger("shutdown");
-        }
+        $this->trigger("shutdown");
     }
 
     public function processFatalError(array $err)

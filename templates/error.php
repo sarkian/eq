@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
+    <meta http-equiv="Content-Type" charset="utf-8" />
 <title><?= EQ::app()->client_script->title ?></title>
 <style type="text/css">
 
@@ -91,7 +92,7 @@ body > .container {
     
     <div class="container">
         <div class="error clearfix">
-            <?= $content ?>
+            {{$PAGE_CONTENT}}
         </div>
     </div>
     <div class="footer">

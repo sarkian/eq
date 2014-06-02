@@ -91,11 +91,11 @@ class Query
         try {
             $stmt->execute();
             $stmt->setFetchMode(PDO::FETCH_ASSOC);
-        } catch(PDOException $e) {
-            throw new SQLException($e->getMessage(), $e->getCode(), $e);
-        } finally {
-            EQ::app()->trigger("dbQuery", $this->db->name, $stmt->queryString);
         }
+        catch(PDOException $e) {
+            throw new SQLException($e->getMessage(), $e->getCode(), $e);
+        }
+        EQ::app()->trigger("dbQuery", $this->db->name, $stmt->queryString);
         return $stmt;
     }
 

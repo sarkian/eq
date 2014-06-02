@@ -6,6 +6,7 @@ use eq\web\html\Html;
 use EQ;
 
 // TODO: escaped characters in strings
+// TODO: all tokens
 class Highlighter
 {
 
@@ -63,6 +64,16 @@ class Highlighter
             T_EXTENDS,
             T_IMPLEMENTS,
             T_EXIT,
+            T_FOREACH,
+            T_AS,
+            T_ISSET,
+            T_UNSET,
+            T_FOR,
+            T_FINAL,
+            T_STATIC,
+            T_INSTANCEOF,
+            T_INSTEADOF,
+            T_CONTINUE,
         ],
         'default' => [
             T_STRING,
@@ -74,6 +85,7 @@ class Highlighter
         ],
         'comment' => [
             T_COMMENT,
+            T_DOC_COMMENT,
         ],
         'operator' => [
             T_DOUBLE_COLON,
@@ -84,6 +96,13 @@ class Highlighter
             T_LOGICAL_AND,
             T_LOGICAL_OR,
             T_LOGICAL_XOR,
+            T_IS_EQUAL,
+            T_IS_GREATER_OR_EQUAL,
+            T_IS_IDENTICAL,
+            T_IS_NOT_EQUAL,
+            T_IS_NOT_IDENTICAL,
+            T_IS_SMALLER_OR_EQUAL,
+            T_CONCAT_EQUAL,
             '.',
             ',',
             ';',
@@ -94,6 +113,8 @@ class Highlighter
             '=',
             '&',
             '!',
+            '?',
+            ':',
         ],
         'string' => [
             T_CONSTANT_ENCAPSED_STRING,
