@@ -4,6 +4,7 @@ namespace eq\controllers;
 
 use EQ;
 use eq\base\UncaughtExceptionException;
+use eq\helpers\Str;
 use eq\web\Controller;
 
 class DebugController extends Controller
@@ -18,8 +19,10 @@ class DebugController extends Controller
         $etype = $e instanceof UncaughtExceptionException
             ? "Uncaught Exception: ".get_class($e->getException())
             : $e->getType();
-        $this->page_title = $e->getType();
-        $this->render('debug/default', ['e' => $e, 'etype' => $etype]);
+        if($e instanceof UncaughtExceptionException)
+            $e = $e->getException();
+        $this->page_title = Str::classBasename($e);
+        $this->render('debug/default', ['e' => $e]);
     }
 
 }

@@ -10,7 +10,7 @@
     <?= EQ::app()->module("eq:navigation")->renderNav("admin") ?>
 
     <div class="container">
-        <?= $content ?>
+        {{$PAGE_CONTENT}}
     </div>
 
     <div id="footer">

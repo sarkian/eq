@@ -148,13 +148,11 @@ abstract class Controller
         $view_file = $this->findViewFile($view);
         if(!$view_file)
             throw new ControllerException("View file not found: $view");
-        ob_start();
         $content = ViewRenderer::renderFile($view_file, $view_vars);
-        $this->renderingEnd($content);
-        $out = ob_get_clean();
         EQ::app()->trigger("beforeEcho");
         $this->beforeEcho();
         if($this->template) {
+            $out = $this->renderTemplate($this->findTemplate());
             EQ::app()->trigger("client_script.render");
             $out = preg_replace('/\{\{\$HEAD_CONTENT\}\}/',
                 EQ::app()->client_script->renderHead(), $out, 1);
@@ -162,8 +160,11 @@ abstract class Controller
                 EQ::app()->client_script->renderBegin(), $out, 1);
             $out = preg_replace('/\{\{\$BODY_END_CONTENT\}\}/',
                 EQ::app()->client_script->renderEnd(), $out, 1);
+            $out = preg_replace('/\{\{\$PAGE_CONTENT\}\}/', $content, $out, 1);
+            echo $out;
         }
-        echo $out;
+        else
+            echo $content;
         exit;
     }
 
@@ -198,19 +199,11 @@ abstract class Controller
             throw new ControllerException("Template not found: {$this->template}");
     }
 
-    /*
-     * End rendering
-     *
-     * @property string $content
-     * @throws ControllerException
-     */
-    private function renderingEnd($content)
+    protected function renderTemplate($fname)
     {
-        $tpl = $this->findTemplate();
-        if($tpl)
-            require $tpl;
-        else
-            echo $content;
+        ob_start();
+        require $fname;
+        return ob_get_clean();
     }
 
 }

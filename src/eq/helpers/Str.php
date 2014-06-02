@@ -63,16 +63,21 @@ class Str
         return $ucfirst ? ucfirst($label) : $label;
     }
 
-    public static function classNamespace($classname)
+    public static function classNamespace($class)
     {
-        $parts = explode("\\", $classname);
+        if(is_object($class))
+            $class = get_class($class);
+        $parts = explode("\\", $class);
         array_pop($parts);
         return implode("\\", $parts);
+
     }
 
-    public static function classBasename($classname)
+    public static function classBasename($class)
     {
-        $parts = explode("\\", $classname);
+        if(is_object($class))
+            $class = get_class($class);
+        $parts = explode("\\", $class);
         return array_pop($parts);
     }
 
