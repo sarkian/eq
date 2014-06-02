@@ -14,7 +14,7 @@ html, body {
 body {
     background-color: #333;
     color: #f0f0f0;
-    font-family: verdana, arial;
+    font-family: verdana, arial, serif;
     font-size: 14px;
 }
 
