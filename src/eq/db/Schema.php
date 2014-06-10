@@ -1,14 +1,15 @@
 <?php
-/**
- * Last Change: 2014 Mar 18, 11:49
- */
 
 namespace eq\db;
 
+use eq\datatypes\DataTypeBase;
+
+// TODO: datatypes mappings
 class Schema
 {
 
     protected $db;
+    protected $type_map = [];
 
     public function __construct(ConnectionBase $db)
     {
@@ -27,8 +28,7 @@ class Schema
 		if(($value = $this->db->pdo->quote($str)) !== false)
             return $value;
 		else
-            return "'".addcslashes(
-                str_replace("'", "''", $str), "\000\n\r\\\032")."'";
+            return "'".addcslashes(str_replace("'", "''", $str), "\000\n\r\\\032")."'";
     }
 
     public function quoteTableName($name)
@@ -65,8 +65,7 @@ class Schema
 
     public function quoteSimpleColumnName($name)
     {
-        return strpos($name, '"') !== false || $name === "*"
-            ? $name : '"'.$name.'"';
+        return strpos($name, '"') !== false || $name === "*" ? $name : '"'.$name.'"';
     }
 
     public function buildCondition($condition, $operator = "=", $glue = "AND")
@@ -78,6 +77,17 @@ class Schema
             $res[] = $this->quoteColumnName($name)
                 .$operator.$this->quoteValue($value);
         return implode(" $glue ", $res);
+    }
+    
+    public function columnType($type)
+    {
+        $parts = explode(" ", $type, 2);
+        $opts = isset($parts[1]) ? " ".$parts[1] : "";
+        $type = $parts[0];
+        if(isset($this->type_map[$type]))
+            return $this->type_map[$type].$opts;
+        $cls = DataTypeBase::getClass($type);
+        return $cls::sqlType($this->db->driver).$opts;
     }
 
 }

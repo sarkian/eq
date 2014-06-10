@@ -15,4 +15,9 @@ class Username extends Str
         return self::validate($value);
     }
 
+    public static function sqlType($engine = null)
+    {
+        return "VARCHAR(255)";
+    }
+
 }

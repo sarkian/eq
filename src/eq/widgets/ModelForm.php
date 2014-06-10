@@ -41,7 +41,7 @@ class ModelForm extends FormBase
         $this->errors_by_field = $this->model->errors_by_field;
         $out = [$this->begin()];
         foreach($this->model->currentRules("change") as $field) {
-            if(!$this->model->isVisible($field))
+            if(!$this->model->isShow($field))
                 continue;
             $type = $this->model->typeFormControl($field);
             $out[] = $this->renderField($field, $type);
@@ -57,7 +57,7 @@ class ModelForm extends FormBase
     {
         $data = [];
         foreach($this->model->currentRules("change") as $name) {
-            if(!$this->model->isVisible($name))
+            if(!$this->model->isShow($name))
                 continue;
             $data[$name] = EQ::app()->request->post($name);
         }

@@ -33,7 +33,7 @@ use Glip_Git;
  * @method static WidgetBase widget(string $name)
  * @method static string t($token)
  * @method static string k($token)
- * @method ConnectionBase db(string $name)
+ * @method ConnectionBase db(string $name = null)
  * @property DbconfigModule dbconfig
  */
 abstract class AppBase extends ModuleAbstract

@@ -3,6 +3,7 @@
 namespace eq\db;
 
 use EQ;
+use eq\datatypes\DataTypeBase;
 use PDO;
 use PDOException;
 
@@ -23,10 +24,9 @@ class Query
 
     public function select($cols)
     {
-        if(!is_array($cols)) {
-            $cols = preg_split('/\s*,\s*/', trim($cols),
-                -1, PREG_SPLIT_NO_EMPTY);
-        }
+        $this->_query = [];
+        if(!is_array($cols))
+            $cols = preg_split('/\s*,\s*/', trim($cols), -1, PREG_SPLIT_NO_EMPTY);
         foreach($cols as $i => $col)
             $cols[$i] = $this->db->schema->quoteColumnName($col);
         $this->_query[] = "SELECT ".implode(",", $cols);
@@ -35,6 +35,7 @@ class Query
 
     public function update($table, $cols)
     {
+        $this->_query = [];
         $lines = [];
         foreach($cols as $name => $value) {
             $lines[] = $this->db->schema->quoteColumnName($name)
@@ -47,6 +48,7 @@ class Query
 
     public function insert($table, $cols)
     {
+        $this->_query = [];
         $names = [];
         $values = [];
         foreach($cols as $name => $value) {
@@ -72,6 +74,7 @@ class Query
 
     public function delete($table, $condition, $params = [])
     {
+        $this->_query = [];
         $this->_query[] = "DELETE FROM "
             .$this->db->schema->quoteTableName($table);
         $this->where($condition, $params);
@@ -85,7 +88,31 @@ class Query
         return $this;
     }
 
-    public function query()
+    public function tableExists($table)
+    {
+        $this->_query = [];
+        $this->_query[] = "SELECT 1 FROM ".$this->db->schema->quoteTableName($table);
+        return $this;
+    }
+    
+    public function createTable($table, $columns, $options = null)
+    {
+        $this->_query = [];
+        $cols = [];
+        foreach($columns as $name => $type) {
+            if(is_string($name))
+                $cols[] = "\t".$this->db->schema->quoteColumnName($name)
+                    ." ".$this->db->schema->columnType($type);
+            else
+                $cols[] = "\t".$type;
+        }
+        $sql = "CREATE TABLE IF NOT EXISTS ".$this->db->schema->quoteTableName($table)
+            ."(\n".implode(",\n", $cols)."\n)";
+        $this->_query[] = is_null($options) ? $sql : "$sql $options";
+        return $this;
+    }
+
+    public function execute()
     {
         $stmt = $this->buildStatement();
         try {

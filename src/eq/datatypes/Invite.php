@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 19, 16:58
- */
 
 namespace eq\datatypes;
 
@@ -13,4 +10,8 @@ class Invite extends Str
         return preg_match("/^[a-z]+\s[a-z]+$/", $value);
     }
 
+    public static function sqlType($engine = null)
+    {
+        return "VARCHAR(255)";
+    }
 }

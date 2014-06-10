@@ -13,6 +13,8 @@ use PDOException;
 
 /**
  * @property string name
+ * @property string driver
+ * @property string charset
  * @property PDO pdo
  * @property Schema schema
  * @method Query select(mixed $cols)
@@ -21,6 +23,7 @@ use PDOException;
  * @method Query from(mixed $tables)
  * @method Query delete(string $table, mixed $condition, array $params = [])
  * @method Query where(string $condition, array $params = [], string $glue = "AND")
+ * @method Query createTable(string $table, array $columns, string $options = null)
  */
 abstract class ConnectionBase extends Object
 {
@@ -36,7 +39,7 @@ abstract class ConnectionBase extends Object
     {
         $this->name = $name;
         $this->config = $config;
-        $this->charset = Arr::getItem($config, "charset", null);
+        $this->charset = Arr::getItem($config, "charset", "utf8");
     }
 
     public function __call($name, $args)
@@ -51,6 +54,16 @@ abstract class ConnectionBase extends Object
     public function getName()
     {
         return $this->name;
+    }
+
+    public function getDriver()
+    {
+        return $this->driver;
+    }
+
+    public function getCharset()
+    {
+        return $this->charset;
     }
 
     public function getPdo()
@@ -108,6 +121,21 @@ abstract class ConnectionBase extends Object
             $this->pdo = null;
     }
 
+    public function createQuery()
+    {
+        return new Query($this);
+    }
+
+    public function tableExists($table)
+    {
+        try {
+            return (bool) $this->createQuery()->tableExists($table)->execute()->columnCount();
+        }
+        catch(SQLException $e) {
+            return false;
+        }
+    }
+
     protected function createPDOInstance()
     {
         $this->pdo = new PDO($this->createDSN());
@@ -121,11 +149,6 @@ abstract class ConnectionBase extends Object
         ) {
             $this->pdo->exec("SET NAMES ".$this->pdo->quote($this->charset));
         }
-    }
-
-    protected function createQuery()
-    {
-        return new Query($this);
     }
 
     protected function createSchema()

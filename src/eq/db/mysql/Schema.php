@@ -1,12 +1,13 @@
 <?php
-/**
- * Last Change: 2014 Mar 15, 16:38
- */
 
 namespace eq\db\mysql;
 
 class Schema extends \eq\db\Schema
 {
+
+    protected $type_map = [
+
+    ];
 
     public function quoteSimpleTableName($name)
     {

@@ -5,7 +5,6 @@ namespace eq\modules\user\models;
 use EQ;
 use eq\base\TModuleClass;
 use eq\data\Model;
-use eq\data\TModel;
 use eq\modules\user\UserModule;
 use eq\web\IIdentity;
 
@@ -290,30 +289,53 @@ class Users extends Model implements IIdentity
         $this->login_field_type = $this->fieldType($this->login_field_name);
     }
 
+    protected function _scenarioRegister()
+    {
+        $this->bind("afterValidate", function() {
+            $this->unbind("afterValidate");
+            if($this->pass && $this->pass !== $this->pass_confirm)
+                $this->addRawError(EQ::t("Passwords do not match"), "pass");
+        });
+//        $this->bind("afterApply", function() {
+//            $this->unbind("afterApply");
+//            if(!$this->save())
+//                return;
+//        });
+    }
+
     protected function scenarioRegister()
     {
         $use_invite = $this->module->config("use_invite", false);
         $invite = $use_invite ? new Invites() : null;
         $pass = "";
+        $this->bind("afterApply", function() {
+            $this->unbind("afterApply");
+            $this->save();
+        });
         $this->bind("afterValidate", function () use ($use_invite, &$invite) {
+            $this->unbind("afterValidate");
             if($this->pass && $this->pass !== $this->pass_confirm)
-                $this->addError("Passwords do not match", "pass");
+                $this->addRawError(EQ::t("Passwords do not match"), "pass");
             if($use_invite && (!$this->invite || !$invite->load($this->invite)))
-                $this->addError("Invalid invite", "invite");
+                $this->addRawError(EQ::t("Invalid invite"), "invite");
         });
         $this->bind("beforeSave", function () use (&$pass) {
+            $this->unbind("beforeSave");
             $pass = $this->pass;
             $this->pass = "";
         });
         $this->bind("saveSuccess", function () use (&$pass, $use_invite, &$invite) {
-            $this->pass = $this->verifyPassword($pass);
-            $this->role = 1;
+            $this->pass = $this->encryptPassword($pass);
+            $this->data['role'] = 1;
+            $this->setChanged("role");
             $this->unbind("saveSuccess");
             if(!$this->save())
-                $this->addRawError("Error. Try later");
+                $this->addRawError(EQ::t("Application error. Try later."));
             elseif($use_invite)
                 $invite->delete();
             $this->pass = $pass;
+            $this->_auth = null;
+            $this->saveSession();
         });
         $this->bind("saveFail", function () use (&$pass) {
             $this->pass = $pass;
@@ -322,7 +344,7 @@ class Users extends Model implements IIdentity
 
     protected function scenarioLogin()
     {
-        $this->bind("afterApply", function () {
+        $this->bind("afterApply", function() {
             $this->unbind("afterApply");
             $this->detectLoginField();
             $this->validate();
@@ -342,6 +364,9 @@ class Users extends Model implements IIdentity
                 }
                 $this->_auth = null;
                 $this->saveSession();
+            }
+            else {
+                $this->addRawError(EQ::t("Invalid login or password"), $this->login_field_name);
             }
         });
     }

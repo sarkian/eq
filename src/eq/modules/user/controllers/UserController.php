@@ -4,7 +4,6 @@ namespace eq\modules\user\controllers;
 
 use EQ;
 use eq\base\TModuleClass;
-use eq\modules\user\models\Users;
 use eq\web\Controller;
 use eq\web\WebApp;
 
@@ -33,7 +32,6 @@ class UserController extends Controller
         $form = EQ::widget($this->config("login_form_widget", "ModelForm"), $model);
         if(EQ::app()->request->isPost()) {
             $model->apply($form->getData());
-            EQ::dump($model->isAuth());
             if($model->isAuth())
                 $this->redir($this->module->config("login_redirect_url", "{main.index}"));
         }
@@ -52,8 +50,13 @@ class UserController extends Controller
     public function actionRegister()
     {
         $this->createTitle(EQ::t("Register"));
-        $model = new Users("register");
+        $model = EQ::app()->user->setScenario("register");
         $form = EQ::widget($this->config("register_form_widget", "ModelForm"), $model);
+        if(EQ::app()->request->isPost()) {
+            $model->apply($form->getData());
+            if($model->isAuth())
+                $this->redir($this->module->config("register_redirect_url", "{main.index}"));
+        }
         $this->render("register", [
             'model' => $model,
             'form' => $form,
@@ -63,11 +66,7 @@ class UserController extends Controller
     public function actionTest()
     {
         header("Content-type: text/plain");
-        $app = new WebApp([]);
-        echo $app->request->method;
-        var_dump($this->module_class);
-        var_dump($this->module_namespace);
-        var_dump($this->module_name);
+
     }
 
 }

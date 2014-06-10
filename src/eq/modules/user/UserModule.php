@@ -204,12 +204,12 @@ class UserModule extends ModuleBase
     {
         return [
             'id' => [
-                'type' => "uintp",
+                'type' => "pk",
                 'show' => false,
                 'load' => true,
                 'save' => false,
                 'unique' => true,
-                'default' => 0,
+                'default' => null,
                 'label' => "",
             ],
             'name' => [

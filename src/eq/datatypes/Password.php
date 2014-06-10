@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 19, 16:58
- */
 
 namespace eq\datatypes;
 
@@ -18,4 +15,8 @@ class Password extends Str
         return "passwordField";
     }
 
+    public static function sqlType($engine = null)
+    {
+        return "VARCHAR(32)";
+    }
 }

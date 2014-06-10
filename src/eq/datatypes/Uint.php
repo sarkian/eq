@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Mar 15, 20:39
- */
 
 namespace eq\datatypes;
 

@@ -80,8 +80,12 @@ if($ns)
             <? endif; ?>
         </div>
         <div class="trace-step-desc">
-            <span><?= $call['class'] ?></span>
-            <span class="hl-operator"><?= $call['type'] ?></span>
+            <? if(isset($call['class'])): ?>
+                <span><?= $call['class'] ?></span>
+            <? endif; ?>
+            <? if(isset($call['type'])): ?>
+                <span class="hl-operator"><?= $call['type'] ?></span>
+            <? endif; ?>
             <span class="funcname"><?= $call['function'] ?></span>
             <span class="hl-operator">(</span>
             <span class="args">

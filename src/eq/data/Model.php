@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 16, 14:06
- */
 
 namespace eq\data;
 
@@ -14,18 +11,22 @@ use eq\base\UnknownPropertyException;
 use eq\datatypes\DataTypeBase;
 use eq\db\ConnectionBase;
 use eq\db\DbException;
+use eq\db\Query;
+use eq\db\SQLException;
 use eq\helpers\Arr;
 use eq\helpers\Str;
 
 /**
  * @property array fields
  * @property string db_name
- * @property array loaded_fieldnames
  * @property string table_name
  * @property array fieldnames
  * @property array saved_fields
- * @property array visible_fields
  * @property array loaded_fields
+ * @property array visible_fields
+ * @property array saved_fieldnames
+ * @property array loaded_fieldnames
+ * @property array visible_fieldnames
  * @property string pk
  * @property array rules
  * @property array errors
@@ -37,6 +38,8 @@ abstract class Model extends Object
 {
 
     use TEvent;
+
+    private $create_table = false;
 
     protected $scenario = "default";
     /**
@@ -105,14 +108,19 @@ abstract class Model extends Object
         return isset($this->fields[$name]);
     }
 
+    public function getVisibleFields()
+    {
+        return $this->fieldsByAttr("show");
+    }
+
     public function getLoadedFields()
     {
-        $fields = [];
-        foreach($this->fields as $name => $field) {
-            if(isset($field['load']) && $field['load'])
-                $fields[$name] = $field;
-        }
-        return $fields;
+        return $this->fieldsByAttr("load");
+    }
+
+    public function getSavedFields()
+    {
+        return $this->fieldsByAttr("save");
     }
 
     public function getDbName()
@@ -193,8 +201,9 @@ abstract class Model extends Object
     public function load($condition)
     {
         $condition = $this->processLoadCondition($condition);
-        $res = $this->db->select($this->loaded_fieldnames)
-            ->from($this->table_name)->where($condition)->query();
+        $res = $this->executeQuery(
+            $this->db->select($this->loaded_fieldnames)->from($this->table_name)->where($condition)
+        );
         if(!$res->rowCount())
             return false;
         elseif($res->rowCount() > 1)
@@ -214,7 +223,9 @@ abstract class Model extends Object
     public function count($condition)
     {
         $condition = $this->processLoadCondition($condition);
-        $res = $this->db->select("COUNT(*)")->from($this->table_name)->where($condition)->query();
+        $res = $this->executeQuery(
+            $this->db->select("COUNT(*)")->from($this->table_name)->where($condition)
+        );
         return (int) $res->fetchColumn();
     }
 
@@ -271,8 +282,10 @@ abstract class Model extends Object
             if($this->loaded_data) {
                 $condition = "(".$condition.") AND ".$this->pkCondition("<>");
             }
-            $res = $this->db->select(array_keys($unique))
-                ->from($this->table_name)->where($condition, [], "OR")->query();
+            $res = $this->executeQuery(
+                $this->db->select(array_keys($unique))
+                    ->from($this->table_name)->where($condition, [], "OR")
+            );
             foreach($res->fetchAll() as $item) {
                 foreach($item as $iname => $ivalue) {
                     $ivalue = $this->typeFromDb($iname, $ivalue);
@@ -290,25 +303,31 @@ abstract class Model extends Object
         if($this->errors)
             return false;
         $this->trigger("beforeSave");
+        $fields = $this->loaded_data
+            ? array_intersect($this->changed_fields, $this->saved_fieldnames)
+            : $this->saved_fieldnames;
         $cols = [];
-        foreach($this->changed_fields as $name)
-            if(isset($this->saved_fields[$name]))
-                $cols[$name] = $this->typeToDb($name, $this->{$name});
+        foreach($fields as $name)
+            $cols[$name] = $this->typeToDb($name, $this->{$name});
         // $this->db->pdo->beginTransaction();
         if($this->loaded_data)
-            $res = $this->db->update($this->table_name, $cols)
-                ->where($this->pkCondition())->query();
+            $res = $this->executeQuery(
+                $this->db->update($this->table_name, $cols)
+                    ->where($this->pkCondition())
+            );
         else
-            $res = $this->db->insert($this->table_name, $cols)->query();
+            $res = $this->executeQuery($this->db->insert($this->table_name, $cols));
         // $this->db->pdo->commit();
         if($res->rowCount()) {
-            if($this->{$this->pk} === null)
+            $pk = $this->{$this->pk};
+            if($pk === null || (!is_numeric($pk) && !$pk))
                 $this->data[$this->pk] = $this->typeToDb(
                     $this->pk, $this->db->pdo->lastInsertId($this->pk));
             $this->loaded_data = $this->data;
             $this->trigger("saveSuccess");
             return true;
-        } else {
+        }
+        else {
             $this->trigger("saveFail");
             return false;
         }
@@ -318,8 +337,7 @@ abstract class Model extends Object
     {
         if(!$this->loaded_data)
             throw new InvalidCallException("Cant delete not loaded model");
-        $res = $this->db
-            ->delete($this->table_name, $this->pkCondition())->query();
+        $res = $this->db->delete($this->table_name, $this->pkCondition())->execute();
         return (bool) $res->rowCount();
     }
 
@@ -354,10 +372,19 @@ abstract class Model extends Object
         return in_array($field, $this->currentRules("unique"));
     }
 
-    public function isVisible($field)
+    public function isShow($field)
     {
-        return isset($this->fields[$field]['show'])
-            ? $this->fields[$field]['show'] : false;
+        return isset($this->fields[$field]['show']) ? $this->fields[$field]['show'] : false;
+    }
+
+    public function isLoad($field)
+    {
+        return isset($this->fields[$field]['load']) ? $this->fields[$field]['load'] : false;
+    }
+
+    public function isSave($field)
+    {
+        return isset($this->fields[$field]['save']) ? $this->fields[$field]['save'] : false;
     }
 
     public function fieldExists($field)
@@ -448,6 +475,12 @@ abstract class Model extends Object
         return $type::toDb($value);
     }
 
+    public function typeSqlType($fieldname)
+    {
+        $type = $this->fieldType($fieldname);
+        return $type::sqlType($this->db->driver);
+    }
+
     public function typeFormControl($fieldname)
     {
         $type = $this->fieldType($fieldname);
@@ -458,6 +491,36 @@ abstract class Model extends Object
     {
         $type = $this->fieldType($fieldname);
         return $type::formControlOptions();
+    }
+
+    public function createTable()
+    {
+        $cols = [];
+        foreach($this->fieldnames as $field) {
+            if(!$this->isLoad($field) && !$this->isSave($field))
+                continue;
+            $type = $this->fieldType($field);
+            $cols[$field] = $type;
+        }
+        $this->db->createTable($this->table_name, $cols)->execute();
+    }
+
+    protected function fieldsByAttr($attr, $value = null)
+    {
+        $fields = [];
+        foreach($this->fields as $name => $field) {
+            if(!isset($field[$attr]))
+                continue;
+            if($value === null) {
+                if($field[$attr])
+                    $fields[$name] = $field;
+            }
+            else {
+                if($field[$attr] === $value)
+                    $fields[$name] = $field;
+            }
+        }
+        return $fields;
     }
 
     protected function pkCondition($operator = "=")
@@ -517,6 +580,22 @@ abstract class Model extends Object
     protected function defaultErrorMessage($type, $field)
     {
         return EQ::t(ucfirst($type)." field").": ".$this->fieldLabel($field);
+    }
+
+    protected function executeQuery(Query $query)
+    {
+        try {
+            return $query->execute();
+        }
+        catch(SQLException $e) {
+            if(!EQ::app()->config("db.auto_create_table", false) || $this->create_table)
+                throw $e;
+            if($this->db->tableExists($this->table_name))
+                throw $e;
+            $this->create_table = true;
+            $this->createTable();
+            return $query->execute();
+        }
     }
 
 }

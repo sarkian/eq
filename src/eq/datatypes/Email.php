@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 19, 16:57
- */
 
 namespace eq\datatypes;
 
@@ -16,6 +13,11 @@ class Email extends Str
     public static function isA($value)
     {
         return self::validate($value);
+    }
+
+    public static function sqlType($engine = null)
+    {
+        return "VARCHAR(1024)";
     }
 
 }

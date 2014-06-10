@@ -3,11 +3,20 @@
 namespace eq\datatypes;
 
 use EQ;
+use eq\base\InvalidCallException;
 use eq\helpers\Str;
 use eq\base\Loader;
 
 abstract class DataTypeBase
 {
+
+    public function __call($name, $args = [])
+    {
+        $cls = get_called_class();
+        if(is_callable([$cls, $name]))
+            return call_user_func_array([$cls, $name], $args);
+        throw new InvalidCallException("Call to undefined method: $cls::$name");
+    }
 
     /**
      * @param string $type

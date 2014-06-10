@@ -5,12 +5,19 @@ namespace eq\modules\dbconfig;
 use EQ;
 use eq\base\ModuleBase;
 use eq\db\ConnectionBase;
+use eq\db\Query;
+use eq\db\SQLException;
+use eq\modules\dbconfig\datatypes\Name;
+use eq\modules\dbconfig\datatypes\Value;
 use PDO;
 
+// TODO: cache
 class DbconfigModule extends ModuleBase
 {
 
     private static $_initialized = false;
+
+    private $create_table = false;
 
     /**
      * @var ConnectionBase $db
@@ -34,8 +41,8 @@ class DbconfigModule extends ModuleBase
         self::$_initialized = true;
         $this->db = EQ::app()->db($this->config("db", "main"));
         $this->table = $this->config("table", "config");
-        $data = $this->db->select(["name", "value"])->from($this->table)
-            ->query()->fetchAll(PDO::FETCH_KEY_PAIR);
+        $data = $this->executeQuery($this->db->select(["name", "value"])->from($this->table))
+            ->fetchAll(PDO::FETCH_KEY_PAIR);
         foreach($data as $name => $value) {
             $value = unserialize($value);
             $this->data[$name] = $value;
@@ -88,13 +95,13 @@ class DbconfigModule extends ModuleBase
             return;
         $this->db->beginTransaction();
         foreach($this->changed as $name => $value)
-            $this->db->update($this->table, ['value' => serialize($value)])
-                ->where(['name' => $name])->query();
+            $this->executeQuery($this->db->update($this->table, ['value' => serialize($value)])
+                ->where(['name' => $name]));
         foreach($this->created as $name => $value)
-            $this->db->
-                insert($this->table, ['name' => $name, 'value' => serialize($value)])->query();
+            $this->executeQuery($this->db->
+                insert($this->table, ['name' => $name, 'value' => serialize($value)]));
         foreach($this->removed as $name)
-            $this->db->delete($this->table, ['name' => $name])->query();
+            $this->executeQuery($this->db->delete($this->table, ['name' => $name]));
         $this->db->commit();
         $this->changed = [];
         $this->created = [];
@@ -104,6 +111,30 @@ class DbconfigModule extends ModuleBase
     public function __destruct()
     {
         $this->commit();
+    }
+
+    protected function executeQuery(Query $query)
+    {
+        try {
+            return $query->execute();
+        }
+        catch(SQLException $e) {
+            if(!EQ::app()->config("db.auto_create_table", false) || $this->create_table)
+                throw $e;
+            if($this->db->tableExists($this->table))
+                throw $e;
+            $this->create_table = true;
+            $this->createTable();
+            return $query->execute();
+        }
+    }
+
+    protected function createTable()
+    {
+        $this->db->createTable($this->table, [
+            'name' => Name::c(),
+            'value' => Value::c(),
+        ])->execute();
     }
 
 }

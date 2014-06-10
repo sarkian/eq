@@ -12,7 +12,9 @@ class Pool extends Object
 
     public function __construct($config)
     {
-        foreach($config as $name => $dbconf)
+        $bases = isset($config['databases']) && is_array($config['databases'])
+            ? $config['databases'] : [];
+        foreach($bases as $name => $dbconf)
             $this->addDb($name, $dbconf);
     }
 

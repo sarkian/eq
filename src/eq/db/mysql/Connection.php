@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Mar 15, 16:36
- */
 
 namespace eq\db\mysql;
 
@@ -9,6 +6,7 @@ use eq\db\ConnectionBase;
 use eq\helpers\Arr;
 use eq\base\InvalidConfigException;
 
+use EQ;
 use PDO;
 
 class Connection extends ConnectionBase
@@ -24,8 +22,8 @@ class Connection extends ConnectionBase
     {
         parent::__construct($name, $config);
         $this->host = Arr::getItem($config, "host", "localhost");
-        $this->dbname = Arr::getItem($config, "dbname", null);
-        $this->user = Arr::getItem($config, "user", "root");
+        $this->dbname = Arr::getItem($config, "dbname", EQ::app()->app_namespace);
+        $this->user = Arr::getItem($config, "user", EQ::app()->app_namespace);
         $this->pass = Arr::getItem($config, "pass", "");
         if(!$this->dbname)
             throw new InvalidConfigException("Missing parameter: dbname");
