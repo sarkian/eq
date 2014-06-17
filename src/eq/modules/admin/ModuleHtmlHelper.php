@@ -39,6 +39,8 @@ class ModuleHtmlHelper extends WrapContainerItem
             $class[] = "panel-primary";
         else
             $class[] = "panel-cant-disable";
+        if($this->obj->isSystem())
+            $class[] = "system";
         return implode(" ", $class);
     }
 

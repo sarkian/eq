@@ -1,6 +1,13 @@
 <h3>{{ t('Modules') }}</h3>
 <hr />
 
+<div class="well well-sm">
+    <label class="checkbox-inline">
+        <input type="checkbox" id="show-system" />
+        {{ k('admin.modules.showSystem') }}
+    </label>
+</div>
+
 {% for module in modules %}
     <div class="{{ module.panel_class }}" data-module-name="{{ module.name }}">
 

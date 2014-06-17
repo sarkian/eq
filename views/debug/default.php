@@ -14,6 +14,8 @@ $ns = Str::classNamespace($e);
 if($ns)
     $ns .= "\\";
 
+$trace = method_exists($e, "_getTrace") ? $e->_getTrace() : $e->getTrace();
+
 ?>
 
 
@@ -62,7 +64,7 @@ if($ns)
     </div>
 </div>
 
-<? foreach($e->_getTrace() as $i => $call): ?>
+<? foreach($trace as $i => $call): ?>
     <div class="trace-step">
         <div class="trace-step-header">
             <span class="trace-step-num">#<?= $i ?></span>

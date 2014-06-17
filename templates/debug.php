@@ -283,6 +283,10 @@
         color: #8CADE3;
     }
 
+    .hl-html {
+        color: #5b5d2d;
+    }
+
     </style>
 
     <script type="text/javascript">

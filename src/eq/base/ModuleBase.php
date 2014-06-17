@@ -139,7 +139,7 @@ abstract class ModuleBase extends ModuleAbstract
 
     public final function isSystem()
     {
-        // TODO: implement
+        return (bool) EQ::app()->configOrig("modules.".$this->name.".enabled");
     }
 
     public final function canToggle()

@@ -13,6 +13,7 @@
     };
 
     ModulePanel._panels = {};
+    ModulePanel._sys_checkbox = null;
 
     ModulePanel.clean = function() {
         ModulePanel._panels = {};
@@ -38,21 +39,21 @@
 
     ModulePanel.hideSystem = function() {
         ModulePanel.each(function(m, p) {
-            if(!p.canToggle())
+            if(p.isSystem())
                 p.hide();
         });
     };
 
     ModulePanel.showSystem = function() {
         ModulePanel.each(function(m, p) {
-            if(!p.canToggle())
+            if(p.isSystem())
                 p.show();
         });
     };
 
     ModulePanel.showNotSystem = function() {
         ModulePanel.each(function(m, p) {
-            if(p.canToggle())
+            if(!p.isSystem())
                 p.show();
         });
     };
@@ -70,6 +71,15 @@
     };
 
     ModulePanel.update = function() {
+        var b = $('#show-system');
+        b.change(function() {
+            var val = $(this).is(':checked') ? 1 : 0;
+            EQ.udata.set('admin.modules.showSystem', val);
+            if(val)
+                ModulePanel.showSystem();
+            else
+                ModulePanel.hideSystem();
+        });
         ModulePanel.clean();
         $('.module-panel').each(function(i, el) {
             ModulePanel.register(el);
@@ -79,10 +89,14 @@
             ModulePanel.get(mname).scrollTo();
             return false;
         });
-        if(EQ.udata.get('admin.modules.showSystem', 0) == 1)
+        if(EQ.udata.get('admin.modules.showSystem', 0) == 1) {
+            b.prop('checked', true);
             ModulePanel.showAll();
-        else
+        }
+        else {
+            b.prop('checked', false);
             ModulePanel.showNotSystem();
+        }
     };
 
     ModulePanel.prototype = {
@@ -111,6 +125,10 @@
             return !this._checkbox.is(':disabled');
         },
 
+        isSystem: function() {
+            return this._el.hasClass('system');
+        },
+
         scrollTo: function() {
             var el = this._el;
             var dest = el.position().top - 70;
@@ -135,15 +153,5 @@
     $(function() {
 //        ModulePanel.update();
     });
-
-
-//    $('.module-panel').each(function(i, el) {
-//        ModulePanel.register(el);
-//    });
-//
-//    if(EQ.udata.get('admin.modules.showSystem', 0) == 1)
-//        ModulePanel.showAll();
-//    else
-//        ModulePanel.showNotSystem();
 
 })();

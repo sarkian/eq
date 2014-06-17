@@ -74,6 +74,8 @@ class Highlighter
             T_INSTANCEOF,
             T_INSTEADOF,
             T_CONTINUE,
+            T_ARRAY,
+            T_WHILE,
         ],
         'default' => [
             T_STRING,
@@ -144,6 +146,9 @@ class Highlighter
         'brackets' => [
             '[',
             ']',
+        ],
+        'html' => [
+            T_INLINE_HTML,
         ],
     ];
     protected $predefined = [

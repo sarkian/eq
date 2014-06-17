@@ -16,6 +16,7 @@ return [
     ],
     'keys' => [
         'removedModule' => "Модуль <b>%s</b> был удалён",
+        'modules.showSystem' => "Системные",
     ],
     'js' => [
 
