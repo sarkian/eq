@@ -59,10 +59,23 @@ abstract class ModuleBase extends ModuleAbstract
     }
 
     /**
-     * @param bool $enable
-     * @return ModuleBase
+     * @return static
+     * @throws ModuleException
      */
-    protected static final function instance($enable = false)
+    public static final function instance()
+    {
+        $cname = get_called_class();
+        if(isset(EQ::app()->modules_by_class[$cname]))
+            return EQ::app()->modules_by_class[$cname];
+        else
+            throw new ModuleException("Module instance not found: $cname");
+    }
+
+    /**
+     * @param bool $enable
+     * @return static
+     */
+    protected static final function inst($enable = false)
     {
         $cname = get_called_class();
         if(!isset(self::$_instances[$cname]) || !self::$_instances[$cname] instanceof $cname)

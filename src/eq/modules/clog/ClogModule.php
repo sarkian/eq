@@ -7,6 +7,7 @@ use eq\base\ExceptionBase;
 use eq\base\ModuleBase;
 use eq\base\TAutobind;
 use eq\base\UncaughtExceptionException;
+use eq\helpers\C;
 use eq\helpers\Debug;
 use eq\helpers\FileSystem;
 use eq\php\PhpExceptionBase;
@@ -18,7 +19,8 @@ class ClogModule extends ModuleBase
 
     protected $title = "EQ Clog";
     protected $description = [
-        'ru_RU' => "Лог PHP в консоли браузера",
+        'ru_RU' => "Логгер",
+        'en_US' => "Logger",
     ];
 
     protected $messages = [];
@@ -29,7 +31,7 @@ class ClogModule extends ModuleBase
     protected $project_root;
     protected $url;
 
-    public function webInit()
+    protected function init()
     {
         $this->project_root = realpath(EQ::getAlias(
             $this->config("project_root", "@app")));
@@ -49,6 +51,10 @@ class ClogModule extends ModuleBase
             EQ::app()->retrigger("strict", [$this, "__onStrict"]);
             EQ::app()->retrigger("dbQuery", [$this, "__onDbQuery"]);
         }
+    }
+
+    public function webInit()
+    {
         $this->onRequest();
     }
 
@@ -129,33 +135,28 @@ class ClogModule extends ModuleBase
 
     public function __onError($message, $file, $line)
     {
-        $this->addMsg("err", $message,
-            "Error:\n".EQ::unalias($file), $line);
+        $this->addPhpMsg("Error", "err", $message, $file, $line);
         $this->__destruct();
     }
 
     public function __onWarning($message, $file, $line)
     {
-        $this->addMsg("warn", $message,
-            "Warning:\n".EQ::unalias($file), $line);
+        $this->addPhpMsg("Warning", "warn", $message, $file, $line);
     }
 
     public function __onDeprecated($message, $file, $line)
     {
-        $this->addMsg("warn", $message,
-            "Deprecated:\n".EQ::unalias($file), $line);
+        $this->addPhpMsg("Deprecated", "warn", $message, $file, $line);
     }
 
     public function __onNotice($message, $file, $line)
     {
-        $this->addMsg("warn", $message,
-            "Notice:\n".EQ::unalias($file), $line);
+        $this->addPhpMsg("Notice", "warn", $message, $file, $line);
     }
 
     public function __onStrict($message, $file, $line)
     {
-        $this->addMsg("warn", $message,
-            "Strict:\n".EQ::unalias($file), $line);
+        $this->addPhpMsg("Strict", "warn", $message, $file, $line);
     }
 
     public function __onDbQuery($dbname, $query)
@@ -200,12 +201,88 @@ class ClogModule extends ModuleBase
         return false;
     }
 
+    protected function addPhpMsg($php_type, $type, $msg, $file, $line)
+    {
+        $file = EQ::unalias($file);
+        if(EQ::app()->type === "web")
+            $file = "$php_type\n$file";
+        else
+            $msg = "$php_type: $msg";
+        $this->addMsg($type, $msg, $file, $line);
+    }
+
     public function addMsg($type, $msg, $file = null, $line = null)
     {
         if(!is_array($msg))
             $msg = [$msg];
         if(!$file)
-            list($file, $line) = Debug::callLocation(2);
+            list($file, $line) = Debug::callLocation(1);
+        switch(EQ::app()->type) {
+            case "web":
+                $this->webAddMsg($type, $msg, $file, $line);
+                break;
+            case "task":
+
+                break;
+            default:
+                $this->consoleAddMsg($type, $msg, $file, $line);
+        }
+    }
+
+    protected function webAddMsg($type, $msg, $file, $line)
+    {
+        $msg_r = $this->sPrintMsg($type, $msg);
+        ob_start();
+        var_dump(count($msg) == 1 ? $msg[0] : $msg);
+        $msg_d = substr(ob_get_clean(), 0, -1);
+        $this->messages[] = [
+            'type' => $type === "dump" ? "log" : $type,
+            'file' => EQ::unalias($file).":".$line,
+            'message' => $type === "dump" ? $msg_d : $msg,
+            'message_r' => $msg_r,
+            'message_d' => $msg_d,
+        ];
+    }
+
+    protected function consoleAddMsg($type, array $msg, $file, $line)
+    {
+        $fg = C::FG_DEFAULT;
+        $fm = null;
+        switch($type) {
+            case "log":
+                $fg = C::FG_CYAN;
+                break;
+            case "warn":
+                $fg = C::FG_YELLOW;
+                break;
+            case "err":
+                $fg = C::FG_RED;
+                $fm = C::FM_BOLD;
+                break;
+        }
+        $lfg = $type === "dump" ? C::FG_BLUE : $fg;
+        $location = C::fmt("[$file:$line]", $lfg, $fm, C::FM_UNDERLINED);
+        $m = array_shift($msg);
+        if(!count($msg) && is_scalar($m)) {
+            $message = $location." ".C::fmt($m, $fg, $fm);
+        }
+        else {
+            array_unshift($msg, $m);
+            $message = preg_split("/\r|\n|\r\n|\n\r/", $this->sPrintMsg($type, $msg));
+            array_pop($message);
+            array_walk($message, function(&$line) use($fg, $lfg) {
+                $line = C::fmt("┃", $lfg)."   ".C::fmt($line, $fg);
+            });
+            $message = $location."\n".implode("\n", $message);
+        }
+        if($type === "err")
+            C::stderr($message);
+        else
+            C::stdout($message);
+    }
+
+    protected function sPrintMsg($type, $msg)
+    {
         ob_start();
         foreach($msg as $m) {
             if($type === "dump")
@@ -214,19 +291,7 @@ class ClogModule extends ModuleBase
                 print_r($m);
             echo "\n";
         }
-        $msg_r = substr(ob_get_clean(), 0, -1);
-        ob_start();
-        var_dump(count($msg) == 1 ? $msg[0] : $msg);
-        $msg_d = substr(ob_get_clean(), 0, -1);
-        if($type === "dump")
-            $type = "log";
-        $this->messages[] = [
-            'type' => $type,
-            'file' => EQ::unalias($file).":".$line,
-            'message' => $msg,
-            'message_r' => $msg_r,
-            'message_d' => $msg_d,
-        ];
+        return substr(ob_get_clean(), 0, -1);
     }
 
 }

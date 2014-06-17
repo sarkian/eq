@@ -19,6 +19,11 @@ class CronCommand extends Command
         
     }
 
+    /**
+     * Add task into crontab
+     *
+     * @param string $taskname Task (not task class) name
+     */
     public function actionAddTask($taskname)
     {
         

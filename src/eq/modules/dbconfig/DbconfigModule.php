@@ -31,7 +31,7 @@ class DbconfigModule extends ModuleBase
 
     protected static function preInit()
     {
-        self::instance(true)->init();
+        self::inst(true)->init();
     }
 
     protected function init()

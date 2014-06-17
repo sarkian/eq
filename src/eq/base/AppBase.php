@@ -86,9 +86,7 @@ abstract class AppBase extends ModuleAbstract
         self::setAlias("@appsrc", APPROOT."/src/".$this->app_namespace);
         foreach($this->config("system.src_dirs", []) as $dir)
             Loader::addDir(realpath(self::getAlias($dir)));
-        set_error_handler(['\eq\base\ErrorHandler', 'onError']);
-        set_exception_handler(['\eq\base\ErrorHandler', 'onException']);
-        register_shutdown_function(['\eq\base\ErrorHandler', 'onShutdown']);
+        ErrorHandler::register();
         $this->default_components = $this->defaultComponents();
         static::$default_static_methods = static::defaultStaticMethods();
         static::$static_methods = static::systemStaticMethods();
@@ -220,7 +218,7 @@ abstract class AppBase extends ModuleAbstract
                     $mname = $parts[0].":".$parts[2];
                     $cname = ModuleBase::getClass($mname, false);
                     if($cname)
-                        $this->_available_modules[$mname] = $cname::instance(false);
+                        $this->_available_modules[$mname] = $cname::inst(false);
                 }
             }
         }
@@ -552,7 +550,7 @@ abstract class AppBase extends ModuleAbstract
         if(isset($this->modules_by_name[$name]))
             return $this->modules_by_name[$name];
         $this->trigger("modules.$name.init");
-        $module = $cname::instance(true);
+        $module = $cname::inst(true);
         $this->processModuleDependencies($module);
         $this->modules_by_name[$name] = $module;
         $this->modules_by_class[$cname] = $module;

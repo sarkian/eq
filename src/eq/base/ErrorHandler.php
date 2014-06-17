@@ -21,6 +21,15 @@ class ErrorHandler
     private static $line;
     private static $context;
 
+    public static function register()
+    {
+        $cname = get_called_class();
+        set_error_handler([$cname, "onError"]);
+        set_exception_handler([$cname, "onException"]);
+        register_shutdown_function([$cname, "onShutdown"]);
+        ini_set("display_errors", 0);
+    }
+
     public static function onError($errno, $message, $file, $line, $context)
     {
         restore_error_handler();

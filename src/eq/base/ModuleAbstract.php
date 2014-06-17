@@ -5,7 +5,7 @@ namespace eq\base;
 abstract class ModuleAbstract
 {
 
-    protected static function instance()
+    protected static function inst()
     {
         
     }

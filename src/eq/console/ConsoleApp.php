@@ -5,6 +5,7 @@ namespace eq\console;
 use eq\base\AppBase;
 use eq\base\Loader;
 use eq\helpers\Arr;
+use eq\helpers\C;
 use eq\helpers\Console;
 use eq\datatypes\DataTypeBase;
 use eq\base\ExceptionBase;
@@ -139,7 +140,7 @@ final class ConsoleApp extends AppBase
     public function processFatalError(array $err)
     {
         // TODO Implement
-        echo "Fatal Error:\n";
+//        echo "Fatal Error:\n";
         print_r($err);
     }
 
@@ -208,10 +209,11 @@ final class ConsoleApp extends AppBase
 
     protected function printUsage($err = false)
     {
-        $msg = "Usage: {$this->argv[0]} <command> <action>\n".
-             "Options:\n".
-             "    --commands [--pure-print] -- Available commands\n".
-             "    --actions <command> [--pure-print]  -- Available actions";
+        $msg = C::fmt("Usage:", C::FG_YELLOW)."\n    {$this->argv[0]} <command> <action>\n\n".
+            C::fmt("Options:", C::FG_YELLOW)."\n".
+            C::fmtOption("--commands", "Show available commands")."\n".
+            C::fmtOption("--actions <command>", "Show available actions")."\n".
+            C::fmtOption("--pure-print", "Print items through space (for autocomplete)");
         return $this->printMessage($msg, $err);
     }
 
@@ -229,7 +231,7 @@ final class ConsoleApp extends AppBase
                     $descr = str_replace("\n", "\n    ", $descr);
                 else
                     $descr = "* No description *";
-                $out[] = $cmdname."\n    ".$descr."\n";
+                $out[] = C::fmt($cmdname, C::FG_GREEN)."\n    ".$descr."\n";
             }
             echo implode("\n", $out);
         }
@@ -250,36 +252,39 @@ final class ConsoleApp extends AppBase
         }
         $out = [];
         foreach($command->getActions() as $actname => $action) {
+            $actlines = [
+                C::fmt($actname, C::FG_RED, C::FM_BOLD)." ".
+                C::fmt($action->parameters_str, C::FG_CYAN)." ".
+                C::fmt($action->options_str, C::FG_BLUE)
+            ];
             $descr = $action->short_description;
-            $descr = $descr 
-                ? str_replace("\n", "\n    ", $descr) : "* No description *";
-            $str = $actname." ".$action->parameters_str
-                ." ".$action->options_str."\n    ".$descr."\n";
+            $descr = $descr ? str_replace("\n", "\n    ", $descr) : "* No description *";
+            $actlines[] = "    ".$descr;
             if($action->parameters) {
-                $lines = ["    Parameters:"];
+                $lines = [C::fmt("    Parameters:", C::FG_YELLOW)];
                 foreach($action->parameters as $param) {
                     $descr = $param->description;
                     $descr = $descr
                         ? str_replace("\n", "\n        ", $descr)
                         : "* No description *";
-                    $lines[] = "        ".$param->name." - ".$descr;
+                    $lines[] = C::fmtOption($param->name, $descr, 8);
                 }
-                $str .= implode("\n", $lines)."\n";
+                $actlines[] = implode("\n", $lines);
             }
             if($action->options) {
-                $lines = ["    Options:"];
+                $lines = [C::fmt("    Options:", C::FG_YELLOW)];
                 foreach($action->options as $opt) {
                     $descr = $opt->description;
                     $descr = $descr
                         ? str_replace("\n", "\n        ", $descr)
                         : "* No description *";
-                    $lines[] = "        ".$opt->name." - ".$descr;
+                    $lines[] = C::fmtOption($opt->name, $descr, 8);
                 }
-                $str .= implode("\n", $lines)."\n";
+                $actlines[] = implode("\n", $lines);
             }
-            $out[] = $str;
+            $out[] = implode("\n\n", $actlines);
         }
-        echo implode("\n", $out);
+        echo implode("\n\n\n", $out)."\n";
         return 0;
     }
 
