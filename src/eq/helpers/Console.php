@@ -50,23 +50,30 @@ class Console
     /**
      * Formatting
      */
-    const FM_BOLD           = 1;
-    const FM_DIM            = 2;
-    const FM_UNDERLINED     = 4;
-    const FM_BLINK          = 5;
-    const FM_INVERTED       = 7;
-    const FM_HIDDEN         = 8;
+    const BOLD              = 1;
+    const DIM               = 2;
+    const ITALIC            = 3;
+    const UNDERLINE         = 4;
+    const BLINK             = 5;
+    const INVERTED          = 7;
+    const HIDDEN            = 8;
+    const CROSSED_OUT       = 9;
+    const FRAMED            = 51;
+    const ENCIRCLED         = 52;
+    const OVERLINED         = 53;
 
     /**
      * Formatting reset
      */
-    const FM_NORMAL         = 0;
-    const FM_BOLD_R         = 21;
-    const FM_DIM_R          = 22;
-    const FM_UNDERLINED_R   = 24;
-    const FM_BLINK_R        = 25;
-    const FM_INVERTED_R     = 27;
-    const FM_HIDDEN_R       = 28;
+    const NORMAL            = 0;
+    const END_BOLD          = 21;
+    const END_DIM           = 22;
+    const END_ITALIC        = 23;
+    const END_UNDERLINE     = 24;
+    const END_BLINK         = 25;
+    const END_INVERTED      = 27;
+    const END_HIDDEN        = 28;
+    const END_CROSSED_OUT   = 29;
 
     public static function stdin($raw = false)
     {
@@ -139,7 +146,7 @@ class Console
         }
         $fmt = array_filter($fmt, function($f) { return is_int($f) && $f >= 0; });
         $fmt = array_unique($fmt);
-        $fmt or $fmt = [self::FM_NORMAL];
+        $fmt or $fmt = [self::NORMAL];
         return $fmt;
     }
 

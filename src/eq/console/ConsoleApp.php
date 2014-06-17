@@ -253,7 +253,7 @@ final class ConsoleApp extends AppBase
         $out = [];
         foreach($command->getActions() as $actname => $action) {
             $actlines = [
-                C::fmt($actname, C::FG_RED, C::FM_BOLD)." ".
+                C::fmt($actname, C::FG_RED, C::BOLD)." ".
                 C::fmt($action->parameters_str, C::FG_CYAN)." ".
                 C::fmt($action->options_str, C::FG_BLUE)
             ];

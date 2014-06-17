@@ -257,11 +257,11 @@ class ClogModule extends ModuleBase
                 break;
             case "err":
                 $fg = C::FG_RED;
-                $fm = C::FM_BOLD;
+                $fm = C::BOLD;
                 break;
         }
         $lfg = $type === "dump" ? C::FG_BLUE : $fg;
-        $location = C::fmt("[$file:$line]", $lfg, $fm, C::FM_UNDERLINED);
+        $location = C::fmt("[$file:$line]", $lfg, $fm, C::UNDERLINE);
         $m = array_shift($msg);
         if(!count($msg) && is_scalar($m)) {
             $message = $location." ".C::fmt($m, $fg, $fm);
