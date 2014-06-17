@@ -51,14 +51,34 @@ abstract class TaskBase
      */
     abstract protected function __run(array $args = []);
 
+    /**
+     * Возвращает имя класса
+     *
+     * @return string
+     */
     public static final function className()
     {
         return get_called_class();
     }
 
+    /**
+     * Возвращает имя класса по имени задачи
+     *
+     * @param string $taskname Имя задачи
+     * @return bool|string Имя класса задачи или false, если задачи не существует
+     */
     public static final function getClass($taskname)
     {
         return Loader::autofindClass($taskname, "tasks");
+    }
+
+    /**
+     * @return static
+     */
+    public static final function instance()
+    {
+        $cname = get_called_class();
+        return new $cname();
     }
 
     /**

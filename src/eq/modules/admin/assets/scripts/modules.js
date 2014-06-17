@@ -13,7 +13,6 @@
     };
 
     ModulePanel._panels = {};
-    ModulePanel._sys_checkbox = null;
 
     ModulePanel.clean = function() {
         ModulePanel._panels = {};

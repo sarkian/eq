@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 15, 21:13
- */
 
 namespace eq\modules\cron;
 
@@ -94,6 +91,11 @@ class Crontab
         Shell::exec("crontab $fname");
     }
 
+    /**
+     * @param $taskname
+     * @return bool|TaskBase
+     * @throws CrontabException
+     */
     protected function taskClass($taskname)
     {
         $cname = TaskBase::getClass($taskname);
@@ -102,6 +104,11 @@ class Crontab
         return $cname;
     }
 
+    /**
+     * @param TaskBase $cname
+     * @param array $args
+     * @return bool
+     */
     protected function getTaskIndex($cname, array $args = [])
     {
         $cmd = new CrontabTaskCommand($cname::getRunCommand());

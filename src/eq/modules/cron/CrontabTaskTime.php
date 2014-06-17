@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 15, 21:48
- */
 
 namespace eq\modules\cron;
 

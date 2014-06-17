@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Apr 15, 20:32
- */
 
 namespace eq\modules\cron;
 
@@ -22,8 +19,7 @@ class CrontabTaskCommand
             elseif(is_array($command))
                 $this->args = $command;
             else
-                throw new InvalidArgumentException(
-                    "Invalid argument type: ".gettype($command));
+                throw new InvalidArgumentException("Invalid argument type: ".gettype($command));
             $comment = trim($comment, " \r\n\t");
             $comment = preg_replace("/^#/", "", $comment);
             $comment = ltrim($comment, " \r\n\t");
@@ -44,7 +40,7 @@ class CrontabTaskCommand
 
     public function __toString()
     {
-        $str = implode(" ", array_map(["eq\helpers\Shell", "escapeArg"], $this->args));
+        $str = implode(" ", array_map(['eq\helpers\Shell', "escapeArg"], $this->args));
         if($this->comment)
             $str .= " # ".$this->comment;
         return $str;

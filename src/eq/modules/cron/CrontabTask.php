@@ -1,14 +1,13 @@
 <?php
-/**
- * Last Change: 2014 Apr 15, 20:37
- */
 
 namespace eq\modules\cron;
+
+use eq\base\TObject;
 
 class CrontabTask
 {
 
-    use \eq\base\TObject;
+    use TObject;
 
     protected $time;
     protected $command;
@@ -19,14 +18,14 @@ class CrontabTask
             return;
         $line = trim($line, " \r\n\t");
         if(strncmp($line, "@", 1)) {
-            $parts = preg_split("/[\s\t]+/", $line, 6);
+            $parts = preg_split('/[\s\t]+/', $line, 6);
             if(count($parts) !== 6)
                 throw new CrontabException("Invalid line: $line");
             $command = array_pop($parts);
             $time = $parts;
         }
         else {
-            $parts = preg_split("/[\s\t]+/", $line, 2);
+            $parts = preg_split('/[\s\t]+/', $line, 2);
             if(count($parts) !== 2)
                 throw new CrontabException("Invalid line: $line");
             $command = array_pop($parts);

@@ -162,8 +162,8 @@ final class ConsoleApp extends AppBase
         $this->scanCommandsDir("@appsrc/commands", $this->app_namespace.'\commands');
         $this->scanCommandsDir("@eqsrc/commands", 'eq\commands');
         foreach($this->enabled_modules as $module) {
-            $ns = $module->namespace;
-            $this->scanCommandsDir($module->location, $ns);
+            $ns = $module->namespace.'\commands';
+            $this->scanCommandsDir($module->location."/commands", $ns);
         }
     }
 
