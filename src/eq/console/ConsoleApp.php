@@ -139,9 +139,7 @@ final class ConsoleApp extends AppBase
 
     public function processFatalError(array $err)
     {
-        // TODO Implement
-//        echo "Fatal Error:\n";
-        print_r($err);
+
     }
 
     public function processException(ExceptionBase $e)
