@@ -139,7 +139,8 @@ final class ConsoleApp extends AppBase
 
     public function processFatalError(array $err)
     {
-
+        C::renderErr('%R%1{{ Fatal Error %$ }}%0', 1);
+//        print_r($err);
     }
 
     public function processException(ExceptionBase $e)

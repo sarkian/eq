@@ -2,6 +2,9 @@
 
 namespace eq\helpers;
 
+use eq\base\InvalidArgumentException;
+use eq\base\InvalidCallException;
+
 class Console
 {
 
@@ -79,8 +82,19 @@ class Console
     const RIGHT             = STR_PAD_LEFT;
     const CENTER            = STR_PAD_BOTH;
 
+    /**
+     * Strip
+     */
+    const STRIP_VARS        = 1;
+    const STRIP_ALIGN       = 2;
+    const STRIP_FORMATTING  = 4;
+    const STRIP_ESCAPE      = 8;
+    const STRIP_DEFAULT     = 12;
+    const STRIP_ALL         = 15;
+
     protected static $conversions = [
         '%n' => self::FG_DEFAULT,
+        '%d' => self::FG_DEFAULT,
         '%k' => self::FG_BLACK,
         '%r' => self::FG_RED,
         '%g' => self::FG_GREEN,
@@ -89,6 +103,7 @@ class Console
         '%m' => self::FG_MAGENTA,
         '%c' => self::FG_CYAN,
         '%N' => self::BG_DEFAULT,
+        '%D' => self::BG_DEFAULT,
         '%K' => self::BG_BLACK,
         '%R' => self::BG_RED,
         '%G' => self::BG_GREEN,
@@ -185,15 +200,247 @@ class Console
             .self::fmt(str_pad($option, $pad), $color)."  ".$description;
     }
 
-    public static function render($string)
+    public static function render($string, $vars = [])
     {
-        $string = str_replace("%%", "% ", $string);
-        $string = str_replace("##", "# ", $string);
+        $vars = self::normalizeArgs(func_get_args());
+        $string = preg_replace_callback('/(.?)\%\$/', function($m) use(&$vars) {
+            if($m[1] === '\\')
+                return $m[0];
+            if(!count($vars))
+                throw new InvalidCallException(get_called_class()."::render(): Too few arguments");
+            return $m[1].self::escape(array_shift($vars));
+        }, $string);
+        if(count($vars))
+            throw new InvalidCallException(get_called_class()."::render(): Too many arguments");
+
+        $string = self::renderAlign($string);
+
+        $string = str_replace('\%', '% ', $string);
+        $string = str_replace('\#', '# ', $string);
         foreach(self::$conversions as $key => $fmt)
             $string = str_replace($key, self::seq($fmt), $string);
         $string = str_replace("% ", "%", $string);
         $string = str_replace("# ", "#", $string);
+
         return $string;
+    }
+
+    public static function renderAlign($string)
+    {
+        $string = preg_replace("/\r\n|\n\r|\r/", "\n", $string);
+        $lines = explode("\n", $string);
+        $res = [];
+        foreach($lines as $line) {
+            $res[] = self::renderAlignLine($line);
+        }
+        return implode("\n", $res);
+    }
+
+    protected static function renderAlignLine($line)
+    {
+        $line = self::alignPreprocess($line);
+        preg_match_all(self::alignRegex(), $line, $matches, PREG_OFFSET_CAPTURE);
+        $parts = [];
+        $spos = 0;
+        $fixed_len = 0;
+        $adapt_cnt = 0;
+        $last_adapt = null;
+        foreach($matches[2] as $i => $m) {
+            $d = $matches[1][$i][0] ? (int) mb_substr($matches[1][$i][0], 1, null, "utf-8") : 0;
+            $pos = $matches[0][$i][1];
+            $str = mb_substr($line, $spos, $pos - $spos, "utf-8");
+            $spos = $pos + mb_strlen($matches[0][$i][0], "utf-8");
+            list($s, $align) = self::alignProcessTag($m[0]);
+            $parts[] = $str;
+            $parts[] = [$s, $d, $align];
+            if(!$d)
+                $last_adapt = count($parts) - 1;
+            $fixed_len += mb_strlen(self::strip($str), "utf-8");
+            $fixed_len += $d;
+            if(!$d)
+                $adapt_cnt++;
+        }
+        $str = mb_substr($line, $spos, null, "utf-8");
+        $parts[] = $str;
+        $fixed_len += mb_strlen(self::strip($str), "utf-8");
+        $width = $adapt_cnt
+            ? (int) floor((self::width() - $fixed_len) / $adapt_cnt) : self::width();
+        $w_sum = 0;
+        $res = "";
+        foreach($parts as $i => $part) {
+            if(is_string($part)) {
+                if(!strlen($part))
+                    continue;
+                $res .= $part;
+            }
+            elseif(is_array($part)) {
+                if($i === $last_adapt)
+                    $w = self::width() - $fixed_len - $w_sum;
+                elseif($part[1])
+                    $w = $part[1];
+                else {
+                    $w = $width;
+                    $w_sum += $w;
+                }
+                $str = $part[0];
+                if(strlen($str) > $w)
+                    $str = substr($str, 0, $w - 2)."..";
+                $res .= self::pad($str, $w, $part[2]);
+            }
+        }
+        return $res;
+    }
+
+    protected static function alignPreprocess($line)
+    {
+        $line = preg_replace('/(?<![\\\\\{])\{(?![\{])/', '\{', $line);
+        $line = preg_replace('/(?<![\\\\\}])\}(?![\}])/', '\}', $line);
+        $line = str_replace('\{', '{ ', $line);
+        return str_replace('\}', '} ', $line);
+    }
+
+    protected static function alignProcessTag($str)
+    {
+        $str = str_replace('{ ', '{', $str);
+        $str = str_replace('} ', '}', $str);
+        $lspace = !substr_compare($str, " ", 0, 1);
+        $rspace = !substr_compare($str, " ", -1, 1);
+        if($lspace && $rspace) {
+            $align = self::CENTER;
+            $str = mb_substr($str, 1, -1, "utf-8");
+        }
+        elseif($lspace) {
+            $align = self::RIGHT;
+            $str = mb_substr($str, 1, null, "utf-8");
+        }
+        elseif($rspace) {
+            $align = self::LEFT;
+            $str = mb_substr($str, 0, -1, "utf-8");
+        }
+        else {
+            $align = self::CENTER;
+        }
+        return [$str, $align];
+    }
+
+    protected static function alignRegex()
+    {
+        $subs = [
+            '[^\{\}]*\{?(?!\{)[^\{\}]*',
+            '[^\{\}]*\}?(?!\})[^\{\}]*',
+        ];
+        $sub = '('.implode("|", $subs).')*';
+        return '/(@[0-9]+|)\{\{('.$sub.')\}\}/';
+    }
+
+    public static function pad($str, $lenght, $type)
+    {
+        $str = trim($str, " ");
+        $strlen = mb_strlen(self::strip($str), "utf-8");
+        if($strlen >= $lenght)
+            return $str;
+        $len = $lenght - $strlen;
+        switch($type) {
+            case self::LEFT:
+                $left = 0;
+                $right = $len;
+                break;
+            case self::RIGHT:
+                $left = $len;
+                $right = 0;
+                break;
+            case self::CENTER:
+                $left = (int) ($len / 2);
+                $right = $len - $left;
+                break;
+            default:
+                return $str;
+        }
+        return str_repeat(" ", $left).$str.str_repeat(" ", $right);
+    }
+
+    public static function strip($str, $strip = self::STRIP_DEFAULT)
+    {
+        if($strip & self::STRIP_VARS)
+            $str = self::stripVars($str);
+        if($strip & self::STRIP_ALIGN)
+            $str = self::stripAlign($str);
+        if($strip & self::STRIP_FORMATTING)
+            $str = self::stripFormatting($str);
+        if($strip & self::STRIP_ESCAPE)
+            $str = self::stripEscape($str);
+        return $str;
+    }
+
+    /**
+     * Remove variables ("%$") from formatted string
+     *
+     * @param string $str
+     * @return string
+     */
+    public static function stripVars($str)
+    {
+        $str = preg_replace_callback('/(.?)\%\$/', function ($m) {
+            return $m[1] === '\\' ? $m[0] : $m[1];
+        }, $str);
+        return $str;
+    }
+
+    /**
+     * Remove align (e.g. "{{ text }}") from string
+     *
+     * @param string $str
+     * @return string
+     */
+    public static function stripAlign($str)
+    {
+        return preg_replace_callback(self::alignRegex(), function($m) {
+            return self::alignProcessTag($m[2])[0];
+        }, $str);
+    }
+
+    /**
+     * Remove color formatting ("%y", etc.) from string
+     *
+     * @param string $str
+     * @return string
+     */
+    public static function stripFormatting($str)
+    {
+        $str = str_replace('\%', '% ', $str);
+        $str = str_replace('\#', '# ', $str);
+        foreach(self::$conversions as $key => $fmt)
+            $str = str_replace($key, "", $str);
+        $str = str_replace("% ", "%", $str);
+        return str_replace("# ", "#", $str);
+    }
+
+    /**
+     * Remove terminal escape sequences ("\033[49;m", etc.) from string
+     *
+     * @param string $str
+     * @return string
+     */
+    public static function stripEscape($str)
+    {
+        return preg_replace("/\033\\[[0-9;]+m/", "", $str);
+    }
+
+    public static function renderOut($string)
+    {
+        self::stdout(self::render($string, self::normalizeArgs(func_get_args())));
+    }
+
+    public static function renderErr($string)
+    {
+        self::stderr(self::render($string, self::normalizeArgs(func_get_args())));
+    }
+
+    public static function escape($str)
+    {
+        foreach(['{', '}', '%', '#'] as $ch)
+            $str = str_replace($ch, "\\$ch", $str);
+        return $str;
     }
 
     public static function align($str, $align = self::CENTER)
@@ -369,6 +616,19 @@ class Console
         $fmt = array_unique($fmt);
         $fmt or $fmt = [self::NORMAL];
         return $fmt;
+    }
+
+    protected static function normalizeArgs(array $args, $shift = true)
+    {
+        if($shift)
+            array_shift($args);
+        if(!count($args))
+            return [];
+        $first = array_shift($args);
+        if(is_array($first))
+            return $first;
+        array_unshift($args, $first);
+        return $args;
     }
 
 }

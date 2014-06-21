@@ -93,6 +93,8 @@ class ErrorHandler
 
     public static function onShutdown()
     {
+        if(defined("EQ_DBG") && EQ_DBG)
+            ini_set("display_errors", 1);
         $err = error_get_last();
         if($err['type'] === E_ERROR) {
             if(\EQ::app()) {
