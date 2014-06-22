@@ -2,13 +2,17 @@
 
 namespace eq\console;
 
+use EQ;
 use eq\base\AppBase;
 use eq\base\Loader;
+use eq\base\UncaughtExceptionException;
 use eq\helpers\Arr;
 use eq\helpers\C;
 use eq\helpers\Console;
 use eq\datatypes\DataTypeBase;
 use eq\base\ExceptionBase;
+use eq\helpers\Str;
+use eq\php\ErrorException;
 use Exception;
 
 /**
@@ -139,22 +143,56 @@ final class ConsoleApp extends AppBase
 
     public function processFatalError(array $err)
     {
-        C::renderErr('%R%1{{ Fatal Error %$ }}%0', 1);
-//        print_r($err);
+        $this->processException(
+            new ErrorException($err['type'], $err['message'],
+                $err['file'], $err['line'], [])
+        );
     }
 
     public function processException(ExceptionBase $e)
     {
-        // TODO Implement
-        echo get_class($e).": ".$e->getMessage()."\n\n";
-        echo $e->getTraceAsString();
+        $ns = Str::classNamespace($e);
+        if($ns)
+            $ns .= "\\";
+        $trace = method_exists($e, "_getTrace") ? $e->_getTrace() : $e->getTrace();
+        C::renderErr("%1%R{{ %a%$%n%$ }}%0", $ns, Str::classBasename($e));
+        C::renderErr("%dCode:     %b%$%n", $e->getCode());
+        C::renderErr("%dMessage:  %0%$", $e->getMessage());
+        C::renderErr("%dLocation: %c%1%$%0 line %c%1%$%0\n",
+            EQ::unalias($e->getFile()), $e->getLine());
+        C::renderErr("%B%1{{Stack trace: }}%0\n");
+        foreach($trace as $i => $call) {
+            C::stderr(C::render('%d@3{{\#%$ }}%n ', $i), false);
+            if(isset($call['file'], $call['line'])) {
+                C::renderErr("%y%$%n line %y%$%n", EQ::unalias($call['file']), $call['line']);
+            }
+            else {
+                C::stderr("...");
+            }
+            $line = "      ";
+            if(isset($call['class'], $call['type']))
+                $line .= C::seq(C::FG_LIGHT_BLUE).$call['class'].C::seq(C::FG_GRAY).$call['type'].C::seq();
+            $line .= C::seq(C::FG_LIGHT_GREEN).$call['function'].C::seq();
+            if($call['args']) {
+                $line .= "(\n";
+                $args = [];
+                foreach($call['args'] as $arg)
+                    $args[] = C::shortDump($arg, 8, C::width() - 9);
+                $line .= implode(C::seq(C::FG_GRAY).",".C::seq()."\n", $args)."\n";
+                $line .= C::seq(C::FG_GRAY)."      )".C::seq();
+            }
+            else
+                $line .= C::seq(C::FG_GRAY)."()".C::seq();
+            C::stderr($line."\n");
+        }
+        C::renderErr("%d%3{{ ".EQ::powered()."}}%0");
     }
 
     public function processUncaughtException(Exception $e)
     {
-        // TODO Implement
-        echo get_class($e).": ".$e->getMessage()."\n\n";
-        echo $e->getTraceAsString()."\n";
+        $this->processException(
+            new UncaughtExceptionException($e)
+        );
     }
 
     protected function scanCommands()
@@ -212,7 +250,8 @@ final class ConsoleApp extends AppBase
             C::fmt("Options:", C::FG_YELLOW)."\n".
             C::fmtOption("--commands", "Show available commands")."\n".
             C::fmtOption("--actions <command>", "Show available actions")."\n".
-            C::fmtOption("--pure-print", "Print items through space (for autocomplete)");
+            C::fmtOption("--pure-print", "Print items through space (for autocomplete)\n").
+            C::render("\n%d%3{{ ".EQ::powered()."}}%0");
         return $this->printMessage($msg, $err);
     }
 
@@ -233,6 +272,7 @@ final class ConsoleApp extends AppBase
                 $out[] = C::fmt($cmdname, C::FG_GREEN)."\n    ".$descr."\n";
             }
             echo implode("\n", $out);
+            C::renderOut("\n%d%3{{ ".EQ::powered()."}}%0");
         }
         return 0;
     }
@@ -284,6 +324,7 @@ final class ConsoleApp extends AppBase
             $out[] = implode("\n\n", $actlines);
         }
         echo implode("\n\n\n", $out)."\n";
+        C::renderOut("\n%d%3{{ ".EQ::powered()."}}%0");
         return 0;
     }
 

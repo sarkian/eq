@@ -2,7 +2,6 @@
 
 namespace eq\helpers;
 
-use eq\base\InvalidArgumentException;
 use eq\base\InvalidCallException;
 
 class Console
@@ -94,7 +93,6 @@ class Console
 
     protected static $conversions = [
         '%n' => self::FG_DEFAULT,
-        '%d' => self::FG_DEFAULT,
         '%k' => self::FG_BLACK,
         '%r' => self::FG_RED,
         '%g' => self::FG_GREEN,
@@ -102,8 +100,9 @@ class Console
         '%b' => self::FG_BLUE,
         '%m' => self::FG_MAGENTA,
         '%c' => self::FG_CYAN,
+        '%a' => self::FG_GRAY,
+        '%d' => self::FG_DARK_GRAY,
         '%N' => self::BG_DEFAULT,
-        '%D' => self::BG_DEFAULT,
         '%K' => self::BG_BLACK,
         '%R' => self::BG_RED,
         '%G' => self::BG_GREEN,
@@ -111,6 +110,8 @@ class Console
         '%B' => self::BG_BLUE,
         '%M' => self::BG_MAGENTA,
         '%C' => self::BG_CYAN,
+        '%A' => self::BG_GRAY,
+        '%D' => self::BG_DARK_GRAY,
         '%0' => self::NORMAL,
         '%1' => self::BOLD,
         '%2' => self::DIM,
@@ -149,6 +150,42 @@ class Console
         if($nl)
             $str .= "\n";
         return fwrite(STDERR, $str);
+    }
+
+    public static function shortDump($var, $indent = 8, $limit = null)
+    {
+        return str_repeat(" ", $indent).Debug::shortDump($var, [
+            'limit' => is_int($limit) ? $limit : self::width() - $indent,
+            'typename_wrapfunc' => function($s) {
+                return self::seq(self::FG_BLUE).$s.self::seq();
+            },
+            'operator_wrapfunc' => function($s) {
+                return self::seq(self::FG_DARK_GRAY).$s.self::seq();
+            },
+            'keyword_wrapfunc' => function($s) {
+                return self::seq(self::FG_CYAN).$s.self::seq();
+            },
+            'number_wrapfunc' => function($s) {
+                return self::seq(self::FG_MAGENTA).$s.self::seq();
+            },
+            'string_wrapfunc' => function($s, $cn = "") {
+                $s = preg_replace_callback('/[\x00-\x1F\x80-\xFF]/', function($m) {
+                    return self::seq(self::FG_MAGENTA)
+                        .sprintf('\0%o', ord($m[0])).self::seq(self::FG_GREEN);
+                }, $s);
+                return self::seq(self::FG_GREEN)
+                    .'"'.$s.'"'.self::seq(self::FG_DARK_GRAY).$cn.self::seq();
+            },
+            'classname_wrapfunc' => function($s) {
+                return self::seq(self::FG_CYAN).$s.self::seq();
+            },
+            'id_wrapfunc' => function($s) {
+                return self::seq(self::FG_MAGENTA).$s.self::seq();
+            },
+            'refcount_wrapfunc' => function($s) {
+                return self::seq(self::FG_MAGENTA).$s.self::seq();
+            },
+        ]);
     }
 
     public static function fmtOut($str)
@@ -212,16 +249,15 @@ class Console
         }, $string);
         if(count($vars))
             throw new InvalidCallException(get_called_class()."::render(): Too many arguments");
-
+        $string = str_replace('\\\\', '\ ', $string);
         $string = self::renderAlign($string);
-
         $string = str_replace('\%', '% ', $string);
         $string = str_replace('\#', '# ', $string);
         foreach(self::$conversions as $key => $fmt)
             $string = str_replace($key, self::seq($fmt), $string);
         $string = str_replace("% ", "%", $string);
         $string = str_replace("# ", "#", $string);
-
+        $string = str_replace('\ ', '\\', $string);
         return $string;
     }
 
@@ -412,7 +448,8 @@ class Console
         foreach(self::$conversions as $key => $fmt)
             $str = str_replace($key, "", $str);
         $str = str_replace("% ", "%", $str);
-        return str_replace("# ", "#", $str);
+        $str = str_replace("# ", "#", $str);
+        return str_replace('\ ', '\\', $str);
     }
 
     /**
@@ -438,14 +475,9 @@ class Console
 
     public static function escape($str)
     {
-        foreach(['{', '}', '%', '#'] as $ch)
+        foreach(['{', '}', '%', '#', '\\'] as $ch)
             $str = str_replace($ch, "\\$ch", $str);
         return $str;
-    }
-
-    public static function align($str, $align = self::CENTER)
-    {
-        return str_pad($str, self::width(), " ", $align);
     }
 
     public static function moveUp($rows = 1)

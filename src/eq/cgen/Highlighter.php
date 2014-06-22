@@ -57,6 +57,7 @@ class Highlighter
             T_TRY,
             T_TRAIT,
             T_CASE,
+            T_BREAK,
             T_CATCH,
             T_ELSE,
             T_ELSEIF,

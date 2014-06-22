@@ -82,10 +82,8 @@ $trace = method_exists($e, "_getTrace") ? $e->_getTrace() : $e->getTrace();
             <? endif; ?>
         </div>
         <div class="trace-step-desc">
-            <? if(isset($call['class'])): ?>
+            <? if(isset($call['class'], $call['type'])): ?>
                 <span><?= $call['class'] ?></span>
-            <? endif; ?>
-            <? if(isset($call['type'])): ?>
                 <span class="hl-operator"><?= $call['type'] ?></span>
             <? endif; ?>
             <span class="funcname"><?= $call['function'] ?></span>
