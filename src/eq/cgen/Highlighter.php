@@ -120,6 +120,7 @@ class Highlighter
             ':',
             '>',
             '<',
+            '@',
         ],
         'string' => [
             T_CONSTANT_ENCAPSED_STRING,

@@ -36,9 +36,17 @@ class Shell
         return $out;
     }
 
-    public static function suexec($cmd, $user, $password, $input = null, &$ret = null)
+    public static function suexec($cmd, $user, $password
+                , $use_file = true, &$err = null,  &$ret = null)
     {
         $thr = func_num_args() < 5;
+        $outfile = null;
+        $errfile = null;
+        if($use_file) {
+            $outfile = FileSystem::tempfile(null, 0666);
+            $errfile = FileSystem::tempfile(null, 0666);
+            $cmd .= " > $outfile 2>$errfile";
+        }
         $command = "su ".self::escapeArg($user)." -c ".self::escapeArg($cmd);
         $descspec = [
             0 => ["pty", "r"],
@@ -61,6 +69,11 @@ class Shell
         $err = trim(stream_get_contents($pipes[2]), " \r\n\t");
         fclose($pipes[2]);
         $ret = proc_close($proc);
+        if($outfile && $errfile) {
+            $out = FileSystem::fgets($outfile);
+            $err = FileSystem::fgets($errfile);
+            FileSystem::rm([$outfile, $errfile]);
+        }
         if($thr && $ret !== 0)
             throw new ShellExecException("Shell returned $ret: $cmd: $err", $ret);
         return $out;

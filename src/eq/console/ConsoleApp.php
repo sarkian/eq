@@ -120,10 +120,16 @@ final class ConsoleApp extends AppBase
             $val = $this->args->argument($i, $def);
             if($param->required && is_null($val))
                 return $this->printMessage("Missed argument: ".$param->name);
+            if($param->multi) {
+                $args = $this->args->arguments($i);
+                count($args) or $args = $def;
+                $params[] = $args;
+                break;
+            }
             $type = DataTypeBase::getClass($param->type);
             if(!is_null($val) && !$type::validate($val))
                 return $this->printMessage(
-                    "Invalid argument value: ".$param->name." ($val)");
+                    "Invalid argument value: ".$param->name.(is_scalar($val) ? " ($val)" : ""));
             $params[] = $type::filter($val);
             $i++;
         }

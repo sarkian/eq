@@ -68,11 +68,15 @@ class FileSystem
 
     public static function rm($path, $nothrow = false)
     {
-        $path = EQ::getAlias($path);
-        if(is_dir($path))
-            self::rmdir($path, $nothrow);
-        elseif(file_exists($path))
-            self::rmfile($path, $nothrow);
+        if(!is_array($path))
+            $path = [$path];
+        foreach($path as $p) {
+            $p = EQ::getAlias($p);
+            if(is_dir($p))
+                self::rmdir($p, $nothrow);
+            elseif(file_exists($p))
+                self::rmfile($p, $nothrow);
+        }
     }
 
     public static function fputs($fname, $data, $append = false)
@@ -99,6 +103,19 @@ class FileSystem
     {
         $fname = EQ::getAlias($fname);
         return filemtime($fname);
+    }
+
+    public static function tempfile($dir = null, $mode = 0600)
+    {
+        if($dir)
+            $dir = EQ::getAlias($dir);
+        is_dir($dir) or $dir = sys_get_temp_dir();
+        $fname = tempnam($dir, "eqtmp");
+        if($mode !== 0600) {
+            umask(0);
+            chmod($fname, $mode);
+        }
+        return $fname;
     }
 
     public static function copy($src, $dst, $force = false)
@@ -128,7 +145,7 @@ class FileSystem
     protected static function rmfile($path, $nothrow = false)
     {
         $path = EQ::getAlias($path);
-        if(!unlink($path) && !$nothrow)
+        if(!@unlink($path) && !$nothrow)
             throw new FileSystemException("Unable to remove file: ".$path);
     }
 
@@ -144,7 +161,7 @@ class FileSystem
             else
                 self::rmdir($file, $nothrow);
         }
-        if(!rmdir($path) && !$nothrow)
+        if(!@rmdir($path) && !$nothrow)
             throw new FileSystemException("Unable to remove directory: ".$path);
     }
 

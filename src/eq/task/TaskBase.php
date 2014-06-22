@@ -65,7 +65,7 @@ abstract class TaskBase
      * Возвращает имя класса по имени задачи
      *
      * @param string $taskname Имя задачи
-     * @return bool|string Имя класса задачи или false, если задачи не существует
+     * @return static TaskBase|bool Имя класса задачи или false, если задачи не существует
      */
     public static final function getClass($taskname)
     {

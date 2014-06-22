@@ -55,15 +55,20 @@ class Args extends ArgumentAbstract
 
     public function argument($index, $default = null)
     {
-        $indexes = array_merge(
-            array_diff($this->arg_indexes, $this->opt_indexes));
+        $indexes = array_merge(array_diff($this->arg_indexes, $this->opt_indexes));
         return isset($indexes[$index]) 
             ? $this->iGet($indexes[$index])->getValue() : $default;
     }
 
-    public function arguments($offset = 0)
+    public function arguments($offset = 0, $lenght = null)
     {
-        
+        $indexes = array_merge(array_diff($this->arg_indexes, $this->opt_indexes));
+        $indexes = array_slice($indexes, $offset, $lenght);
+        $args = [];
+        foreach($indexes as $index) {
+            $args[] = $this->iGet($index)->getValue();
+        }
+        return $args;
     }
 
     protected function exists($name)

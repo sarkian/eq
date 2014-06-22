@@ -10,11 +10,18 @@ use eq\task\TaskBase;
 class Crontab
 {
 
+    protected $user = null;
+    protected $pass = null;
+
     protected $lines = [];
     protected $tasks = [];
 
-    public function __construct()
+    public function __construct($user = null, $pass = null)
     {
+        if(is_string($user) && strlen($user) && is_string($pass) && strlen($pass)) {
+            $this->user = $user;
+            $this->pass = $pass;
+        }
         $this->reload();
     }
 
@@ -22,13 +29,16 @@ class Crontab
     {
         $this->lines = [];
         $this->tasks = [];
-        $out = Shell::exec("crontab -l");
+        $out = $this->user
+            ? Shell::suexec("crontab -l", $this->user, $this->pass) : Shell::exec("crontab -l");
         $lines = preg_split("/[\r\n]/", $out);
+        $last_noempty = 0;
         foreach($lines as $i => $line) {
             $this->lines[$i] = $line;
             $line = trim($line, " \r\n\t");
             if(!$line)
                 continue;
+            $last_noempty = $i;
             if(!strncmp($line, "#", 1))
                 continue;
             try {
@@ -38,6 +48,8 @@ class Crontab
             }
             catch(CrontabException $e) {}
         }
+        $this->lines = array_slice($this->lines, 0, $last_noempty + 1);
+        return $this;
     }
 
     public function __toString()
@@ -55,7 +67,7 @@ class Crontab
         return $index === false ? false : $this->lines[$index];
     }
 
-    public function addTask($time, $taskname, array $args = [])
+    public function addTask($taskname, $time, array $args = [])
     {
         $cname = $this->taskClass($taskname);
         if($this->getTaskIndex($cname, $args) !== false)
@@ -66,12 +78,13 @@ class Crontab
         $i = count($this->lines);
         $this->lines[$i] = $task;
         $this->tasks[] = $i;
+        return $this;
     }
 
     public function removeTask($taskname, array $args = [])
     {
         $cname = $this->taskClass($taskname);
-        $cmd = new CrontabTaskCommand($cname::getRunCommand());
+        $cmd = new CrontabTaskCommand($cname::getRunCommand($args));
         $to_remove = [];
         foreach($this->tasks as $i => $index) {
             $task = $this->lines[$index];
@@ -82,13 +95,19 @@ class Crontab
         }
         foreach($to_remove as $i)
             unset($this->tasks[$i]);
+        return $this;
     }
 
     public function save()
     {
-        $fname = EQ::getAlias("@runtime/crontab.tmp");
+        $fname = FileSystem::tempfile(null, 0666);
         FileSystem::fputs($fname, $this);
-        Shell::exec("crontab $fname");
+        if($this->user)
+            Shell::suexec("crontab $fname", $this->user, $this->pass);
+        else
+            Shell::exec("crontab $fname");
+        FileSystem::rm($fname);
+        return $this;
     }
 
     /**
@@ -100,7 +119,7 @@ class Crontab
     {
         $cname = TaskBase::getClass($taskname);
         if(!$cname)
-            throw new CrontabException("Cant find task: $taskname");
+            throw new CrontabException("Task not found: $taskname");
         return $cname;
     }
 
@@ -111,7 +130,7 @@ class Crontab
      */
     protected function getTaskIndex($cname, array $args = [])
     {
-        $cmd = new CrontabTaskCommand($cname::getRunCommand());
+        $cmd = new CrontabTaskCommand($cname::getRunCommand($args));
         foreach($this->tasks as $index) {
             $task = $this->lines[$index];
             if($task->command->equals($cmd))

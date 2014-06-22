@@ -9,6 +9,7 @@ use eq\datatypes\DataTypeBase;
  * @property DataTypeBase type
  * @property string description
  * @property bool required
+ * @property bool multi
  */
 class ReflectionActionParameter extends \ReflectionParameter
 {
@@ -18,11 +19,13 @@ class ReflectionActionParameter extends \ReflectionParameter
     protected $action;
     protected $doctag;
 
+    private $_multi = null;
+
     public function __construct(ReflectionAction $action, $name)
     {
         parent::__construct([$action->class, $action->name], $name);
         $this->action = $action;
-        $this->doctag = $this->action->docblock->tag("param", null, '$'.$name);
+        $this->doctag = $this->action->docblock->tag("param", null, '/^\$'.$name.'\,?$/');
     }
 
     public function getType()
@@ -37,7 +40,10 @@ class ReflectionActionParameter extends \ReflectionParameter
 
     public function getDescription()
     {
-        return $this->doctag->fromsecond();
+        $descr = $this->doctag->fromsecond();
+        if($this->multi)
+            $descr = preg_replace('/^\.\.\. /', '', $descr);
+        return $descr;
     }
 
     public function getRequired()
@@ -45,9 +51,19 @@ class ReflectionActionParameter extends \ReflectionParameter
         return !$this->isDefaultValueAvailable();
     }
 
+    public function getMulti()
+    {
+        if($this->_multi === null)
+            $this->_multi = preg_match('/\,$/', $this->doctag->wsecond()) ? true : false;
+        return $this->_multi;
+    }
+
     public function __toString()
     {
-        return $this->required ? "<{$this->name}>" : "[{$this->name}]";
+        $name = $this->name;
+        if($this->multi)
+            $name .= ", ...";
+        return $this->required ? "<{$name}>" : "[{$name}]";
     }
 
 }

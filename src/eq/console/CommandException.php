@@ -2,7 +2,9 @@
 
 namespace eq\console;
 
-class CommandException extends \eq\base\ExceptionBase
+use eq\base\ExceptionBase;
+
+class CommandException extends ExceptionBase
 {
 
     protected $type = "CommandException";

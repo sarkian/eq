@@ -4,6 +4,7 @@ namespace eq\helpers;
 
 
 use EQ;
+use eq\base\Loader;
 
 class Debug
 {
@@ -76,7 +77,9 @@ class Debug
                 $str = $typename("string").$operator("(").$string($var, $cn).$operator(")");
                 break;
             case "array":
-                if(is_callable($var)) {
+                $is_cls = isset($var[0]) && (is_object($var[0])
+                    || (is_string($var[0]) && strlen($var[0]) && Loader::classExists($var[0])));
+                if($is_cls && is_callable($var)) {
                     if(is_object($var[0])) {
                         $cls_len = strlen(get_class($var[0]))
                             + 9 + strlen((string) self::getObjectId($var[0]));

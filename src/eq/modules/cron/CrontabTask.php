@@ -4,6 +4,10 @@ namespace eq\modules\cron;
 
 use eq\base\TObject;
 
+/**
+ * @property CrontabTaskTime|string $time
+ * @property CrontabTaskCommand|string $command
+ */
 class CrontabTask
 {
 

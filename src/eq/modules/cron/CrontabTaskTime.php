@@ -2,7 +2,6 @@
 
 namespace eq\modules\cron;
 
-use EQ;
 use eq\base\InvalidCallException;
 
 class CrontabTaskTime
