@@ -58,6 +58,7 @@ abstract class Model extends Object
     {
         $this->db = EQ::app()->db($this->db_name);
         foreach($this->fields as $name => $field) {
+            $field = $this->normalizeFieldData($field);
             if(isset($field['default']))
                 $this->data[$name] = $field['default'];
         }
@@ -65,13 +66,14 @@ abstract class Model extends Object
             $this->setScenario($scenario);
     }
 
-    public static function __callStatic($name, $args)
+    /**
+     * @param string $scenario
+     * @return $this
+     */
+    public static function instance($scenario = null)
     {
         $cname = get_called_class();
-        $inst = new $cname();
-        if(!method_exists($inst, $name))
-            throw new InvalidCallException("Undefined method: $cname::$name");
-        return call_user_func_array([$inst, $name], $args);
+        return new $cname($scenario);
     }
 
     public function __get($name)
@@ -212,7 +214,7 @@ abstract class Model extends Object
             $this->data[$name] = $this->loaded_data[$name]
                 = $this->typeFromDb($name, $value);
         $this->changed_fields = [];
-        return true;
+        return $this;
     }
 
     public function exists($condition)
@@ -232,6 +234,8 @@ abstract class Model extends Object
     public function apply($data)
     {
         $this->trigger("beforeApply", [$data]);
+        if(isset($data[0]))
+            $data = array_combine($this->fieldnames, $data);
         foreach($data as $name => $value) {
             if(isset($this->fields[$name]) && $this->isChange($name)) {
                 $this->setChanged($name);
@@ -239,6 +243,7 @@ abstract class Model extends Object
             }
         }
         $this->trigger("afterApply", [$data]);
+        return $this;
     }
 
     public function applyAll($data)
@@ -249,6 +254,7 @@ abstract class Model extends Object
                 $this->data[$name] = $value;
             }
         }
+        return $this;
     }
 
     public function reset()
@@ -259,6 +265,7 @@ abstract class Model extends Object
         $this->loaded_data = [];
         $this->errors = [];
         $this->errors_by_field = [];
+        return $this;
     }
 
     public function validate()
@@ -374,17 +381,17 @@ abstract class Model extends Object
 
     public function isShow($field)
     {
-        return isset($this->fields[$field]['show']) ? $this->fields[$field]['show'] : false;
+        return $this->fieldProperty($field, "show", false);
     }
 
     public function isLoad($field)
     {
-        return isset($this->fields[$field]['load']) ? $this->fields[$field]['load'] : false;
+        return $this->fieldProperty($field, "load", false);
     }
 
     public function isSave($field)
     {
-        return isset($this->fields[$field]['save']) ? $this->fields[$field]['save'] : false;
+        return $this->fieldProperty($field, "save", false);
     }
 
     public function fieldExists($field)
@@ -394,8 +401,11 @@ abstract class Model extends Object
 
     public function fieldLabel($name)
     {
-        if(isset($this->fields[$name]['label']))
-            return $this->fields[$name]['label'];
+        if(isset($this->fields[$name])) {
+            $field = $this->normalizeFieldData($this->fields[$name]);
+            if(isset($field['label']))
+                return $field['label'];
+        }
         $name = preg_replace_callback("/_([a-zA-Z])/", function ($m) {
             return " ".strtoupper($m[1]);
         }, $name);
@@ -411,7 +421,7 @@ abstract class Model extends Object
     {
         if(!isset($this->fields[$fieldname]))
             throw new InvalidParamException("Unknown field: $fieldname");
-        $field = $this->fields[$fieldname];
+        $field = $this->normalizeFieldData($this->fields[$fieldname]);
         $type = isset($field['type']) ? $field['type'] : "str";
         return DataTypeBase::getClass($type);
     }
@@ -423,8 +433,15 @@ abstract class Model extends Object
 
     public function fieldDefault($name)
     {
-        return isset($this->fields[$name]['default'])
-            ? $this->fields[$name]['default'] : null;
+        return $this->fieldProperty($name, "default");
+    }
+
+    public function fieldProperty($name, $prop, $default = null)
+    {
+        if(!isset($this->fields[$name]))
+            return $default;
+        $field = $this->normalizeFieldData($this->fields[$name]);
+        return isset($field[$prop]) ? $field[$prop] : $default;
     }
 
     public function fieldErrors($name)
@@ -509,6 +526,7 @@ abstract class Model extends Object
     {
         $fields = [];
         foreach($this->fields as $name => $field) {
+            $field = $this->normalizeFieldData($field);
             if(!isset($field[$attr]))
                 continue;
             if($value === null) {
@@ -596,6 +614,15 @@ abstract class Model extends Object
             $this->createTable();
             return $query->execute();
         }
+    }
+
+    protected function normalizeFieldData($field)
+    {
+        return is_array($field) ? $field : [
+            'type' => $field,
+            'load' => true,
+            'save' => true,
+        ];
     }
 
 }

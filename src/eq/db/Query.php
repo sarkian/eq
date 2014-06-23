@@ -115,6 +115,7 @@ class Query
     public function execute()
     {
         $stmt = $this->buildStatement();
+        EQ::app()->trigger("dbQuery", $this->db->name, $stmt->queryString);
         try {
             $stmt->execute();
             $stmt->setFetchMode(PDO::FETCH_ASSOC);
@@ -122,7 +123,6 @@ class Query
         catch(PDOException $e) {
             throw new SQLException($e->getMessage(), $e->getCode(), $e);
         }
-        EQ::app()->trigger("dbQuery", $this->db->name, $stmt->queryString);
         return $stmt;
     }
 

@@ -31,6 +31,12 @@ trait TObject
         return get_called_class();
     }
 
+    /**
+     * @param string $name
+     * @return mixed
+     * @throws InvalidCallException
+     * @throws UnknownPropertyException
+     */
     public function __get($name)
     {
         $getter = $this->getterName($name);

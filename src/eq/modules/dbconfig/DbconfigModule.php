@@ -86,7 +86,6 @@ class DbconfigModule extends ModuleBase
             unset($this->data[$key]);
             EQ::app()->configWrite($key, null);
         }
-        EQ::log("REMOVE");
     }
 
     public function commit()

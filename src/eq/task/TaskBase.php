@@ -65,7 +65,7 @@ abstract class TaskBase
      * Возвращает имя класса по имени задачи
      *
      * @param string $taskname Имя задачи
-     * @return static TaskBase|bool Имя класса задачи или false, если задачи не существует
+     * @return static|bool Имя класса задачи или false, если задачи не существует
      */
     public static final function getClass($taskname)
     {
@@ -107,9 +107,12 @@ abstract class TaskBase
     }
 
     /**
-     * Запускает задачу асинхронно. Рекомендуется определять свой метод run()
+     * Запускает задачу асинхронно
+     *
+     * Рекомендуется определять свой метод run()
      * для каждой задачи (именно поэтому он с префиксом '_')
      * и в нём уже определять необходимые параметры и вызывать _run().
+     *
      * @param array $args Аргументы задачи
      * @param int $run Как запускать (см. константы)
      * @param string $outlog Лог STDOUT
@@ -131,7 +134,7 @@ abstract class TaskBase
         }
         else
             $errlog = "&1";
-        self::normalizeArgs($args);
+        $args = self::normalizeArgs($args);
         switch($run) {
             case self::R_ONCE:
                 if(self::runningCount($args))
