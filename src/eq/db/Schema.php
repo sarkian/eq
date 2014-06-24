@@ -4,12 +4,35 @@ namespace eq\db;
 
 use eq\datatypes\DataTypeBase;
 
-// TODO: datatypes mappings
 class Schema
 {
 
+    const TYPE_PK           = "pk";
+    const TYPE_BIGPK        = "bigpk";
+    const TYPE_TINYSTRING   = "tinystring";
+    const TYPE_SMALLSTRING  = "smallstring";
+    const TYPE_STRING       = "string";
+    const TYPE_LONGSTRING   = "longstring";
+    const TYPE_TEXT         = "text";
+    const TYPE_MEDIUMTEXT   = "mediumtext";
+    const TYPE_LONGTEXT     = "longtext";
+    const TYPE_SMALLINT     = "smallint";
+    const TYPE_INT          = "int";
+    const TYPE_BIGINT       = "bigint";
+    const TYPE_FLOAT        = "float";
+    const TYPE_DECIMAL      = "decimal";
+    const TYPE_DATETIME     = "datetime";
+    const TYPE_TIMESTAMP    = "timestamp";
+    const TYPE_TIME         = "time";
+    const TYPE_DATE         = "date";
+    const TYPE_BINARY       = "binary";
+    const TYPE_BOOL         = "bool";
+    const TYPE_MONEY        = "money";
+
     protected $db;
-    protected $type_map = [];
+    protected $type_map = [
+
+    ];
 
     public function __construct(ConnectionBase $db)
     {
@@ -83,11 +106,13 @@ class Schema
     {
         $parts = explode(" ", $type, 2);
         $opts = isset($parts[1]) ? " ".$parts[1] : "";
-        $type = $parts[0];
         if(isset($this->type_map[$type]))
             return $this->type_map[$type].$opts;
         $cls = DataTypeBase::getClass($type);
-        return $cls::sqlType($this->db->driver).$opts;
+        $type = $cls::sqlType();
+        if(!isset($this->type_map[$type]))
+            throw new DbException("Unknown SQL type: $type");
+        return $this->type_map[$type].$opts;
     }
 
 }

@@ -2,6 +2,8 @@
 
 namespace eq\datatypes;
 
+use eq\db\Schema;
+
 class UserSessions extends DataTypeBase
 {
 
@@ -26,6 +28,11 @@ class UserSessions extends DataTypeBase
         $value = json_decode($value);
         is_array($value) or $value = [];
         return $value;
+    }
+
+    public static function sqlType()
+    {
+        return Schema::TYPE_TEXT;
     }
 
 } 

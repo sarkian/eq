@@ -2,6 +2,8 @@
 
 namespace eq\datatypes;
 
+use eq\db\mysql\Schema;
+
 class Bool extends DataTypeBase
 {
 
@@ -46,6 +48,11 @@ class Bool extends DataTypeBase
     public static function defaultValue()
     {
         return false;
+    }
+
+    public static function sqlType()
+    {
+        return Schema::TYPE_BOOL;
     }
 
 }

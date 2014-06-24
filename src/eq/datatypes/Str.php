@@ -2,6 +2,8 @@
 
 namespace eq\datatypes;
 
+use eq\db\Schema;
+
 class Str extends DataTypeBase
 {
 
@@ -32,6 +34,11 @@ class Str extends DataTypeBase
     public static function defaultValue()
     {
         return "";
+    }
+
+    public static function sqlType()
+    {
+        return Schema::TYPE_STRING;
     }
 
 }

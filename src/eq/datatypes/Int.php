@@ -2,6 +2,8 @@
 
 namespace eq\datatypes;
 
+use eq\db\Schema;
+
 class Int extends DataTypeBase
 {
 
@@ -39,9 +41,9 @@ class Int extends DataTypeBase
         return 0;
     }
 
-    public static function sqlType($engine = null)
+    public static function sqlType()
     {
-        return "INT(11)";
+        return Schema::TYPE_INT;
     }
 
 }

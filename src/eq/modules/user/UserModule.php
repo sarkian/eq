@@ -5,6 +5,7 @@ namespace eq\modules\user;
 use EQ;
 use eq\base\InvalidConfigException;
 use eq\base\ModuleBase;
+use eq\db\mysql\Schema;
 use eq\helpers\Str;
 use eq\modules\admin\AdminModule;
 use eq\modules\i18n\I18nModule;
@@ -204,13 +205,14 @@ class UserModule extends ModuleBase
     {
         return [
             'id' => [
-                'type' => "pk",
+                'type' => "uintp",
                 'show' => false,
                 'load' => true,
                 'save' => false,
                 'unique' => true,
                 'default' => null,
                 'label' => "",
+                'sql' => Schema::TYPE_PK,
             ],
             'name' => [
                 'type' => "username",
@@ -236,7 +238,6 @@ class UserModule extends ModuleBase
                 'load' => false,
                 'save' => false,
                 'default' => "",
-                'label' => EQ::t("Email confirmation"),
             ],
             'firstname' => [
                 'type' => "firstname",

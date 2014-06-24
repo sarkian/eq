@@ -4,6 +4,7 @@ namespace eq\datatypes;
 
 use EQ;
 use eq\base\InvalidCallException;
+use eq\db\Schema;
 use eq\helpers\Str;
 use eq\base\Loader;
 
@@ -102,9 +103,9 @@ abstract class DataTypeBase
         return true;
     }
 
-    public static function sqlType($engine = null)
+    public static function sqlType()
     {
-        return "VARCHAR(255)";
+        return Schema::TYPE_TINYSTRING;
     }
 
     public static function formControl()

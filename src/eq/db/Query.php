@@ -95,7 +95,7 @@ class Query
         return $this;
     }
     
-    public function createTable($table, $columns, $options = null)
+    public function createTable($table, $columns, $pk = null, $options = null)
     {
         $this->_query = [];
         $cols = [];
@@ -106,6 +106,8 @@ class Query
             else
                 $cols[] = "\t".$type;
         }
+        if($pk)
+            $cols[] = "\tPRIMARY KEY (".$this->db->schema->quoteColumnName($pk).")";
         $sql = "CREATE TABLE IF NOT EXISTS ".$this->db->schema->quoteTableName($table)
             ."(\n".implode(",\n", $cols)."\n)";
         $this->_query[] = is_null($options) ? $sql : "$sql $options";
@@ -121,7 +123,7 @@ class Query
             $stmt->setFetchMode(PDO::FETCH_ASSOC);
         }
         catch(PDOException $e) {
-            throw new SQLException($e->getMessage(), $e->getCode(), $e);
+            throw new SQLException($e->getMessage(), $e->getCode(), $stmt->queryString, $e);
         }
         return $stmt;
     }

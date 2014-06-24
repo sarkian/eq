@@ -2,6 +2,8 @@
 
 namespace eq\datatypes;
 
+use eq\db\Schema;
+
 class Float extends DataTypeBase
 {
 
@@ -31,6 +33,11 @@ class Float extends DataTypeBase
     public static function defaultValue()
     {
         return 0.0;
+    }
+
+    public static function sqlType()
+    {
+        return Schema::TYPE_FLOAT;
     }
 
 }

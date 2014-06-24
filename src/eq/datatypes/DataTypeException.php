@@ -2,7 +2,9 @@
 
 namespace eq\datatypes;
 
-class DataTypeException extends \eq\base\ExceptionBase
+use eq\base\ExceptionBase;
+
+class DataTypeException extends ExceptionBase
 {
 
     protected $type = "DataTypeException";

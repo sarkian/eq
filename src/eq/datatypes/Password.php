@@ -2,6 +2,8 @@
 
 namespace eq\datatypes;
 
+use eq\db\Schema;
+
 class Password extends Str
 {
 
@@ -15,8 +17,8 @@ class Password extends Str
         return "passwordField";
     }
 
-    public static function sqlType($engine = null)
+    public static function sqlType()
     {
-        return "VARCHAR(32)";
+        return Schema::TYPE_TINYSTRING;
     }
 }

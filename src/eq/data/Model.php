@@ -11,6 +11,7 @@ use eq\base\UnknownPropertyException;
 use eq\datatypes\DataTypeBase;
 use eq\db\ConnectionBase;
 use eq\db\DbException;
+use eq\db\mysql\Schema;
 use eq\db\Query;
 use eq\db\SQLException;
 use eq\helpers\Arr;
@@ -206,11 +207,12 @@ abstract class Model extends Object
         $res = $this->executeQuery(
             $this->db->select($this->loaded_fieldnames)->from($this->table_name)->where($condition)
         );
-        if(!$res->rowCount())
+        $data = $res->fetchAll();
+        if(!count($data))
             return false;
-        elseif($res->rowCount() > 1)
+        elseif(count($data) > 1)
             throw new DbException("Non unique load result");
-        foreach($res->fetch() as $name => $value)
+        foreach($data[0] as $name => $value)
             $this->data[$name] = $this->loaded_data[$name]
                 = $this->typeFromDb($name, $value);
         $this->changed_fields = [];
@@ -436,6 +438,11 @@ abstract class Model extends Object
         return $this->fieldProperty($name, "default");
     }
 
+    public function fieldSql($name, $default = Schema::TYPE_TINYSTRING)
+    {
+        return $this->fieldProperty($name, "sql", $default);
+    }
+
     public function fieldProperty($name, $prop, $default = null)
     {
         if(!isset($this->fields[$name]))
@@ -514,12 +521,11 @@ abstract class Model extends Object
     {
         $cols = [];
         foreach($this->fieldnames as $field) {
-            if(!$this->isLoad($field) && !$this->isSave($field))
-                continue;
-            $type = $this->fieldType($field);
-            $cols[$field] = $type;
+            if($this->isLoad($field) || $this->isSave($field))
+                $cols[$field] = $this->fieldSql($field, $this->fieldType($field));
         }
-        $this->db->createTable($this->table_name, $cols)->execute();
+        $pk = isset($cols[$this->pk]) ? $this->pk : null;
+        $this->db->createTable($this->table_name, $cols, $pk)->execute();
     }
 
     protected function fieldsByAttr($attr, $value = null)
@@ -618,11 +624,27 @@ abstract class Model extends Object
 
     protected function normalizeFieldData($field)
     {
-        return is_array($field) ? $field : [
-            'type' => $field,
-            'load' => true,
-            'save' => true,
-        ];
+        if(is_array($field)) {
+            if(isset($field[0])) {
+                $data = [
+                    'type' => $field[0],
+                    'load' => true,
+                    'save' => true,
+                ];
+                if(isset($field[1]))
+                    $data['sql'] = $field[1];
+                return $data;
+            }
+            else
+                return $field;
+        }
+        else
+            return [
+                'type' => $field,
+                'load' => true,
+                'save' => true,
+                'show' => $field === $this->pk ? false : true,
+            ];
     }
 
 }

@@ -23,7 +23,7 @@ use PDOException;
  * @method Query from(mixed $tables)
  * @method Query delete(string $table, mixed $condition, array $params = [])
  * @method Query where(string $condition, array $params = [], string $glue = "AND")
- * @method Query createTable(string $table, array $columns, string $options = null)
+ * @method Query createTable(string $table, array $columns, $pk = null, string $options = null)
  */
 abstract class ConnectionBase extends Object
 {
@@ -111,7 +111,7 @@ abstract class ConnectionBase extends Object
             $this->createPDOInstance();
             $this->initConnection();
         } catch(PDOException $e) {
-            throw new SQLException($e->getMessage(), $e->getCode(), $e);
+            throw new SQLException($e->getMessage(), $e->getCode(), null, $e);
         }
     }
 

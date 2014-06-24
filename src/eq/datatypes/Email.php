@@ -2,6 +2,8 @@
 
 namespace eq\datatypes;
 
+use eq\db\Schema;
+
 class Email extends Str
 {
 
@@ -15,9 +17,9 @@ class Email extends Str
         return self::validate($value);
     }
 
-    public static function sqlType($engine = null)
+    public static function sqlType()
     {
-        return "VARCHAR(1024)";
+        return Schema::TYPE_SMALLSTRING;
     }
 
 }
