@@ -1,13 +1,10 @@
 <?php
-/**
- * Last Change: 2014 Apr 04, 00:24
- */
 
 namespace eq\models;
 
 use eq\web\IIdentity;
 
-class Users implements IIdentity
+class User implements IIdentity
 {
 
     public function isAuth()

@@ -25,7 +25,7 @@ use eq\web\IIdentity;
  * @property string login_field_name
  * @property string login_field_value
  */
-class Users extends Model implements IIdentity
+class User extends Model implements IIdentity
 {
 
     use TModuleClass;
@@ -306,7 +306,7 @@ class Users extends Model implements IIdentity
     protected function scenarioRegister()
     {
         $use_invite = $this->module->config("use_invite", false);
-        $invite = $use_invite ? new Invites() : null;
+        $invite = $use_invite ? new Invite() : null;
         $pass = "";
         $this->bind("afterApply", function() {
             $this->unbind("afterApply");

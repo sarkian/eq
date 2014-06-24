@@ -1,11 +1,10 @@
 <?php
-/**
- * Last Change: 2014 Apr 19, 18:06
- */
 
 namespace eq\modules\user\models;
 
-class Invites extends \eq\data\Model
+use eq\data\Model;
+
+class Invite extends Model
 {
 
     public function getFields()

@@ -31,7 +31,7 @@ class UserModule extends ModuleBase
     public function getComponents()
     {
         return [
-            'user' => 'eq\modules\user\models\Users',
+            'user' => 'eq\modules\user\models\User',
         ];
     }
 

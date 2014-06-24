@@ -71,7 +71,7 @@ abstract class Model extends Object
      * @param string $scenario
      * @return $this
      */
-    public static function instance($scenario = null)
+    public static function i($scenario = null)
     {
         $cname = get_called_class();
         return new $cname($scenario);
@@ -527,7 +527,7 @@ abstract class Model extends Object
         $pk = isset($cols[$this->pk]) ? $this->pk : null;
         $this->db->createTable($this->table_name, $cols, $pk)->execute();
     }
-
+    
     protected function fieldsByAttr($attr, $value = null)
     {
         $fields = [];

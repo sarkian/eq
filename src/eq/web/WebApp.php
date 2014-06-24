@@ -11,7 +11,7 @@ use eq\controllers\DebugController;
 use eq\controllers\ErrorsController;
 use eq\data\Model;
 use eq\modules\navigation\NavigationComponent;
-use eq\modules\user\models\Users;
+use eq\modules\user\models\User;
 use eq\php\ErrorException;
 use eq\base\UncaughtExceptionException;
 use eq\base\ComponentException;
@@ -31,7 +31,7 @@ defined("EQ_ASSETS_DBG") or define("EQ_ASSETS_DBG", EQ_DBG);
  * @property Session session
  * @property Header header
  * @property Cookie cookie
- * @property IIdentity|Model|Users user
+ * @property IIdentity|Model|User user
  * @property array route_files
  * @property string controller_name
  * @property string action_name
@@ -277,9 +277,9 @@ final class WebApp extends AppBase
 
     protected function defaultComponents()
     {
-        $user_class = $this->app_namespace.'\models\Users';
+        $user_class = $this->app_namespace.'\models\User';
         if(!Loader::classExists($user_class))
-            $user_class = 'eq\models\Users';
+            $user_class = 'eq\models\User';
         if(!isset(class_implements($user_class)['eq\web\IIdentity']))
             throw new ComponentException('User class must be implements eq\web\IIdentity');
         return array_merge(parent::defaultComponents(), [
