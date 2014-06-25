@@ -52,7 +52,6 @@ abstract class AppBase extends ModuleAbstract
 
     protected $_config;
     protected $_original_config;
-//    protected $_changed_config = [];
     protected $_app_namespace;
     protected $_components = [];
     protected $_exception;
@@ -310,18 +309,35 @@ abstract class AppBase extends ModuleAbstract
 
     public function config($key = null, $default = null)
     {
-//        if(!is_null($key) && isset($this->_changed_config[$key]))
-//            return $this->_changed_config[$key];
-//        else
-            return Arr::getItem($this->_config, $key, $default);
+        return Arr::getItem($this->_config, $key, $default);
     }
 
     public function configWrite($key, $value)
     {
         if(!$this->configAccessWrite($key))
             return false;
-//        $this->_changed_config[$key] = $value;
         Arr::setItem($this->_config, $key, $value);
+        return true;
+    }
+
+    public function configSave($key, $value)
+    {
+        if(!$this->configWrite($key, $value)) {
+            self::warn("Trying to save read-only config value: $key");
+            return false;
+        }
+        $this->trigger("config.save", $key, $value);
+        return true;
+    }
+
+    public function configRemove($key)
+    {
+        if(!$this->configAccessWrite($key)) {
+            self::warn("Trying to unset read-only config value: $key");
+            return false;
+        }
+        Arr::unsetItem($this->_config, $key);
+        $this->trigger("config.remove", $key);
         return true;
     }
 
@@ -492,6 +508,7 @@ abstract class AppBase extends ModuleAbstract
     {
         return EQ_RECOVERY ? [] : [
             'modules.*' => "all",
+            'app.*' => "all",
             'site.*' => "all",
         ];
     }

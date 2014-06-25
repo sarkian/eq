@@ -48,6 +48,8 @@ class DbconfigModule extends ModuleBase
             $this->data[$name] = $value;
             EQ::app()->configWrite($name, $value);
         }
+        EQ::app()->bind("config.save", [$this, "set"]);
+        EQ::app()->bind("config.remove", [$this, "remove"]);
         EQ::app()->bind("shutdown", [$this, "commit"]);
     }
 

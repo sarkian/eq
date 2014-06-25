@@ -68,6 +68,7 @@ final class WebApp extends AppBase
     {
         return EQ_RECOVERY ? [] : [
             'modules.*' => "all",
+            'app.*' => "all",
             'site.*' => "all",
         ];
     }
