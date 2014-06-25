@@ -13,6 +13,8 @@ class SQLException extends ExceptionBase
     {
         if($query)
             $message .= "; Query: $query";
+        if(is_string($code) && preg_match("/^[0-9]+$/", $code))
+            $code = (int) $code;
         parent::__construct($message, $code, $exception);
     }
 

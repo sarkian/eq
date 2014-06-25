@@ -2,7 +2,7 @@
 
 namespace eq\modules\user\models;
 
-use eq\data\Model;
+use eq\orm\Model;
 
 class Invite extends Model
 {

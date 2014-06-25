@@ -3,7 +3,6 @@
 namespace eq\db;
 
 use EQ;
-use eq\datatypes\DataTypeBase;
 use PDO;
 use PDOException;
 
@@ -106,7 +105,7 @@ class Query
             else
                 $cols[] = "\t".$type;
         }
-        if($pk)
+        if($pk && !in_array(Schema::TYPE_PK, $columns) && !in_array(Schema::TYPE_BIGPK, $columns))
             $cols[] = "\tPRIMARY KEY (".$this->db->schema->quoteColumnName($pk).")";
         $sql = "CREATE TABLE IF NOT EXISTS ".$this->db->schema->quoteTableName($table)
             ."(\n".implode(",\n", $cols)."\n)";

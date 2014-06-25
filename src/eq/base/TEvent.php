@@ -2,26 +2,25 @@
 
 namespace eq\base;
 
-use EQ;
-
 trait TEvent
 {
 
-    protected $events = [];
-    protected $triggered = [];
-    protected $disabled_events = [];
+    private $_events = [];
+    private $_triggered = [];
+    private $_disabled_events = [];
+    private $_save_events = true;
 
     public function bind($events, $callable)
     {
         if(!is_array($events))
             $events = [$events];
         foreach($events as $event) {
-            if(!isset($this->events[$event]))
-                $this->events[$event] = [];
+            if(!isset($this->_events[$event]))
+                $this->_events[$event] = [];
             if(!is_callable($callable))
                 throw new AppException("Argument is not callable");
-            if(!in_array($callable, $this->events[$event]))
-                $this->events[$event][] = $callable;
+            if(!in_array($callable, $this->_events[$event]))
+                $this->_events[$event][] = $callable;
         }
         return $this;
     }
@@ -32,12 +31,12 @@ trait TEvent
             $events = [$events];
         foreach($events as $event) {
             if($callable) {
-                $key = array_search($callable, $this->events[$event]);
+                $key = array_search($callable, $this->_events[$event]);
                 if($key !== false)
-                    unset($this->events[$event][$key]);
+                    unset($this->_events[$event][$key]);
             }
         else
-            $this->events[$event] = [];
+            $this->_events[$event] = [];
         }
         return $this;
     }
@@ -55,16 +54,16 @@ trait TEvent
         if(!is_array($args) || count($fargs) > 2)
             $args = array_slice($fargs, 1);
         foreach($events as $event) {
-            if(!EQ_DAEMON)
-                $this->triggered[$event][] = $args;
-            if(!isset($this->events[$event]))
+            if($this->_saveEvents())
+                $this->_triggered[$event][] = $args;
+            if(!isset($this->_events[$event]))
                 continue;
-            $key = array_search($event, $this->disabled_events);
+            $key = array_search($event, $this->_disabled_events);
             if($key !== false) {
-                unset($this->disabled_events[$key]);
+                unset($this->_disabled_events[$key]);
                 continue;
             }
-            $callbacks = $this->events[$event];
+            $callbacks = $this->_events[$event];
             $method = "on".ucfirst($event);
             if(method_exists($this, $method))
                 $this->{$method}();
@@ -79,11 +78,17 @@ trait TEvent
         if(!is_array($events))
             $events = [$events];
         foreach($events as $event) {
-            if(!isset($this->triggered[$event]) || !is_array($this->triggered[$event]))
+            if(!isset($this->_triggered[$event]) || !is_array($this->_triggered[$event]))
                 continue;
-            foreach($this->triggered[$event] as $args)
+            foreach($this->_triggered[$event] as $args)
                 call_user_func_array($callback, $args);
         }
+    }
+
+    public function switchSaveEvents($value)
+    {
+        $this->_save_events = (bool) $value;
+        $this->_triggered = [];
     }
 
     public function disableEvents($events)
@@ -91,9 +96,14 @@ trait TEvent
         if(!is_array($events))
             $events = [$events];
         foreach($events as $event)
-            if(!in_array($event, $this->disabled_events))
-                $this->disabled_events[] = $event;
+            if(!in_array($event, $this->_disabled_events))
+                $this->_disabled_events[] = $event;
         return $this;
+    }
+
+    protected function _saveEvents()
+    {
+        return $this->_save_events;
     }
 
 }

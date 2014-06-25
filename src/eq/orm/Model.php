@@ -1,10 +1,11 @@
 <?php
 
-namespace eq\data;
+namespace eq\orm;
 
 use EQ;
 use eq\base\InvalidCallException;
 use eq\base\InvalidParamException;
+use eq\base\Loader;
 use eq\base\Object;
 use eq\base\TEvent;
 use eq\base\UnknownPropertyException;
@@ -69,12 +70,76 @@ abstract class Model extends Object
 
     /**
      * @param string $scenario
-     * @return $this
+     * @return static
      */
     public static function i($scenario = null)
     {
         $cname = get_called_class();
         return new $cname($scenario);
+    }
+
+    /**
+     * @param array $data
+     * @param string $scenario
+     * @return Provider
+     */
+    public static function createProvider($data = [], $scenario = null)
+    {
+        $cname = get_called_class();
+        $ns = explode('\\', $cname);
+        $cbasename = array_pop($ns)."Provider";
+        $subns = array_pop($ns);
+        $ns_arr = $subns === "models" ? ["providers", $cbasename] : [$subns, $cbasename];
+        $pname = implode('\\', array_diff(array_merge($ns, $ns_arr), [null]));
+        Loader::classExists($pname) or $pname = 'eq\orm\Provider';
+        return new $pname($data, $cname, $scenario);
+    }
+
+    /**
+     * @param mixed $condition
+     * @return static
+     */
+    public static function find($condition)
+    {
+        return self::i()->load($condition);
+    }
+
+    /**
+     * @param mixed $condition
+     * @param array|object $data
+     * @param bool $save
+     * @return static
+     * @throws \eq\db\DbException
+     */
+    public static function findOrCreate($condition, $data = [], $save = false)
+    {
+        $model = self::i();
+        if($model->load($condition))
+            return $model;
+        $model->apply($data);
+        if($save)
+            $model->save();
+        return $model;
+    }
+
+    public static function findAll($condition, $params = [])
+    {
+        $model = self::i();
+        $res = $model->executeQuery($model->db->select($model->loaded_fieldnames)
+            ->from($model->table_name)->where($condition, $params));
+        return self::createProvider($res->fetchAll());
+    }
+
+    public static function count($condition, $params = [])
+    {
+        $model = self::i();
+        return (int) $model->executeQuery($model->db->select("COUNT(*)")
+            ->from($model->table_name)->where($condition, $params))->fetchColumn();
+    }
+
+    public static function exists($condition, $params = [])
+    {
+        return (bool) self::count($condition, $params);
     }
 
     public function __get($name)
@@ -133,7 +198,7 @@ abstract class Model extends Object
 
     public function getTableName()
     {
-        return Str::method2var(Str::classBasename(get_called_class()));
+        return Str::method2var(Str::classBasename(get_called_class()))."s";
     }
 
     public function getPk()
@@ -219,25 +284,17 @@ abstract class Model extends Object
         return $this;
     }
 
-    public function exists($condition)
-    {
-        return (bool) $this->count($condition);
-    }
-
-    public function count($condition)
-    {
-        $condition = $this->processLoadCondition($condition);
-        $res = $this->executeQuery(
-            $this->db->select("COUNT(*)")->from($this->table_name)->where($condition)
-        );
-        return (int) $res->fetchColumn();
-    }
-
     public function apply($data)
     {
         $this->trigger("beforeApply", [$data]);
-        if(isset($data[0]))
-            $data = array_combine($this->fieldnames, $data);
+        if(isset($data[0])) {
+            $fields = $this->fieldnames;
+            if(count($data) < count($fields))
+                $fields = array_slice($fields, 0, count($data));
+            elseif(count($data) > count($fields))
+                $data = array_slice($data, 0, count($fields));
+            $data = array_combine($fields, $data);
+        }
         foreach($data as $name => $value) {
             if(isset($this->fields[$name]) && $this->isChange($name)) {
                 $this->setChanged($name);
@@ -245,6 +302,16 @@ abstract class Model extends Object
             }
         }
         $this->trigger("afterApply", [$data]);
+        return $this;
+    }
+
+    public function applyLoaded($data)
+    {
+        foreach($data as $name => $value) {
+            if(isset($this->fields[$name]) && $this->isLoad($name))
+                $this->data[$name] = $this->loaded_data[$name] = $this->typeFromDb($name, $value);
+        }
+        $this->changed_fields = [];
         return $this;
     }
 
@@ -568,9 +635,10 @@ abstract class Model extends Object
             unset($this->changed_fields[$key]);
     }
 
-    protected function isChanged($field)
+    public function isChanged($field = null)
     {
-        return in_array($field, $this->changed_fields);
+        return $field === null
+            ? (bool) count($this->changed_fields) : in_array($field, $this->changed_fields);
     }
 
     public function currentRules($type = null, $default = [])
@@ -635,8 +703,13 @@ abstract class Model extends Object
                     $data['sql'] = $field[1];
                 return $data;
             }
-            else
+            else {
+                if(!isset($field['load']))
+                    $field['load'] = true;
+                if(!isset($field['save']))
+                    $field['save'] = true;
                 return $field;
+            }
         }
         else
             return [
@@ -645,6 +718,11 @@ abstract class Model extends Object
                 'save' => true,
                 'show' => $field === $this->pk ? false : true,
             ];
+    }
+
+    protected function _saveEvents()
+    {
+        return false;
     }
 
 }

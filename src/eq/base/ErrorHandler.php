@@ -96,7 +96,9 @@ class ErrorHandler
         if(defined("EQ_DBG") && EQ_DBG)
             ini_set("display_errors", 1);
         $err = error_get_last();
-        if($err['type'] === E_ERROR) {
+        if(!$err)
+            return;
+        if($err['type'] & (E_ERROR|E_PARSE|E_CORE_ERROR|E_COMPILE_ERROR)) {
             if(\EQ::app()) {
                 \EQ::app()->trigger("error", $err['message'], $err['file'], $err['line']);
                 \EQ::app()->processFatalError($err);

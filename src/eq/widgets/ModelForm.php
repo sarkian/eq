@@ -4,7 +4,7 @@ namespace eq\widgets;
 
 use EQ;
 use eq\base\TObject;
-use eq\data\Model;
+use eq\orm\Model;
 use eq\helpers\Str;
 
 class ModelForm extends FormBase

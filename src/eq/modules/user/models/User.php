@@ -4,7 +4,7 @@ namespace eq\modules\user\models;
 
 use EQ;
 use eq\base\TModuleClass;
-use eq\data\Model;
+use eq\orm\Model;
 use eq\modules\user\UserModule;
 use eq\web\IIdentity;
 

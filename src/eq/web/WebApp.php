@@ -9,7 +9,7 @@ use eq\base\LoaderException;
 use eq\base\ModuleBase;
 use eq\controllers\DebugController;
 use eq\controllers\ErrorsController;
-use eq\data\Model;
+use eq\orm\Model;
 use eq\modules\navigation\NavigationComponent;
 use eq\modules\user\models\User;
 use eq\php\ErrorException;

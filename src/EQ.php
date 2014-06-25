@@ -5,7 +5,6 @@ define("OS_WIN", strstr(PHP_OS, "WIN") ? true : false);
 define("EQROOT", realpath(__DIR__."/.."));
 
 defined("EQ_RECOVERY") or define("EQ_RECOVERY", false);
-defined("EQ_DAEMON") or define("EQ_DAEMON", false);
 
 defined("EQ_DBG") or define("EQ_DBG", true);
 defined("EQ_WARNING") or define("EQ_WARNING", EQ_DBG);

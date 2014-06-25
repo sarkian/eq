@@ -106,6 +106,7 @@ abstract class AppBase extends ModuleAbstract
         catch(Exception $ue) {
             $this->processUncaughtException($ue);
         }
+        $this->switchSaveEvents(false);
     }
 
     /**

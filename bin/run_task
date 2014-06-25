@@ -12,8 +12,6 @@ $config = unserialize(file_get_contents($config_file));
 if(!is_array($config))
     die("Cant load config file: ".$config_file."\n");
 
-define("EQ_DAEMON", true);
-
 require_once __DIR__."/../src/EQ.php";
 
 EQ::init(realpath(dirname($config_file)."/.."));
