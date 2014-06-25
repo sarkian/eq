@@ -1,11 +1,9 @@
 <?php
-/**
- * Last Change: 2014 Apr 09, 02:43
- */
 
 namespace eq\web;
 
 use EQ;
+use eq\helpers\Arr;
 
 class Cookie implements \ArrayAccess
 {
@@ -25,7 +23,7 @@ class Cookie implements \ArrayAccess
                 $cookie['value'],
                 $cookie['expire'],
                 $cookie['path'],
-                $this->host,
+                $cookie['domain'],
                 $cookie['secure'],
                 $cookie['httponly']
             );
@@ -74,36 +72,39 @@ class Cookie implements \ArrayAccess
         $this->delete($name);
     }
 
-    public function call($name, $value = null, $expire = null,
-                        $path = "/", $secure = null, $httponly = false)
+    public function call($name, $value = null, $options = [])
     {
-        if(is_null($value))
+        if($value === null)
             return isset($_COOKIE[$name]) ? $_COOKIE[$name] : null;
-        if(is_null($expire))
-            $expire = EQ::app()->time() + 91454400;
-        if(is_null($secure))
-            $secure = $this->scheme === "https" ? true : false;
-        $this->cookies[$name] = [
-            'value' => $value,
-            'expire' => $expire,
-            'path' => $path,
-            'secure' => $secure,
-            'httponly' => $httponly,
-        ];
+        $options = Arr::extend($options, [
+            'expire' => EQ::app()->time() + 91454400,
+            'domain' => EQ::app()->request->host,
+            'path' => "/",
+            'secure' => EQ::app()->request->scheme === "https" ? true : false,
+            'httponly' => true,
+        ]);
+        $options['value'] = $value;
+        $this->cookies[$name] = $options;
+        return null;
     }
 
-    public function delete($name = null)
+    public function delete($name = null, $options = [])
     {
         if(!$name) {
             foreach($_COOKIE as $name => $value)
-                $this->deleteCookie($name);
+                $this->delete($name);
         }
-        else
-            $this->cookies[$name] = [
-                'value' => null,
-                'expire' => EQ::app()->time() - 91454400,
+        else {
+            $options = Arr::extend($options, [
+                'domain' => EQ::app()->request->host,
                 'path' => "/",
-            ];
+                'secure' => EQ::app()->request->scheme === "https" ? true : false,
+                'httponly' => true,
+            ]);
+            $options['value'] = false;
+            $options['expire'] = null;
+            $this->cookies[$name] = $options;
+        }
     }
 
 }

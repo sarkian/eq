@@ -40,7 +40,7 @@ class I18nModule extends ModuleBase
         $locale = EQ::app()->cookie->_locale;
         if(!$this->localeEnabled($locale)) {
             $locale = $this->default_locale;
-            EQ::app()->cookie->_locale = $locale;
+            EQ::app()->cookie("_locale", $locale, ['httponly' => false]);
         }
         EQ::app()->setLocale($locale);
         EQ::app()->bind("jsdata.register", function(Jsdata $jsdata) {
