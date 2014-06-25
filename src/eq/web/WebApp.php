@@ -70,6 +70,7 @@ final class WebApp extends AppBase
             'modules.*' => "all",
             'app.*' => "all",
             'site.*' => "all",
+            'var.*' => "all",
         ];
     }
 

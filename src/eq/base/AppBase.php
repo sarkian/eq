@@ -333,7 +333,7 @@ abstract class AppBase extends ModuleAbstract
     public function configRemove($key)
     {
         if(!$this->configAccessWrite($key)) {
-            self::warn("Trying to unset read-only config value: $key");
+            self::warn("Trying to remove read-only config value: $key");
             return false;
         }
         Arr::unsetItem($this->_config, $key);
@@ -458,7 +458,8 @@ abstract class AppBase extends ModuleAbstract
     public static function todo($msg)
     {
         // TODO check for repeats
-        \EQ::app()->trigger("todo", $msg);
+        if(EQ_DBG)
+            \EQ::app()->trigger("todo", $msg);
     }
 
     /**
@@ -467,7 +468,8 @@ abstract class AppBase extends ModuleAbstract
     public static function fixme($msg)
     {
         // TODO check for repeats
-        \EQ::app()->trigger("fixme", $msg);
+        if(EQ_DBG)
+            \EQ::app()->trigger("fixme", $msg);
     }
 
     /**
@@ -486,6 +488,21 @@ abstract class AppBase extends ModuleAbstract
             return \EQ::app()->cache->data($name, $value);
     }
 
+    public static function varGet($name, $default = null)
+    {
+        return \EQ::app()->config("var.$name", $default);
+    }
+
+    public static function varSet($name, $value)
+    {
+        return \EQ::app()->configSave("var.$name", $value);
+    }
+
+    public static function varUnset($name)
+    {
+        return \EQ::app()->configRemove("var.$name");
+    }
+
     protected static function systemStaticMethods()
     {
         return [
@@ -500,7 +517,6 @@ abstract class AppBase extends ModuleAbstract
         return [
             't' => function($text) { return $text; },
             'k' => function($key)  { return $key;  },
-            // 'log' => function($msg) {  },
         ];
     }
 
@@ -510,6 +526,7 @@ abstract class AppBase extends ModuleAbstract
             'modules.*' => "all",
             'app.*' => "all",
             'site.*' => "all",
+            'var.*' => "all",
         ];
     }
 
