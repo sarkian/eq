@@ -59,8 +59,8 @@ $trace = method_exists($e, "_getTrace") ? $e->_getTrace() : $e->getTrace();
     <div class="trace-step-code" id="code-first">
         <?= Highlighter::file($e->getFile())
             ->render($e->getLine() - 6, $e->getLine() + 6, $e->getLine()) ?>
-        <div class="gradient-top"></div>
-        <div class="gradient-bottom"></div>
+<!--        <div class="gradient-top"></div>-->
+<!--        <div class="gradient-bottom"></div>-->
     </div>
 </div>
 
@@ -101,8 +101,8 @@ $trace = method_exists($e, "_getTrace") ? $e->_getTrace() : $e->getTrace();
             <div class="trace-step-code<?= $i > 2 ? ' collapsed' : '' ?>" id="code-<?= $i ?>">
                 <?= Highlighter::file($call['file'])
                     ->render($call['line'] - 6, $call['line'] + 6, $call['line']) ?>
-                <div class="gradient-top"></div>
-                <div class="gradient-bottom"></div>
+<!--                <div class="gradient-top"></div>-->
+<!--                <div class="gradient-bottom"></div>-->
             </div>
         <? endif; ?>
     </div>

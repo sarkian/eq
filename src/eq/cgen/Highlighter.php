@@ -77,6 +77,7 @@ class Highlighter
             T_CONTINUE,
             T_ARRAY,
             T_WHILE,
+            T_EVAL,
         ],
         'default' => [
             T_STRING,

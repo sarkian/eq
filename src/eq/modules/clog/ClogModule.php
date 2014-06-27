@@ -222,14 +222,22 @@ class ClogModule extends ModuleBase
                 $this->webAddMsg($type, $msg, $file, $line);
                 break;
             case "task":
-
-//                break;
+                $format = strtolower($this->config("task_log_format", "plain"));
+                if($format === "json")
+                    $this->jsonAddMsg($type, $msg, $file, $line);
+                elseif($format === "console" || $format === "terminal" || $format === "term")
+                    $this->consoleAddMsg($type, $msg, $file, $line);
+                elseif($format === "html")
+                    $this->htmlAddMsg($type, $msg, $file, $line);
+                else
+                    $this->plainAddMsg($type, $msg, $file, $line);
+                break;
             default:
                 $this->consoleAddMsg($type, $msg, $file, $line);
         }
     }
 
-    protected function webAddMsg($type, $msg, $file, $line)
+    protected function webAddMsg($type, array $msg, $file, $line)
     {
         $msg_r = $this->sPrintMsg($type, $msg);
         ob_start();
@@ -242,6 +250,21 @@ class ClogModule extends ModuleBase
             'message_r' => $msg_r,
             'message_d' => $msg_d,
         ];
+    }
+
+    protected function jsonAddMsg($type, array $msg, $file, $line)
+    {
+
+    }
+
+    protected function plainAddMsg($type, array $msg, $file, $line)
+    {
+
+    }
+
+    protected function htmlAddMsg($type, array $msg, $file, $line)
+    {
+
     }
 
     protected function consoleAddMsg($type, array $msg, $file, $line)
@@ -275,7 +298,7 @@ class ClogModule extends ModuleBase
             });
             $message = $location."\n".implode("\n", $message);
         }
-        if($type === "err")
+        if($type === "err" || $type === "warn")
             C::stderr($message);
         else
             C::stdout($message);

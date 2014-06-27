@@ -16,6 +16,7 @@ use Exception;
 use Glip_Binary;
 use Glip_Git;
 
+// TODO: shutdown event
 /**
  * @property string type
  * @property ModuleBase[] available_modules
@@ -877,6 +878,11 @@ abstract class AppBase extends ModuleAbstract
                 $res[$prefix.$name] = $value;
         }
         return $res;
+    }
+
+    public function __destruct()
+    {
+
     }
 
 }
