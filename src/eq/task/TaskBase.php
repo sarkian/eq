@@ -143,7 +143,7 @@ abstract class TaskBase
             case self::R_FORCE:
                 break;
             case self::R_RESTART:
-                self::kill($args);
+                self::kill($args, SIGKILL);
                 break;
             case self::R_QUEUE:
                 $queue = self::getQueue();
@@ -235,16 +235,16 @@ abstract class TaskBase
         return new TaskQueue(self::getQueueFile());
     }
 
-    public static function kill(array $args = [])
+    public static function kill(array $args = [], $sig = SIGINT)
     {
         foreach(self::getRunningPids($args) as $pid)
-            self::killByPid($pid);
+            self::killByPid($pid, $sig);
     }
 
-    public static function killAll()
+    public static function killAll($sig = SIGINT)
     {
         foreach(self::getRunningPidsAll() as $pid)
-            self::killByPid($pid);
+            self::killByPid($pid, $sig);
     }
 
     public static function getRunCommand(array $args = [])
@@ -258,11 +258,21 @@ abstract class TaskBase
         ]);
     }
 
-    protected static function killByPid($pid)
+    public static function getRunFile($pid = null)
     {
-        System::procKill($pid);
+        $cname = get_called_class();
+        $pid or $pid = getmypid();
+        return Path::join([
+            self::getRunDir(),
+            str_replace("\\", ".", $cname).":".$pid,
+        ]);
+    }
+
+    protected static function killByPid($pid, $sig = SIGINT)
+    {
+        posix_kill($pid, $sig);
         $file = self::getRunFile($pid);
-        if(file_exists($file))
+        if(($sig === SIGKILL) && file_exists($file))
             FileSystem::rm($file);
     }
 
@@ -309,16 +319,6 @@ abstract class TaskBase
         catch(FileSystemException $e) {
             return false;
         }
-    }
-
-    protected static function getRunFile($pid = null)
-    {
-        $cname = get_called_class();
-        $pid or $pid = getmypid();
-        return Path::join([
-            self::getRunDir(),
-            str_replace("\\", ".", $cname).":".$pid,
-        ]);
     }
 
     protected static function getQueueFile()

@@ -6,6 +6,8 @@ use eq\base\TObject;
 use eq\cgen\base\docblock\Docblock;
 
 /**
+ * @property Command command
+ * @property string command_class
  * @property Docblock docblock
  * @property string short_description
  * @property ReflectionActionParameter[] parameters
@@ -27,10 +29,20 @@ class ReflectionAction extends \ReflectionMethod
 
     public function __construct($command, $method)
     {
-        $this->command = $command;
+        $this->command = $command instanceof Command ? $command : $command::inst();
         $this->method = $method;
         parent::__construct($this->command, $method);
         $this->docblock = new Docblock($this->getDocComment());
+    }
+
+    public function getCommand()
+    {
+        return $this->command;
+    }
+
+    public function getCommandClass()
+    {
+        return get_class($this->command);
     }
 
     public function getDocblock()

@@ -6,6 +6,7 @@ use EQ;
 use eq\base\AppBase;
 use eq\base\Loader;
 use eq\base\UncaughtExceptionException;
+use eq\cgen\base\docblock\TagList;
 use eq\helpers\Arr;
 use eq\helpers\C;
 use eq\helpers\Console;
@@ -134,6 +135,7 @@ final class ConsoleApp extends AppBase
             $i++;
         }
         try {
+            $this->handleSignal($action);
             return call_user_func_array(
                 [$cmdclass::inst(), $action->name], $params);
         }
@@ -150,8 +152,7 @@ final class ConsoleApp extends AppBase
     public function processFatalError(array $err)
     {
         $this->processException(
-            new ErrorException($err['type'], $err['message'],
-                $err['file'], $err['line'], [])
+            new ErrorException($err['type'], $err['message'], $err['file'], $err['line'], [])
         );
     }
 
@@ -200,7 +201,7 @@ final class ConsoleApp extends AppBase
             new UncaughtExceptionException($e)
         );
     }
-
+    
     protected function scanCommands()
     {
         $this->scanCommandsDir("@appsrc/commands", $this->app_namespace.'\commands');
@@ -332,6 +333,53 @@ final class ConsoleApp extends AppBase
         echo implode("\n\n\n", $out)."\n";
         C::renderOut("\n%d%3{{ ".EQ::powered()."}}%0");
         return 0;
+    }
+
+    protected function handleSignal(ReflectionAction $action)
+    {
+        $signals = [
+            SIGABRT,
+            SIGALRM,
+            SIGBUS,
+            SIGCHLD,
+            SIGCONT,
+            SIGFPE,
+            SIGHUP,
+            SIGILL,
+            SIGINT,
+            SIGQUIT,
+            SIGSEGV,
+            SIGTERM,
+            SIGTSTP,
+            SIGTTIN,
+            SIGTTOU,
+            SIGUSR1,
+            SIGUSR2,
+            SIGPOLL,
+            SIGPROF,
+            SIGSYS,
+            SIGTRAP,
+            SIGURG,
+            SIGVTALRM,
+            SIGXCPU,
+            SIGXFSZ,
+        ];
+        $tags = $action->docblock->tag("signal")->assoc(TagList::A_WFIRST, TagList::A_WSECOND);
+        declare(ticks = 1);
+        foreach($tags as $const => $method) {
+            $signo = constant($const);
+            if(!in_array($signo, $signals, true)) {
+                EQ::warn($action->command_class
+                    ."::".$action->name."(): Unknown or unsupported signal: $const");
+                continue;
+            }
+            if(!is_callable([$action->command, $method])) {
+                EQ::warn($action->command_class
+                    ."::".$action->name."(): Invalid signal handler: $method");
+                continue;
+            }
+            pcntl_signal($signo, [$action->command, $method]);
+        }
     }
 
 }

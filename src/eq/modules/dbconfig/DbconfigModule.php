@@ -67,10 +67,13 @@ class DbconfigModule extends ModuleBase
 
     public function set($name, $value)
     {
-        if(isset($this->data[$name]) && $this->data[$name] !== $value)
+        $k = array_search($name, $this->removed, true);
+        if((isset($this->data[$name]) && $this->data[$name] !== $value) || $k !== false)
             $this->changed[$name] = $value;
         elseif(!isset($this->data[$name]))
             $this->created[$name] = $value;
+        if($k !== false)
+            unset($this->removed[$k]);
         $this->data[$name] = $value;
         EQ::app()->configWrite($name, $value);
     }
@@ -86,6 +89,8 @@ class DbconfigModule extends ModuleBase
             if(!in_array($key, $this->removed))
                 $this->removed[] = $key;
             unset($this->data[$key]);
+            unset($this->changed[$key]);
+            unset($this->created[$key]);
             EQ::app()->configWrite($key, null);
         }
     }

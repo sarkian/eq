@@ -223,7 +223,7 @@ class ClogModule extends ModuleBase
                 break;
             case "task":
 
-                break;
+//                break;
             default:
                 $this->consoleAddMsg($type, $msg, $file, $line);
         }

@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Jan 04, 21:10
- */
 
 namespace eq\helpers;
 
@@ -32,11 +29,6 @@ class System
         if($args[count($args) - 1] === "")
             array_pop($args);
         return $args;
-    }
-
-    public static function procKill($pid)
-    {
-        posix_kill($pid, SIGKILL);
     }
 
 }
