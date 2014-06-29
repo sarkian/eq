@@ -12,7 +12,6 @@ class Bool extends DataTypeBase
 
     public static function validate($value)
     {
-        var_dump($value);
         if(is_bool($value))
             return true;
         if(is_string($value)) {
