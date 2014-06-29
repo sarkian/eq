@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Jan 05, 00:52
- */
 
 namespace eq\task;
 
@@ -19,8 +16,10 @@ class TaskQueue
         if(!file_exists($fname))
             return;
         $data = @unserialize(FileSystem::fgets($fname));
-        if(!is_array($data))
-            return FileSystem::rm($fname);
+        if(!is_array($data)) {
+            FileSystem::rm($fname);
+            return;
+        }
         foreach($data as $task)
             if(is_array($task) && is_array($task['args'])
                 && isset($task['outlog'], $task['errlog']))
@@ -34,7 +33,7 @@ class TaskQueue
             @chmod($this->fname, 0664);
     }
 
-    public function clear($args = [])
+    public function clear(array $args = [])
     {
         array_walk($args, function(&$arg) { $arg = (string) $arg; });
         $to_remove = [];
@@ -55,25 +54,19 @@ class TaskQueue
         return $this;
     }
 
-    public function append($args = [], $outlog = null, $errlog = null)
+    public function append(array $args, array $options)
     {
         array_walk($args, function(&$arg) { $arg = (string) $arg; });
-        array_push($this->data, [
-            'args' => $args,
-            'outlog' => $outlog,
-            'errlog' => $errlog,
-        ]);
+        $options['args'] = $args;
+        array_push($this->data, $options);
         return $this;
     }
 
-    public function prepend($args = [], $outlog = null, $errlog = null)
+    public function prepend(array $args, array $options)
     {
         array_walk($args, function(&$arg) { $arg = (string) $arg; });
-        array_unshift($this->data, [
-            'args' => $args,
-            'outlog' => $outlog,
-            'errlog' => $errlog,
-        ]);
+        $options['args'] = $args;
+        array_unshift($this->data, $options);
         return $this;
     }
 
@@ -87,7 +80,7 @@ class TaskQueue
         return count($this->getTasksAll());
     }
 
-    public function getTasks($args = [])
+    public function getTasks(array $args = [])
     {
         $tasks = [];
         $args = TaskBase::normalizeArgs($args);
@@ -102,7 +95,7 @@ class TaskQueue
         return $this->data;
     }
 
-    public function shift($args = [])
+    public function shift(array $args = [])
     {
         $args = TaskBase::normalizeArgs($args);
         foreach($this->data as $i => $task) {
@@ -115,7 +108,7 @@ class TaskQueue
         return null;
     }
 
-    public function pop($args = [])
+    public function pop(array $args = [])
     {
         $data = array_reverse($this->data);
         $args = TaskBase::normalizeArgs($args);

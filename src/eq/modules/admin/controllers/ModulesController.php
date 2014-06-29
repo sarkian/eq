@@ -24,6 +24,7 @@ class ModulesController extends Controller
         ];
     }
 
+
     public function actionIndex()
     {
         if(EQ::app()->request->isAjax())

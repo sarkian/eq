@@ -80,7 +80,8 @@ class ReflectionAction extends \ReflectionMethod
     {
         $opts = [];
         foreach($this->docblock->tag("option")->wsecondAll() as $name) {
-            $opts[] = $this->getOption($name);
+            if(strlen($name))
+                $opts[] = $this->getOption($name);
         }
         return $opts;
     }

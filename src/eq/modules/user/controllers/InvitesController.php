@@ -19,11 +19,6 @@ class InvitesController extends Controller
         ];
     }
 
-    protected function beforeRender()
-    {
-        AdminAsset::register();
-    }
-
     public function getTemplate()
     {
         return EQ::getAlias("@modules.eq:admin/templates/main.php");

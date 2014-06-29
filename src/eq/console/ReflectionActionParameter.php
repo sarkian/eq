@@ -25,7 +25,8 @@ class ReflectionActionParameter extends \ReflectionParameter
     {
         parent::__construct([$action->class, $action->name], $name);
         $this->action = $action;
-        $this->doctag = $this->action->docblock->tag("param", null, '/^\$'.$name.'\,?$/');
+        $this->doctag = $this->action->docblock->tag(
+            "param", null, '/^\$'.preg_quote($name, "/").'\,?$/');
     }
 
     public function getType()

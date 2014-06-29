@@ -86,6 +86,8 @@ class Shell
         $chars = str_split($command);
         $args = [];
         $arg = "";
+        $prev = "";
+        $pprev = "";
         $f_dquote = false;
         $f_squote = false;
         $f_escape = false;
@@ -126,7 +128,13 @@ class Shell
                     $arg .= $ch;
                 }
                 elseif(strlen($arg)) {
-                    $args[] = $arg;
+                    if($arg !== $prev && ($prev === "'" || $prev === '"'))
+                        $esc = true;
+                    elseif(strlen($arg) === 1)
+                        $esc = $pprev === "\\";
+                    else
+                        $esc = false;
+                    $args[] = [$arg, $esc];
                     $arg = "";
                 }
             }
@@ -143,21 +151,48 @@ class Shell
             }
             else {
                 if($f_escape) {
-                    if(!in_array($ch, self::specialchars()))
+                    if(!in_array($ch, self::specialchars()) || $f_dquote || $f_dquote)
                         $arg .= "\\";
                     $f_escape = false;
                 }
                 $arg .= $ch;
             }
+            $pprev = $prev;
+            $prev = $ch;
         }
         if(!$nothrow && ($f_dquote || $f_squote))
             throw new ShellSyntaxException("Unterminated quoted string: ".$command);
         if($f_escape)
             $arg .= "\\";
-        if(strlen($arg))
-            $args[] = $arg;
+        if(strlen($arg)) {
+            if($arg !== $prev && ($prev === "'" || $prev === '"'))
+                $esc = true;
+            elseif(strlen($arg) === 1)
+                $esc = $pprev === "\\";
+            else
+                $esc = false;
+            $args[] = [$arg, $esc];
+        }
         $comment = trim($comment, " \r\n\t");
         return $args;
+    }
+
+    public static function join(array $args, $comment = "")
+    {
+        $res_args = [];
+        foreach($args as $arg) {
+            if(is_array($arg) && count($arg)) {
+                $a = array_shift($arg);
+                $e = count($arg) ? array_shift($arg) : true;
+                $res_args[] = $e ? self::escapeArg($a) : $a;
+            }
+            elseif(strlen($arg))
+                $res_args[] = self::escapeArg($arg);
+        }
+        $res = implode(" ", $res_args);
+        if(strlen($comment))
+            $res .= " # ".$comment;
+        return $res;
     }
 
     public static function escapeArg($arg)

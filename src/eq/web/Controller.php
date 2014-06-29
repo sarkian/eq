@@ -142,8 +142,8 @@ abstract class Controller
 
     protected function render($view, $view_vars = [])
     {
-        EQ::app()->trigger("beforeRender");
         $this->beforeRender();
+        EQ::app()->trigger("beforeRender");
         self::$__view_vars__ = $view_vars;
         $view_file = $this->findViewFile($view);
         if(!$view_file)

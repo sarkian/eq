@@ -1,7 +1,4 @@
 <?php
-/**
- * Last Change: 2014 Mar 14, 15:00
- */
 
 namespace eq\task;
 
@@ -20,10 +17,20 @@ class TaskApp extends AppBase
 
     protected $argc = 0;
     protected $argv = [];
+    /**
+     * @var string|TaskBase
+     */
+    protected $task_class;
+    protected $task_args;
 
     public function __construct($config)
     {
         parent::__construct($config);
+        $this->argv = Arr::getItem($_SERVER['argv'], []);
+        $this->argc = Arr::getItem($_SERVER['argc'], count($this->argv));
+        $this->task_class = $this->argv[2];
+        $this->task_args = @unserialize($this->argv[3]);
+        is_array($this->task_args) or $this->task_args = [];
     }
 
     public function getArgc()
@@ -38,16 +45,11 @@ class TaskApp extends AppBase
 
     public function run()
     {
-        $this->argv = Arr::getItem($_SERVER['argv'], []);
-        $this->argc = Arr::getItem($_SERVER['argc'], count($this->argv));
-        $task_class = $this->argv[2];
-        $task_args = @unserialize($this->argv[$this->argc - 1]);
-        is_array($task_args) or $task_args = [];
         try {
-            return $this->runTask($task_class, $task_args);
+            return $this->runTask();
         }
         catch(TaskException $e) {
-            Console::stderr($e->getMessage()."\n");
+            Console::stderr($e->getMessage());
             return -1;
         }
         catch(ExceptionBase $e) {
@@ -58,6 +60,18 @@ class TaskApp extends AppBase
             $this->processUncaughtException($ue);
             return -1;
         }
+    }
+
+    public function runAsync()
+    {
+        $task_class = $this->task_class;
+        $task_class::_run($this->task_args, (int) $this->argv[4], [
+            'outlog' => $this->argv[5],
+            'errlog' => $this->argv[6],
+            'append_outlog' => (bool) $this->argv[7],
+            'append_errlog' => (bool) $this->argv[8],
+        ]);
+        return 0;
     }
 
     public function processFatalError(array $err)
@@ -83,13 +97,12 @@ class TaskApp extends AppBase
     }
 
     /**
-     * @param string $task_class
-     * @param $task_args
      * @return int
      * @throws TaskException
      */
-    protected function runTask($task_class, $task_args)
+    protected function runTask()
     {
+        $task_class = $this->task_class;
         if(!Loader::classExists($task_class))
             throw new TaskException("Task class not found: $task_class");
         $task = new $task_class();
@@ -97,7 +110,7 @@ class TaskApp extends AppBase
             throw new TaskException(
                 'Task class must be a subclass of eq\task\TaskBase: '.$task_class);
         $this->handleSignal($task);
-        return $task->runNow($task_args);
+        return $task->runNow($this->task_args);
     }
 
     protected function handleSignal(TaskBase $task)

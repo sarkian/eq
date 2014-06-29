@@ -1,19 +1,19 @@
 #!/usr/bin/env php
 <?php
 
-if($argc < 3)
+if($argc !== 4 && $argc !== 9)
     die("Wrong arguments\n");
 
 $config_file = realpath($argv[1]);
 if(!$config_file)
     die("Config file not found: ".$config_file."\n");
 
-$config = unserialize(file_get_contents($config_file));
+$config = require_once $config_file;
 if(!is_array($config))
     die("Cant load config file: ".$config_file."\n");
 
 require_once __DIR__."/../src/EQ.php";
 
-EQ::init(realpath(dirname($config_file)."/.."));
+EQ::init(realpath(dirname($config_file)));
 $app = new eq\task\TaskApp($config);
-exit($app->run());
+exit($argc === 4 ? $app->run() : $app->runAsync());

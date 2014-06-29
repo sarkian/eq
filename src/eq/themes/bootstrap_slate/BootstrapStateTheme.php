@@ -1,10 +1,10 @@
 <?php
 
-namespace eq\themes\bootstrap;
+namespace eq\themes\bootstrap_slate;
 
-use eq\web\ThemeBase;
+use eq\themes\bootstrap\BootstrapTheme;
 
-class BootstrapTheme extends ThemeBase
+class BootstrapStateTheme extends BootstrapTheme
 {
 
     public function getAssets()
@@ -13,10 +13,10 @@ class BootstrapTheme extends ThemeBase
             "jquery",
             "normalize-css",
             "bootstrap-base",
-//            "bootstrap-theme",
+            "bootstrap-theme-slate",
             "bootstrap-js",
             "eq.base",
         ];
     }
 
-}
+} 

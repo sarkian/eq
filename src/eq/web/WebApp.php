@@ -99,14 +99,19 @@ final class WebApp extends AppBase
      */
     public function getTheme()
     {
-        if(!$this->theme) {
-            $tname = $this->config("web.theme", "bootstrap");
-            $cname = Loader::autofindClass($tname, "themes\\$tname", "Theme");
-            if(!$cname)
-                throw new InvalidParamException("Theme class not found: $tname");
-            $this->theme = new $cname();
-        }
+        if(!$this->theme)
+            $this->setTheme($this->config("site.theme", "bootstrap"));
         return $this->theme;
+    }
+
+    public function setTheme($theme)
+    {
+        if($this->theme)
+            self::warn("Theme changed");
+        $cname = Loader::autofindClass($theme, "themes\\$theme", "Theme");
+        if(!$cname)
+            throw new InvalidParamException("Theme class not found: $theme");
+        $this->theme = new $cname();
     }
 
     public function getControllerName()

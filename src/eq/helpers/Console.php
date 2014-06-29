@@ -230,13 +230,6 @@ class Console
         echo self::seq();
     }
 
-    public static function fmtOption($option, $description,
-                                     $indent = 4, $color = self::FG_GREEN, $pad = 20)
-    {
-        return str_pad(" ", $indent)
-            .self::fmt(str_pad($option, $pad), $color)."  ".$description;
-    }
-
     public static function render($string, $vars = [])
     {
         $vars = self::normalizeArgs(func_get_args());

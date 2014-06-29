@@ -8,6 +8,15 @@ use eq\helpers\Str;
 use eq\helpers\FileSystem;
 use eq\base\Loader;
 
+/**
+ * @property array depends
+ * @property array files
+ * @property array css
+ * @property array js
+ * @property string source_path
+ * @property string base_path
+ * @property string base_url
+ */
 class AssetBundle extends Object
 {
 
@@ -87,7 +96,7 @@ class AssetBundle extends Object
     public static function register($reload = EQ_ASSETS_DBG)
     {
         $class = get_called_class();
-        EQ::app()->client_script->addBundle(new $class());
+        EQ::app()->client_script->addBundle(new $class(), $reload);
     }
 
     public function registerAssets($reload = EQ_ASSETS_DBG)
@@ -103,9 +112,9 @@ class AssetBundle extends Object
             $css[] = $file;
         }
         foreach($this->js as $file) {
-            $pos = ClientScript::POS_HEAD;
+//            $pos = ClientScript::POS_HEAD;
             if(is_array($file)) {
-                $pos = $file[1];
+//                $pos = $file[1];
                 $file = $file[0];
             }
             if(!in_array($file, $files))
@@ -121,7 +130,7 @@ class AssetBundle extends Object
             );
         foreach($js as $file)
             EQ::app()->client_script->addJsFile(
-                EQ::getAlias($this->base_url."/$file"), $pos
+                EQ::getAlias($this->base_url."/$file")//, $pos
             );
         foreach($this->after as $bundle)
             EQ::app()->client_script->addBundle($bundle, $reload);

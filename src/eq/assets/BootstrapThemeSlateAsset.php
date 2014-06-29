@@ -4,7 +4,7 @@ namespace eq\assets;
 
 use eq\web\AssetBundle;
 
-class BootstrapDarklyAsset extends AssetBundle
+class BootstrapThemeSlateAsset extends AssetBundle
 {
 
     protected $source_path = "@eq/src/eq/assets/scripts/bootstrap";
@@ -16,9 +16,7 @@ class BootstrapDarklyAsset extends AssetBundle
     ];
 
     protected $css = [
-        // "css/bootstrap-darkly.min.css",
-        "css/bootstrap-darkly.css",
+        "css/bootstrap-slate.css",
     ];
 
-}
-
+} 

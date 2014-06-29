@@ -2,7 +2,6 @@
 
 namespace eq\modules\cron;
 
-use EQ;
 use eq\helpers\Shell;
 use eq\helpers\FileSystem;
 use eq\task\TaskBase;
@@ -67,29 +66,35 @@ class Crontab
         return $index === false ? false : $this->lines[$index];
     }
 
-    public function addTask($taskname, $time, array $args = [])
+    public function addTask($taskname, $time, array $args = [],
+                                $mode = TaskBase::R_ONCE, array $options = [])
     {
         $cname = $this->taskClass($taskname);
         if($this->getTaskIndex($cname, $args) !== false)
             throw new CrontabException("Task already exists in crontab: $cname");
         $task = new CrontabTask();
         $task->setTime($time);
-        $task->setCommand($cname::getRunCommand($args));
+        $task->command = new CrontabTaskCommand(
+            $cname::getRunAsyncCommand($args, $mode, $options), true);
         $i = count($this->lines);
-        $this->lines[$i] = $task;
-        $this->tasks[] = $i;
+        $this->lines[$i] = "";
+        $this->lines[$i + 1] = "# Added by eq:cron (taskname: $taskname)";
+        $this->lines[$i + 2] = $task;
+        $this->tasks[] = $i + 2;
         return $this;
     }
 
     public function removeTask($taskname, array $args = [])
     {
         $cname = $this->taskClass($taskname);
-        $cmd = new CrontabTaskCommand($cname::getRunCommand($args));
+        $cmd = new CrontabTaskCommand($cname::getRunCommand($args), true);
         $to_remove = [];
         foreach($this->tasks as $i => $index) {
             $task = $this->lines[$index];
             if(!$task->command->equals($cmd))
                 continue;
+            if($index > 0 && !strncmp($this->lines[$index - 1], "#", 1))
+                unset($this->lines[$index - 1]);
             unset($this->lines[$index]);
             $to_remove[] = $i;
         }
@@ -124,13 +129,13 @@ class Crontab
     }
 
     /**
-     * @param TaskBase $cname
+     * @param string|TaskBase $cname
      * @param array $args
      * @return bool
      */
     protected function getTaskIndex($cname, array $args = [])
     {
-        $cmd = new CrontabTaskCommand($cname::getRunCommand($args));
+        $cmd = new CrontabTaskCommand($cname::getRunCommand($args), true);
         foreach($this->tasks as $index) {
             $task = $this->lines[$index];
             if($task->command->equals($cmd))

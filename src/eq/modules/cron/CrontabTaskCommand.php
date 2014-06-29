@@ -5,13 +5,19 @@ namespace eq\modules\cron;
 use eq\helpers\Shell;
 use eq\base\InvalidArgumentException;
 
+/**
+ * @property array args
+ * @property string comment
+ * @property bool origin
+ */
 class CrontabTaskCommand
 {
 
     protected $args = [];
     protected $comment = "";
+    protected $origin = false;
 
-    public function __construct($command = "", $comment = "")
+    public function __construct($command = "", $origin = false)
     {
         if($command) {
             if(is_string($command))
@@ -20,11 +26,7 @@ class CrontabTaskCommand
                 $this->args = $command;
             else
                 throw new InvalidArgumentException("Invalid argument type: ".gettype($command));
-            $comment = trim($comment, " \r\n\t");
-            $comment = preg_replace("/^#/", "", $comment);
-            $comment = ltrim($comment, " \r\n\t");
-            if($comment)
-                $this->comment = $comment;
+            $this->origin = $origin;
         }
     }
 
@@ -38,18 +40,23 @@ class CrontabTaskCommand
         return $this->comment;
     }
 
+    public function getOrigin()
+    {
+        return $this->origin;
+    }
+
     public function __toString()
     {
-        $str = implode(" ", array_map(['eq\helpers\Shell', "escapeArg"], $this->args));
-        if($this->comment)
-            $str .= " # ".$this->comment;
-        return $str;
+        return Shell::join($this->args, $this->comment);
     }
 
     public function equals($cmd)
     {
         $cmd instanceof CrontabTaskCommand or $cmd = new CrontabTaskCommand($cmd);
-        return $cmd->args === $this->args;
+        if(($this->origin && $cmd->origin) || (!$this->origin && !$cmd->origin))
+            return $cmd->args === $this->args;
+        $len = count($this->origin ? $this->args : $cmd->args);
+        return array_slice($this->args, 0, $len) === array_slice($cmd->args, 0, $len);
     }
 
 }

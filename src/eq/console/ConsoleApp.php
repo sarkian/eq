@@ -107,7 +107,7 @@ final class ConsoleApp extends AppBase
                 if(!is_null($val)) {
                     if(!$type::validate($val))
                         return $this->printMessage(
-                            "Invalid option value: ".$opt->name."($val)");
+                            "Invalid option value: ".$opt->name." ($val)");
                     $val = $type::filter($val);
                 }
             }
@@ -253,12 +253,15 @@ final class ConsoleApp extends AppBase
 
     protected function printUsage($err = false)
     {
-        $msg = C::fmt("Usage:", C::FG_YELLOW)."\n    {$this->argv[0]} <command> <action>\n\n".
-            C::fmt("Options:", C::FG_YELLOW)."\n".
-            C::fmtOption("--commands", "Show available commands")."\n".
-            C::fmtOption("--actions <command>", "Show available actions")."\n".
-            C::fmtOption("--pure-print", "Print items through space (for autocomplete)\n").
-            C::render("\n%d%3{{ ".EQ::powered()."}}%0");
+        $msg = C::render(
+            "%yUsage:%0\n".
+            "  %$ <command> <action>\n\n".
+            "%yOptions:%0\n".
+            "  @20{{%g--commands%0 }} Show available commands\n".
+            "  @20{{%g--actions%0 }} Show available actions\n".
+            "  @20{{%g--pure-print%0 }} Print items through space (for autocomplete)\n\n".
+            "%d%3{{ ".EQ::powered()."}}%0",
+            $this->argv[0]);
         return $this->printMessage($msg, $err);
     }
 
@@ -305,26 +308,26 @@ final class ConsoleApp extends AppBase
             ];
             $descr = $action->short_description;
             $descr = $descr ? str_replace("\n", "\n    ", $descr) : "* No description *";
-            $actlines[] = "    ".$descr;
+            $actlines[] = "  ".$descr;
             if($action->parameters) {
-                $lines = [C::fmt("    Parameters:", C::FG_YELLOW)];
+                $lines = [C::fmt("  Parameters:", C::FG_YELLOW)];
                 foreach($action->parameters as $param) {
                     $descr = $param->description;
                     $descr = $descr
-                        ? str_replace("\n", "\n        ", $descr)
+                        ? preg_replace('/\n\s*/', "\n                      ", $descr)
                         : "* No description *";
-                    $lines[] = C::fmtOption($param->name, $descr, 8);
+                    $lines[] = C::render("    @18{{%g%$%0 }}$descr", $param->name);
                 }
                 $actlines[] = implode("\n", $lines);
             }
             if($action->options) {
-                $lines = [C::fmt("    Options:", C::FG_YELLOW)];
+                $lines = [C::fmt("  Options:", C::FG_YELLOW)];
                 foreach($action->options as $opt) {
                     $descr = $opt->description;
                     $descr = $descr
-                        ? str_replace("\n", "\n        ", $descr)
+                        ? preg_replace('/\n\s*/', "\n                      ", $descr)
                         : "* No description *";
-                    $lines[] = C::fmtOption($opt->name, $descr, 8);
+                    $lines[] = C::render("    @18{{%g%$%0 }}$descr", $opt->name);
                 }
                 $actlines[] = implode("\n", $lines);
             }

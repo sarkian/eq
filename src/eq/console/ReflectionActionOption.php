@@ -23,7 +23,7 @@ class ReflectionActionOption
     {
         $this->action = $action;
         $this->name = $name;
-        $this->doctag = $this->action->docblock->tag("option", null, "$".$name);
+        $this->doctag = $this->action->docblock->tag("option", null, '/\$?'.preg_quote($name).'/');
     }
 
     public function getName()

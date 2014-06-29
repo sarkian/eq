@@ -62,8 +62,10 @@ class AdminModule extends ModuleBase
                 $module->addItem("admin", $item);
         });
         EQ::app()->bind("beforeRender", function() {
-            if(!EQ::app()->user->isAdmin())
+            if(!EQ::app()->user->isAdmin() || !$this->isAdminUrl())
                 return;
+            // TODO: Make it configurable
+            EQ::app()->setTheme("bootstrap_darkly");
             AdminAsset::register();
             foreach(self::$removed_modules as $mname) {
                 $message = EQ::k("admin.removedModule", $mname);
@@ -88,6 +90,11 @@ class AdminModule extends ModuleBase
             $this->nav_items[$name]['items'][] = $item;
         else
             $this->nav_items[$name] = $item;
+    }
+
+    protected function isAdminUrl()
+    {
+        return !strncmp(EQ::app()->request->uri, "/admin", 6);
     }
 
 }

@@ -9,8 +9,10 @@ use EQ;
 use eq\base\Loader;
 use eq\base\FileSystemException;
 use eq\base\InvalidParamException;
+use eq\helpers\Arr;
 use eq\helpers\Path;
 use eq\helpers\FileSystem;
+use eq\helpers\Str;
 use eq\helpers\System;
 use eq\helpers\Shell;
 
@@ -106,6 +108,21 @@ abstract class TaskBase
         return is_int($res) ? $res : 0;
     }
 
+    public function taskName()
+    {
+        return Str::method2var(preg_replace("/Task$/", "", Str::classBasename($this)));
+    }
+
+    public function defaultOutLog()
+    {
+        return "@log/".$this->taskName().".out.log";
+    }
+
+    public function defaultErrLog()
+    {
+        return "@log/".$this->taskName().".err.log";
+    }
+
     /**
      * Запускает задачу асинхронно
      *
@@ -115,29 +132,17 @@ abstract class TaskBase
      *
      * @param array $args Аргументы задачи
      * @param int $run Как запускать (см. константы)
-     * @param string $outlog Лог STDOUT
-     * @param string $errlog Лог STDERR
-     * @throws InvalidParamException
+     * @param array $options
+     * @throws \eq\base\InvalidParamException
+     * @throws \eq\base\ShellExecException
      */
-    public static function _run(array $args = [], $run = self::R_ONCE,
-        $outlog = null, $errlog = null)
+    public static function _run(array $args = [], $run = self::R_ONCE, array $options = [])
     {
-        if($outlog) {
-            $outlog = EQ::getAlias($outlog);
-            FileSystem::mkdir(dirname($outlog));
-        }
-        else
-            $outlog = "/dev/null";
-        if($errlog) {
-            $errlog = EQ::getAlias($errlog);
-            FileSystem::mkdir(dirname($errlog));
-        }
-        else
-            $errlog = "&1";
-        $args = self::normalizeArgs($args);
+        $args = static::normalizeArgs($args);
+        $options = static::normalizeOptions($options);
         switch($run) {
             case self::R_ONCE:
-                if(self::runningCount($args))
+                if(static::runningCount($args))
                     return;
                 break;
             case self::R_FORCE:
@@ -146,10 +151,10 @@ abstract class TaskBase
                 self::kill($args, SIGKILL);
                 break;
             case self::R_QUEUE:
-                $queue = self::getQueue();
+                $queue = static::getQueue();
                 if(self::runningCount($args)) {
                     if(!$queue->count($args))
-                        $queue->append($args, $outlog, $errlog)->save();
+                        $queue->append($args, $options)->save();
                     return;
                 }
                 elseif($queue->count($args))
@@ -159,9 +164,7 @@ abstract class TaskBase
                 throw new InvalidParamException(
                     "Parameter 'run' must be one of TaskBase::R_* constants");
         }
-        FileSystem::fputs("@runtime/config.s", serialize(EQ::app()->config()));
-        $cmd = "exec nohup setsid ".self::getRunCommand($args)
-            ." > ".$outlog." 2>".$errlog." &";
+        $cmd = "exec nohup setsid ".self::getFullRunCommand($args, $options)." &";
         Shell::exec($cmd);
     }
 
@@ -183,12 +186,13 @@ abstract class TaskBase
         array_walk($args, function(&$arg) { $arg = (string) $arg; });
         $args_str = serialize($args);
         $pids = [];
+        $my_pid = getmypid();
         foreach($run_files as $file) {
             $fname = explode(":", basename($file), 2);
             if(count($fname) !== 2)
                 continue;
             $pid = (int) $fname[1];
-            if(!$pid)
+            if(!$pid || $pid === $my_pid)
                 continue;
             if(isset($procs[$pid])) {
                 if(self::compareRunFile($file, $pid, $args_str))
@@ -205,12 +209,13 @@ abstract class TaskBase
         $run_files = array_filter(glob(self::getRunFileMask()), "is_file");
         $procs = System::procGetAll();
         $pids = [];
+        $my_pid = getmypid();
         foreach($run_files as $file) {
             $fname = explode(":", basename($file), 2);
             if(count($fname) !== 2)
                 continue;
             $pid = (int) $fname[1];
-            if(!$pid)
+            if(!$pid || $pid === $my_pid)
                 continue;
             if(isset($procs[$pid]))
                 $pids[] = $pid;
@@ -251,11 +256,34 @@ abstract class TaskBase
     {
         return implode(" ", [
             "php",
-            Path::join([EQROOT, "bin", "run_task"]),
-            EQ::getAlias("@runtime/config.s"),
+            Shell::escapeArg(Path::join([EQROOT, "bin", "run_task"])),
+            Shell::escapeArg(EQ::getAlias("@app/config.php")),
             escapeshellarg(get_called_class()),
-            escapeshellarg(serialize($args)),
+            escapeshellarg(serialize(static::normalizeArgs($args))),
         ]);
+    }
+
+    public static function getRunAsyncCommand(array $args = [], $run = self::R_ONCE, $options = [])
+    {
+        $options = static::normalizeOptions($options);
+        return implode(" ", [
+            static::getRunCommand($args),
+            Shell::escapeArg((int) $run),
+            Shell::escapeArg(static::normalizeOutLog($options['outlog'])),
+            Shell::escapeArg(static::normalizeErrLog($options['errlog'])),
+            $options['append_outlog'] ? "1" : "0",
+            $options['append_errlog'] ? "1" : "0",
+        ]);
+    }
+
+    public static function getFullRunCommand(array $args = [], $options = [])
+    {
+        $options = static::normalizeOptions($options);
+        $outlog = Shell::escapeArg(static::normalizeOutLog($options['outlog']));
+        $errlog = Shell::escapeArg(static::normalizeErrLog($options['errlog']));
+        $outop = $options['append_outlog'] ? ">>" : ">";
+        $errop = $options['append_errlog'] ? ">>" : ">";
+        return self::getRunCommand($args)." $outop$outlog 2$errop$errlog";
     }
 
     public static function getRunFile($pid = null)
@@ -266,6 +294,43 @@ abstract class TaskBase
             self::getRunDir(),
             str_replace("\\", ".", $cname).":".$pid,
         ]);
+    }
+
+    protected static function normalizeOutLog($outlog)
+    {
+        if($outlog === null)
+            $outlog = static::instance()->defaultOutLog();
+        $outlog = EQ::getAlias($outlog);
+        $dir = dirname($outlog);
+        if($dir !== ".")
+            FileSystem::mkdir($dir);
+        return $outlog;
+    }
+
+    protected static function normalizeErrLog($errlog)
+    {
+        if($errlog === null)
+            $errlog = static::instance()->defaultErrLog();
+        $errlog = EQ::getAlias($errlog);
+        $dir = dirname($errlog);
+        if($dir !== ".")
+            FileSystem::mkdir($dir);
+        return $errlog;
+    }
+
+    protected static function normalizeOptions($options)
+    {
+        $options = Arr::extend($options, [
+            'outlog' => null,
+            'errlog' => null,
+            'append_outlog' => false,
+            'append_errlog' => false,
+        ]);
+        $options['outlog'] = static::normalizeOutLog($options['outlog']);
+        $options['errlog'] = static::normalizeErrLog($options['errlog']);
+        $options['append_outlog'] = (bool) $options['append_outlog'];
+        $options['append_errlog'] = (bool) $options['append_errlog'];
+        return $options;
     }
 
     protected static function killByPid($pid, $sig = SIGINT)
