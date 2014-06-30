@@ -117,6 +117,8 @@ abstract class Model extends Object
         $model = static::i();
         if($model->load($condition))
             return $model;
+        if(is_array($data) && empty($data) && is_array($condition))
+            $data = $condition;
         $model->apply($data);
         if($save)
             $model->save();
@@ -523,7 +525,10 @@ abstract class Model extends Object
 
     public function fieldDefault($name)
     {
-        return $this->fieldProperty($name, "default");
+        if(!isset($this->fields[$name]))
+            return null;
+        $field = $this->fields[$name];
+        return isset($field['default']) ? $field['default'] : $this->typeDefaultValue($name);
     }
 
     public function fieldSql($name, $default = Schema::TYPE_TINYSTRING)
@@ -603,6 +608,12 @@ abstract class Model extends Object
     {
         $type = $this->fieldType($fieldname);
         return $type::formControlOptions();
+    }
+
+    public function typeDefaultValue($fieldname)
+    {
+        $type = $this->fieldType($fieldname);
+        return $type::defaultValue();
     }
 
     public function createTable()
