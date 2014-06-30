@@ -130,7 +130,7 @@ abstract class Model extends Object
         return self::createProvider($res->fetchAll());
     }
 
-    public static function count($condition, $params = [])
+    public static function count($condition = "1", $params = [])
     {
         $model = self::i();
         return (int) $model->executeQuery($model->db->select("COUNT(*)")
