@@ -257,6 +257,7 @@ abstract class TaskBase
         return implode(" ", [
             "php",
             Shell::escapeArg(Path::join([EQROOT, "bin", "run_task"])),
+            "sync",
             Shell::escapeArg(EQ::getAlias("@app/config.php")),
             escapeshellarg(get_called_class()),
             escapeshellarg(serialize(static::normalizeArgs($args))),
@@ -265,15 +266,30 @@ abstract class TaskBase
 
     public static function getRunAsyncCommand(array $args = [], $run = self::R_ONCE, $options = [])
     {
-        $options = static::normalizeOptions($options);
-        return implode(" ", [
-            static::getRunCommand($args),
-            Shell::escapeArg((int) $run),
-            Shell::escapeArg(static::normalizeOutLog($options['outlog'])),
-            Shell::escapeArg(static::normalizeErrLog($options['errlog'])),
-            $options['append_outlog'] ? "1" : "0",
-            $options['append_errlog'] ? "1" : "0",
+        $options = Arr::extend($options, [
+            'outlog' => null,
+            'errlog' => null,
+            'append_outlog' => false,
+            'append_errlog' => false,
         ]);
+        $cmd = [
+            "php",
+            Shell::escapeArg(Path::join([EQROOT, "bin", "run_task"])),
+            "async",
+            Shell::escapeArg(EQ::getAlias("@app/config.php")),
+            escapeshellarg(get_called_class()),
+            escapeshellarg(serialize(static::normalizeArgs($args))),
+            (int) $run,
+        ];
+        if($options['outlog'] !== null)
+            array_push($cmd, "--outlog", Shell::escapeArg($options['outlog']));
+        if($options['errlog'] !== null)
+            array_push($cmd, "--errlog", Shell::escapeArg($options['errlog']));
+        if($options['append_outlog'])
+            $cmd[] = "--append-outlog";
+        if($options['append_errlog'])
+            $cmd[] = "--append-errlog";
+        return implode(" ", $cmd);
     }
 
     public static function getFullRunCommand(array $args = [], $options = [])

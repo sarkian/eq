@@ -92,7 +92,7 @@ class Crontab
     public function removeTask($taskname, array $args = [])
     {
         $cname = $this->taskClass($taskname);
-        $cmd = new CrontabTaskCommand($cname::getRunCommand($args), true);
+        $cmd = new CrontabTaskCommand($cname::getRunAsyncCommand($args), true);
         $to_remove = [];
         foreach($this->tasks as $i => $index) {
             $task = $this->lines[$index];
@@ -140,7 +140,7 @@ class Crontab
      */
     protected function getTaskIndex($cname, array $args = [])
     {
-        $cmd = new CrontabTaskCommand($cname::getRunCommand($args), true);
+        $cmd = new CrontabTaskCommand($cname::getRunAsyncCommand($args), true);
         foreach($this->tasks as $index) {
             $task = $this->lines[$index];
             if($task->command->equals($cmd))

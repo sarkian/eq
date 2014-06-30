@@ -618,7 +618,10 @@ class Console
                     'height' => $height,
                 ];
         }
-        return self::$size = [80, 24];
+        return self::$size = [
+            'width' => 80,
+            'height' => 24,
+        ];
     }
 
     public static function isWindows()

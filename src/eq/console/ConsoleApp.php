@@ -42,8 +42,8 @@ class ConsoleApp extends AppBase
 
     public function __construct($config)
     {
-        $this->argc = Arr::getItem($_SERVER, "argc", 0);
         $this->argv = Arr::getItem($_SERVER, "argv", []);
+        $this->argc = Arr::getItem($_SERVER, "argc", count($this->argv));
         $this->executable = realpath($this->argv[0]);
         parent::$_app = $this;
         parent::__construct($config);

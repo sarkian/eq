@@ -6,17 +6,26 @@ use eq\base\AppBase;
 use eq\base\ExceptionBase;
 use eq\base\Loader;
 use eq\base\UncaughtExceptionException;
+use eq\console\Args;
 use eq\helpers\Arr;
-use eq\helpers\Console;
+use eq\helpers\C;
 use eq\helpers\FileSystem;
 use eq\php\ErrorException;
 use Exception;
 
+/**
+ * @property Args args
+ * @property int argc
+ * @property array argv
+ * @property string executable
+ */
 class TaskApp extends AppBase
 {
 
     protected $argc = 0;
     protected $argv = [];
+    protected $executable;
+
     /**
      * @var string|TaskBase
      */
@@ -25,12 +34,11 @@ class TaskApp extends AppBase
 
     public function __construct($config)
     {
+        $this->argv = Arr::getItem($_SERVER, "argv", []);
+        $this->argc = Arr::getItem($_SERVER, "argc", count($this->argv));
+        $this->executable = realpath($this->argv[0]);
+        parent::$_app = $this;
         parent::__construct($config);
-        $this->argv = Arr::getItem($_SERVER['argv'], []);
-        $this->argc = Arr::getItem($_SERVER['argc'], count($this->argv));
-        $this->task_class = $this->argv[2];
-        $this->task_args = @unserialize($this->argv[3]);
-        is_array($this->task_args) or $this->task_args = [];
     }
 
     public function getArgc()
@@ -43,14 +51,41 @@ class TaskApp extends AppBase
         return $this->argv;
     }
 
+    public function getExecutable()
+    {
+        return $this->executable;
+    }
+
     public function run()
     {
-        try {
-            return $this->runTask();
-        }
-        catch(TaskException $e) {
-            Console::stderr($e->getMessage());
+        $mode = $this->args->argument(0);
+        if($mode !== "sync" && $mode !== "async") {
+            C::stderr("Invalid argument: mode. Supported values: sync, async");
             return -1;
+        }
+        $this->task_class = $this->args->argument(2);
+        if(!Loader::classExists($this->task_class)) {
+            C::stderr("Task class not found: ".$this->task_class);
+            return -1;
+        }
+        if(!isset(class_parents($this->task_class)['eq\task\TaskBase'])) {
+            C::stderr('Task class must be a subclass of eq\task\TaskBase: '.$this->task_class);
+            return -1;
+        }
+        $this->task_args = @unserialize($this->args->argument(3));
+        if(!is_array($this->task_args)) {
+            C::stderr("Invalid arguments: args. Expected: serialized array");
+            return -1;
+        }
+        return $mode === "sync" ? $this->runSync() : $this->runAsync();
+    }
+
+    protected function runSync()
+    {
+        try {
+            $task = $this->taskInst();
+            $this->handleSignal($task);
+            return $task->runNow($this->task_args);
         }
         catch(ExceptionBase $e) {
             $this->processException($e);
@@ -62,14 +97,24 @@ class TaskApp extends AppBase
         }
     }
 
-    public function runAsync()
+    protected function runAsync()
     {
+        $mode = $this->args->argument(4);
+        if($mode === null) {
+            C::stderr("Missing argument: mode");
+            return -1;
+        }
+        $mode = (int) $mode;
+        if($mode < 0 || $mode > 3) {
+            C::stderr('Invalid argument: mode. See eq\task\TaskBase constants.');
+            return -1;
+        }
         $task_class = $this->task_class;
         $task_class::_run($this->task_args, (int) $this->argv[4], [
-            'outlog' => $this->argv[5],
-            'errlog' => $this->argv[6],
-            'append_outlog' => (bool) $this->argv[7],
-            'append_errlog' => (bool) $this->argv[8],
+            'outlog' => $this->args->option("outlog"),
+            'errlog' => $this->args->option("errlog"),
+            'append_outlog' => $this->args->option("append-outlog", false),
+            'append_errlog' => $this->args->option("append-errlog", false),
         ]);
         return 0;
     }
@@ -97,21 +142,23 @@ class TaskApp extends AppBase
         );
     }
 
-    /**
-     * @return int
-     * @throws TaskException
-     */
-    protected function runTask()
+    protected function systemComponents()
     {
-        $task_class = $this->task_class;
-        if(!Loader::classExists($task_class))
-            throw new TaskException("Task class not found: $task_class");
-        $task = new $task_class();
-        if(!$task instanceof TaskBase)
-            throw new TaskException(
-                'Task class must be a subclass of eq\task\TaskBase: '.$task_class);
-        $this->handleSignal($task);
-        return $task->runNow($this->task_args);
+        return array_merge(parent::systemComponents(), [
+            'args' => [
+                'class' => 'eq\console\Args',
+                'preload' => true,
+            ],
+        ]);
+    }
+
+    /**
+     * @return TaskBase
+     */
+    protected function taskInst()
+    {
+        $cname = $this->task_class;
+        return new $cname();
     }
 
     protected function handleSignal(TaskBase $task)
