@@ -38,7 +38,7 @@ defined("EQ_ASSETS_DBG") or define("EQ_ASSETS_DBG", EQ_DBG);
  * @method void header()
  * @method string|null cookie(string $name, string $value = null, array $options = [])
  */
-final class WebApp extends AppBase
+class WebApp extends AppBase
 {
 
     protected $controller_name;
@@ -209,7 +209,7 @@ final class WebApp extends AppBase
     {
         $this->trigger("exception", $e);
         if(defined('EQ_DBG') && EQ_DBG) {
-            $cname = $this->app_namespace.'\\controllers\\DebugController';
+            $cname = $this->app_namespace.'\controllers\DebugController';
             try {
                 $controller = new $cname();
             }

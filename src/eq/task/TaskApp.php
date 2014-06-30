@@ -84,6 +84,7 @@ class TaskApp extends AppBase
     public function processException(ExceptionBase $e)
     {
         // TODO: Implement
+        $this->trigger("exception", $e);
         echo get_class($e)."\n"
             .$e->getMessage()."\n"
             .$e->getTraceAsString()."\n";

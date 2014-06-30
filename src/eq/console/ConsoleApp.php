@@ -25,7 +25,7 @@ use Exception;
  * @property string action_name
  * @property array action_options
  */
-final class ConsoleApp extends AppBase
+class ConsoleApp extends AppBase
 {
 
     protected $argc;
@@ -158,6 +158,7 @@ final class ConsoleApp extends AppBase
 
     public function processException(ExceptionBase $e)
     {
+        $this->trigger("exception", $e);
         $ns = Str::classNamespace($e);
         if($ns)
             $ns .= "\\";
