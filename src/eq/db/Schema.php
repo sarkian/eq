@@ -3,6 +3,7 @@
 namespace eq\db;
 
 use eq\datatypes\DataTypeBase;
+use PDO;
 
 class Schema
 {
@@ -32,6 +33,22 @@ class Schema
     protected $db;
     protected $type_map = [
 
+    ];
+    protected $pdo_type_map = [
+        self::TYPE_PK           => PDO::PARAM_INT,
+        self::TYPE_BIGPK        => PDO::PARAM_INT,
+        self::TYPE_TINYSTRING   => PDO::PARAM_STR,
+        self::TYPE_SMALLSTRING  => PDO::PARAM_STR,
+        self::TYPE_STRING       => PDO::PARAM_STR,
+        self::TYPE_LONGSTRING   => PDO::PARAM_STR,
+        self::TYPE_TEXT         => PDO::PARAM_STR,
+        self::TYPE_MEDIUMTEXT   => PDO::PARAM_STR,
+        self::TYPE_LONGTEXT     => PDO::PARAM_STR,
+        self::TYPE_SMALLINT     => PDO::PARAM_INT,
+        self::TYPE_INT          => PDO::PARAM_INT,
+        self::TYPE_BIGINT       => PDO::PARAM_INT,
+        self::TYPE_FLOAT        => PDO::PARAM_STR,
+        self::TYPE_BOOL         => PDO::PARAM_BOOL,
     ];
 
     public function __construct(ConnectionBase $db)
@@ -113,6 +130,11 @@ class Schema
         if(!isset($this->type_map[$type]))
             throw new DbException("Unknown SQL type: $type");
         return $this->type_map[$type].$opts;
+    }
+
+    public function bindType($type)
+    {
+        return isset($this->pdo_type_map[$type]) ? $this->pdo_type_map[$type] : PDO::PARAM_STR;
     }
 
 }

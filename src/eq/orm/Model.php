@@ -17,6 +17,7 @@ use eq\db\Query;
 use eq\db\SQLException;
 use eq\helpers\Arr;
 use eq\helpers\Str;
+use PDO;
 
 /**
  * @property array fields
@@ -101,7 +102,7 @@ abstract class Model extends Object
      */
     public static function find($condition)
     {
-        return self::i()->load($condition);
+        return static::i()->load($condition);
     }
 
     /**
@@ -113,7 +114,7 @@ abstract class Model extends Object
      */
     public static function findOrCreate($condition, $data = [], $save = false)
     {
-        $model = self::i();
+        $model = static::i();
         if($model->load($condition))
             return $model;
         $model->apply($data);
@@ -122,24 +123,36 @@ abstract class Model extends Object
         return $model;
     }
 
-    public static function findAll($condition = "1", $params = [])
+    public static function findAll($condition = "1", array $params = [], array $options = [])
     {
-        $model = self::i();
-        $res = $model->executeQuery($model->db->select($model->loaded_fieldnames)
-            ->from($model->table_name)->where($condition, $params));
+        $model = static::i();
+        $res = $model->executeQuery($model->createQuery()->select($model->loaded_fieldnames)
+            ->from($model->table_name)->where($condition, $params)->setOptions($options));
         return self::createProvider($res->fetchAll());
     }
 
-    public static function count($condition = "1", $params = [])
+    public static function count($condition = "1", array $params = [], array $options = [])
     {
-        $model = self::i();
-        return (int) $model->executeQuery($model->db->select("COUNT(*)")
-            ->from($model->table_name)->where($condition, $params))->fetchColumn();
+        $model = static::i();
+        return (int) $model->executeQuery($model->createQuery()->select("COUNT(*)")
+            ->from($model->table_name)->where($condition, $params)
+            ->setOptions($options))->fetchColumn();
     }
 
-    public static function exists($condition, $params = [])
+    public static function exists($condition, array $params = [], array $options = [])
     {
-        return (bool) self::count($condition, $params);
+        return (bool) static::count($condition, $params, $options);
+    }
+
+    public static function selectPks($condition = "1", array $params = [], array $options = [])
+    {
+        $model = static::i();
+        $pks = $model->executeQuery($model->createQuery()->select([$model->pk])
+            ->from($model->table_name)->where($condition, $params)->setOptions($options))
+            ->fetchAll(PDO::FETCH_COLUMN);
+        if(isset($options['cast']) && !$options['cast'])
+            return $pks;
+        return array_map([$model->fieldType($model->pk), "fromDb"], $pks);
     }
 
     public function __get($name)
@@ -270,7 +283,8 @@ abstract class Model extends Object
     {
         $condition = $this->processLoadCondition($condition);
         $res = $this->executeQuery(
-            $this->db->select($this->loaded_fieldnames)->from($this->table_name)->where($condition)
+            $this->createQuery()->select($this->loaded_fieldnames)
+                ->from($this->table_name)->where($condition)
         );
         $data = $res->fetchAll();
         if(!count($data))
@@ -359,7 +373,7 @@ abstract class Model extends Object
                 $condition = "(".$condition.") AND ".$this->pkCondition("<>");
             }
             $res = $this->executeQuery(
-                $this->db->select(array_keys($unique))
+                $this->createQuery()->select(array_keys($unique))
                     ->from($this->table_name)->where($condition, [], "OR")
             );
             foreach($res->fetchAll() as $item) {
@@ -388,11 +402,11 @@ abstract class Model extends Object
         // $this->db->pdo->beginTransaction();
         if($this->loaded_data)
             $res = $this->executeQuery(
-                $this->db->update($this->table_name, $cols)
+                $this->createQuery()->update($this->table_name, $cols)
                     ->where($this->pkCondition())
             );
         else
-            $res = $this->executeQuery($this->db->insert($this->table_name, $cols));
+            $res = $this->executeQuery($this->createQuery()->insert($this->table_name, $cols));
         // $this->db->pdo->commit();
         if($res->rowCount()) {
             $pk = $this->{$this->pk};
@@ -672,6 +686,14 @@ abstract class Model extends Object
     protected function defaultErrorMessage($type, $field)
     {
         return EQ::t(ucfirst($type)." field").": ".$this->fieldLabel($field);
+    }
+
+    protected function createQuery()
+    {
+        $types = [];
+        foreach($this->fieldnames as $name)
+            $types[$name] = $this->fieldSql($name, $this->typeSqlType($name));
+        return $this->db->createQuery()->setBindTypes($types);
     }
 
     protected function executeQuery(Query $query)

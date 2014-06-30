@@ -5,6 +5,7 @@ namespace eq\db;
 use EQ;
 use PDO;
 use PDOException;
+use PDOStatement;
 
 class Query
 {
@@ -19,6 +20,12 @@ class Query
     public function __construct(ConnectionBase $db)
     {
         $this->db = $db;
+    }
+
+    public function setBindTypes(array $types)
+    {
+        $this->bind_types = $types;
+        return $this;
     }
 
     public function select($cols)
@@ -86,6 +93,30 @@ class Query
         $this->addParams($params);
         return $this;
     }
+    
+    public function orderBy($ordering)
+    {
+        $parts = explode(" ", $ordering, 2);
+        $colname = $this->db->schema->quoteColumnName(array_shift($parts));
+        array_unshift($parts, $colname);
+        $this->_query[] = "ORDER BY ".implode(" ", $parts);
+        return $this;
+    }
+
+    public function limit($limit)
+    {
+        $this->_query[] = "LIMIT ".(int) $limit;
+        return $this;
+    }
+
+    public function setOptions(array $options = [])
+    {
+        if(isset($options['order']))
+            $this->orderBy($options['order']);
+        if(isset($options['limit']))
+            $this->limit($options['limit']);
+        return $this;
+    }
 
     public function tableExists($table)
     {
@@ -116,29 +147,32 @@ class Query
     public function execute()
     {
         $stmt = $this->buildStatement();
-        EQ::app()->trigger("dbQuery", $this->db->name, $stmt->queryString);
+        $query = $this->interpolateQuery($stmt->queryString);
+        EQ::app()->trigger("dbQuery", $this->db->name, $query);
         try {
             $stmt->execute();
             $stmt->setFetchMode(PDO::FETCH_ASSOC);
         }
         catch(PDOException $e) {
-            throw new SQLException($e->getMessage(), $e->getCode(), $stmt->queryString, $e);
+            throw new SQLException($e->getMessage(), $e->getCode(), $query, $e);
         }
         return $stmt;
     }
 
-    public function buildStatement($query = null, $params = null)
+    public function buildStatement($query = null, array $params = null)
     {
         $query or $query = implode(" ", $this->_query);
         $query = trim($query, " \r\n\t");
         if(!preg_match("/;$/", $query))
             $query .= ";";
         $stmt = $this->db->pdo->prepare($query);
-        $params !== null or $params = $this->params;
-        foreach($params as $name => $value)
-            $stmt->bindValue(":$name", "$value",
+        if($params !== null)
+            $this->params = $params;
+        foreach($this->params as $name => $value) {
+            $stmt->bindValue(":$name", $value,
                 isset($this->bind_types[$name])
-                    ? $this->bind_types[$name] : PDO::PARAM_STR);
+                    ? $this->db->schema->bindType($this->bind_types[$name]) : PDO::PARAM_STR);
+        }
         return $stmt;
     }
 
@@ -156,6 +190,13 @@ class Query
     protected function addParams($params)
     {
         $this->params = array_merge($this->params, $params);
+    }
+
+    protected function interpolateQuery($query)
+    {
+        foreach($this->params as $name => $value)
+            $query = str_replace(":$name", $this->db->schema->quoteValue($value), $query);
+        return $query;
     }
 
 }
