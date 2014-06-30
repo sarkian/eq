@@ -262,9 +262,16 @@ abstract class Model extends Object
 
     public function getRules()
     {
+        $fields = $this->fields;
+        $pk = $this->pk;
+        if($pk) {
+            $pk_type = $this->fieldSql($pk, $this->typeSqlType($pk));
+            if($pk_type === Schema::TYPE_PK || $pk_type === Schema::TYPE_BIGPK)
+                unset($fields[$pk]);
+        }
         return [
             'default' => [
-                'change' => $this->fieldnames,
+                'change' => array_keys($fields),
             ],
         ];
     }
