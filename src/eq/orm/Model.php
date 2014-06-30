@@ -122,7 +122,7 @@ abstract class Model extends Object
         return $model;
     }
 
-    public static function findAll($condition, $params = [])
+    public static function findAll($condition = "1", $params = [])
     {
         $model = self::i();
         $res = $model->executeQuery($model->db->select($model->loaded_fieldnames)
