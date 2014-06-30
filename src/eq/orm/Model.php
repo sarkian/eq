@@ -425,10 +425,10 @@ abstract class Model extends Object
 
     public function delete()
     {
-        if(!$this->loaded_data)
-            throw new InvalidCallException("Cant delete not loaded model");
+        if(!$this->isLoaded())
+            return false;
         $res = $this->db->delete($this->table_name, $this->pkCondition())->execute();
-        return (bool) $res->rowCount();
+        return $res->rowCount();
     }
 
     public function addError($type, $field)
@@ -653,6 +653,12 @@ abstract class Model extends Object
     {
         return $field === null
             ? (bool) count($this->changed_fields) : in_array($field, $this->changed_fields);
+    }
+
+    public function isLoaded($field = null)
+    {
+        return $field === null
+            ? (bool) count($this->loaded_data) : isset($this->loaded_data[$field]);
     }
 
     public function currentRules($type = null, $default = [])
