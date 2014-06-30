@@ -85,12 +85,12 @@ abstract class DataTypeBase
 
     public static function fromDb($value)
     {
-        return self::cast($value);
+        return static::cast($value);
     }
 
     public static function toDb($value)
     {
-        return self::cast($value);
+        return static::cast($value);
     }
 
     public static function cast($value)

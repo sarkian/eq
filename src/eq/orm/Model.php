@@ -363,10 +363,18 @@ abstract class Model extends Object
     public function validate()
     {
         $this->trigger("beforeValidate");
+        if($this->errors)
+            return;
         $unique = [];
         foreach($this->currentRules("change") as $name) {
             $value = $this->{$name};
-            if($this->isRequired($name) && $this->typeIsEmpty($name, $value))
+            $method = "validate".Str::var2method($name);
+            if(method_exists($this, $method)) {
+                $err = $this->{$method}($value);
+                if(is_string($err) && strlen($err))
+                    $this->addRawError($err, $name);
+            }
+            elseif($this->isRequired($name) && $this->typeIsEmpty($name, $value))
                 $this->addError("required", $name);
             elseif(!$this->typeValidate($name, $value))
                 $this->addError("invalid", $name);
@@ -381,11 +389,11 @@ abstract class Model extends Object
             if($this->loaded_data) {
                 $condition = "(".$condition.") AND ".$this->pkCondition("<>");
             }
-            $res = $this->executeQuery(
+            $err = $this->executeQuery(
                 $this->createQuery()->select(array_keys($unique))
                     ->from($this->table_name)->where($condition, [], "OR")
             );
-            foreach($res->fetchAll() as $item) {
+            foreach($err->fetchAll() as $item) {
                 foreach($item as $iname => $ivalue) {
                     $ivalue = $this->typeFromDb($iname, $ivalue);
                     if($unique[$iname] === $ivalue)
