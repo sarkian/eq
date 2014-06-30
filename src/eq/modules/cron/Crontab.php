@@ -15,6 +15,11 @@ class Crontab
     protected $lines = [];
     protected $tasks = [];
 
+    public static function instance($user = null, $pass = null)
+    {
+        return new Crontab($user, $pass);
+    }
+
     public function __construct($user = null, $pass = null)
     {
         if(is_string($user) && strlen($user) && is_string($pass) && strlen($pass)) {
