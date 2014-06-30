@@ -4,7 +4,7 @@ namespace eq\themes\bootstrap_slate;
 
 use eq\themes\bootstrap\BootstrapTheme;
 
-class BootstrapStateTheme extends BootstrapTheme
+class BootstrapSlateTheme extends BootstrapTheme
 {
 
     public function getAssets()
