@@ -78,6 +78,10 @@ class Highlighter
             T_ARRAY,
             T_WHILE,
             T_EVAL,
+            T_ARRAY_CAST,
+            T_INT_CAST,
+            T_BOOL_CAST,
+            T_DOUBLE_CAST,
         ],
         'default' => [
             T_STRING,
@@ -122,6 +126,7 @@ class Highlighter
             '>',
             '<',
             '@',
+            '|',
         ],
         'string' => [
             T_CONSTANT_ENCAPSED_STRING,

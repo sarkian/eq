@@ -5,7 +5,6 @@ namespace eq\db;
 use EQ;
 use PDO;
 use PDOException;
-use PDOStatement;
 
 class Query
 {
@@ -180,6 +179,8 @@ class Query
     {
         if(!is_array($condition))
             return $condition;
+        if(empty($condition))
+            return "1";
         $res = [];
         foreach($condition as $name => $value)
             $res[] = $this->db->schema->quoteColumnName($name)

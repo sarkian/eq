@@ -93,7 +93,7 @@ class User extends Model implements IIdentity
 
     public function getDbName()
     {
-        return EQ::app()->config("modules.user.db_name", "main");
+        return EQ::app()->config("modules.user.db_name");
     }
 
     public function getTableName()

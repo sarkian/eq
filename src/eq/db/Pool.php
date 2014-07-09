@@ -29,7 +29,7 @@ class Pool extends Object
     {
         if(!$this->connections)
             throw new DbException("Pool is empty");
-        if($name)
+        if($name !== null)
             return $this->__get($name);
         $keys = array_keys($this->connections);
         $key = array_shift($keys);

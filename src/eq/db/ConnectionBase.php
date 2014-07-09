@@ -89,6 +89,14 @@ abstract class ConnectionBase extends Object
         $this->pdo->commit();
     }
 
+    /**
+     * @param string $name
+     * @param array $config
+     * @return ConnectionBase
+     * @throws DbException
+     * @throws \eq\base\InvalidCallException
+     * @throws \eq\base\InvalidConfigException
+     */
     public static function create($name, $config)
     {
         $driver = Arr::getItem($config, "driver", null);

@@ -1,6 +1,6 @@
 <?php
 
-namespace eq\orm;
+namespace eq\data;
 
 use eq\base\InvalidArgumentException;
 use eq\base\InvalidCallException;
@@ -15,8 +15,8 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
     protected $pos = 0;
 
     /**
-     * @param array|Model[] $data
-     * @param string|Model $class_name
+     * @param array|ModelBase[] $data
+     * @param string|ModelBase $class_name
      * @param string $scenario
      * @throws \eq\base\InvalidArgumentException
      * @throws \eq\base\InvalidCallException
@@ -24,7 +24,7 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
     public function __construct(array $data, $class_name = null, $scenario = null)
     {
         /**
-         * @var array|Model[] $data
+         * @var array|ModelBase[] $data
          */
         $data = array_values($data);
         if(!$class_name) {
@@ -37,8 +37,8 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
             $class_name = get_class($item);
             array_unshift($data, $item);
         }
-        if(!is_subclass_of($class_name, 'eq\orm\Model'))
-            throw new InvalidCallException("'$class_name' is not a subclass of eq\\orm\\Model");
+        if(!is_subclass_of($class_name, 'eq\data\ModelBase'))
+            throw new InvalidCallException("'$class_name' is not a subclass of eq\\data\\ModelBase");
         $this->class_name = $class_name;
         $this->scenario = $scenario;
         $this->data = [];
@@ -62,7 +62,7 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * @param mixed $pk
-     * @return Model|null
+     * @return ModelBase|null
      */
     public function byPk($pk)
     {

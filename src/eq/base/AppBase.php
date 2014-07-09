@@ -31,10 +31,12 @@ use Glip_Git;
  * @property string locale
  * @property Cache cache
  * @property Pool db
+ * @property \eq\mongodb\Connection mongodb
  * @method static WidgetBase widget(string $name)
  * @method static string t($token)
  * @method static string k($token)
  * @method ConnectionBase db(string $name = null)
+ * @method \MongoDB mongodb(string $name = null)
  * @property DbconfigModule dbconfig
  */
 abstract class AppBase extends ModuleAbstract
@@ -754,6 +756,10 @@ abstract class AppBase extends ModuleAbstract
             'db' => [
                 'class' => 'eq\db\Pool',
                 'config' => $this->config("db", []),
+            ],
+            'mongodb' => [
+                'class' => 'eq\mongodb\Connection',
+                'config' => $this->config("mongodb", []),
             ],
         ];
     }

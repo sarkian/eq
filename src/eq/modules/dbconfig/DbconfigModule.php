@@ -39,7 +39,7 @@ class DbconfigModule extends ModuleBase
         if(self::$_initialized)
             return;
         self::$_initialized = true;
-        $this->db = EQ::app()->db($this->config("db", "main"));
+        $this->db = EQ::app()->db($this->config("db"));
         $this->table = $this->config("table", "config");
         $data = $this->executeQuery($this->db->select(["name", "value"])->from($this->table))
             ->fetchAll(PDO::FETCH_KEY_PAIR);
