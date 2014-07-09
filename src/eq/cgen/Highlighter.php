@@ -78,10 +78,12 @@ class Highlighter
             T_ARRAY,
             T_WHILE,
             T_EVAL,
+            T_OBJECT_CAST,
             T_ARRAY_CAST,
             T_INT_CAST,
             T_BOOL_CAST,
             T_DOUBLE_CAST,
+            T_EMPTY,
         ],
         'default' => [
             T_STRING,

@@ -49,18 +49,35 @@ class Arr
         return $val;
     }
 
-    public static function setItem(&$src, $key, $value)
+    public static function setItem(&$src, $key, $value, $unique = false)
     {
         $val = &$src;
         $keys = self::keyarr($key);
         if(!$keys)
             throw new InvalidCallException("Invalid key: ".self::keystr($key));
+        $lastkey = array_pop($keys);
+        if(substr($lastkey, -2) === "[]") {
+            $lastkey = substr($lastkey, 0, -2);
+            $la = true;
+        }
+        else
+            $la = false;
+        array_push($keys, $lastkey);
         foreach($keys as $k) {
             if(!isset($val[$k]) || !is_array($val[$k]))
                 $val[$k] = [];
             $val = &$val[$k];
         }
-        $val = $value;
+        if($la)
+            $val[] = $value;
+        else
+            $val = $value;
+        if($unique) {
+            if($la)
+                $val = array_unique($val);
+            else
+                $src = array_unique($src);
+        }
     }
 
     public static function unsetItem(&$src, $key)

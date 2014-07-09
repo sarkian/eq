@@ -12,6 +12,7 @@ use eq\modules\dbconfig\datatypes\Value;
 use PDO;
 
 // TODO: cache
+// TODO: mongodb compatibility
 class DbconfigModule extends ModuleBase
 {
 

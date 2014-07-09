@@ -223,4 +223,21 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
     {
         return count($this->data);
     }
+
+    /**
+     * @return ModelBase|null
+     */
+    public function first()
+    {
+        return $this->data ? $this->data[min(array_keys($this->data))] : null;
+    }
+
+    /**
+     * @return ModelBase|null
+     */
+    public function last()
+    {
+        return $this->data ? $this->data[max(array_keys($this->data))] : null;
+    }
+
 }

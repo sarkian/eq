@@ -123,9 +123,7 @@ abstract class ModelBase extends Object
     {
         if($this->getterExists($name))
             return parent::__get($name);
-        if(!isset($this->fields[$name]))
-            throw new UnknownPropertyException(
-                "Unknown property: " . get_class($this) . "::" . $name);
+        $this->field($name);
         return isset($this->data[$name]) ? $this->data[$name] : $this->fieldDefault($name);
     }
 
@@ -135,9 +133,7 @@ abstract class ModelBase extends Object
             $this->setChanged($name);
             parent::__set($name, $value);
         }
-        if(!isset($this->fields[$name]))
-            throw new UnknownPropertyException(
-                "Setting unknown property: " . get_class($this) . "::" . $name);
+        $this->field($name);
         if(!$this->isChange($name))
             throw new InvalidCallException(
                 "Property is not modifiable on current scenario: "
@@ -150,7 +146,20 @@ abstract class ModelBase extends Object
     {
         if(parent::__isset($name))
             return true;
-        return isset($this->fields[$name]);
+        return $this->field($name, false) === null;
+    }
+
+    public function field($name, $throw = true, $default = null)
+    {
+        if(!isset($this->fields[$name])) {
+            if($throw)
+                throw new UnknownPropertyException(
+                    "Unknown field: ".get_called_class()."::".$name);
+            else
+                return $default;
+        }
+        else
+            return $this->fields[$name];
     }
 
     public function fieldsToSave()
@@ -323,7 +332,7 @@ abstract class ModelBase extends Object
             $data = array_combine($fields, $data);
         }
         foreach($data as $name => $value) {
-            if(isset($this->fields[$name]) && $this->isChange($name)) {
+            if($this->fieldExists($name) && $this->isChange($name)) {
                 $this->setChanged($name);
                 $this->data[$name] = $value;
             }
@@ -335,7 +344,7 @@ abstract class ModelBase extends Object
     public function applyLoaded($data)
     {
         foreach($data as $name => $value) {
-            if(isset($this->fields[$name]) && $this->isLoad($name))
+            if($this->field($name, false) && $this->isLoad($name))
                 $this->data[$name] = $this->loaded_data[$name] = $this->typeFromDb($name, $value);
         }
         $this->changed_fields = [];
@@ -345,7 +354,7 @@ abstract class ModelBase extends Object
     public function applyAll($data)
     {
         foreach($data as $name => $value) {
-            if(isset($this->fields[$name])) {
+            if($this->fieldExists($name)) {
                 $this->setChanged($name);
                 $this->data[$name] = $value;
             }
@@ -441,13 +450,13 @@ abstract class ModelBase extends Object
 
     public function fieldExists($field)
     {
-        return isset($this->fields[$field]);
+        return $this->field($field, false) !== null;
     }
 
     public function fieldLabel($name)
     {
-        if(isset($this->fields[$name])) {
-            $field = $this->normalizeFieldData($this->fields[$name]);
+        if($this->fieldExists($name)) {
+            $field = $this->normalizeFieldData($this->field($name));
             if(isset($field['label']))
                 return $field['label'];
         }
@@ -457,6 +466,12 @@ abstract class ModelBase extends Object
         return ucfirst($name);
     }
 
+    public function fieldTypename($fieldname)
+    {
+        $field = $this->normalizeFieldData($this->field($fieldname));
+        return isset($field['type']) ? $field['type'] : "str";
+    }
+
     /**
      * @param $fieldname
      * @return DataTypeBase|string
@@ -464,11 +479,7 @@ abstract class ModelBase extends Object
      */
     public function fieldType($fieldname)
     {
-        if(!isset($this->fields[$fieldname]))
-            throw new InvalidParamException("Unknown field: $fieldname");
-        $field = $this->normalizeFieldData($this->fields[$fieldname]);
-        $type = isset($field['type']) ? $field['type'] : "str";
-        return DataTypeBase::getClass($type);
+        return DataTypeBase::getClass($this->fieldTypename($fieldname));
     }
 
     public function fieldValue($name, $default = null)
@@ -478,17 +489,17 @@ abstract class ModelBase extends Object
 
     public function fieldDefault($name)
     {
-        if(!isset($this->fields[$name]))
+        if(!$this->fieldExists($name))
             return null;
-        $field = $this->fields[$name];
+        $field = $this->field($name);
         return isset($field['default']) ? $field['default'] : $this->typeDefaultValue($name);
     }
 
     public function fieldProperty($name, $prop, $default = null)
     {
-        if(!isset($this->fields[$name]))
+        if(!$this->fieldExists($name))
             return $default;
-        $field = $this->normalizeFieldData($this->fields[$name]);
+        $field = $this->normalizeFieldData($this->field($name));
         return isset($field[$prop]) ? $field[$prop] : $default;
     }
 

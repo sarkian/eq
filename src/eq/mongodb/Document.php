@@ -5,6 +5,7 @@ namespace eq\mongodb;
 use EQ;
 use eq\data\ModelBase;
 use eq\datatypes\DataTypeBase;
+use eq\helpers\Arr;
 use eq\helpers\Str;
 use MongoId;
 
@@ -82,22 +83,55 @@ abstract class Document extends ModelBase
         return isset($this->data['_id']) ? $this->data['_id'] : $this->__id;
     }
 
-    public function fieldType($fieldname)
+    public function field($name, $throw = true, $default = null)
     {
-        return $fieldname === "_id"
-            ? DataTypeBase::getClass("str") : parent::fieldType($fieldname);
+        return $name === "_id" && !isset($this->fields['_id']) ? [
+            'type' => "str",
+            'default' => null,
+            'save' => false,
+        ] : parent::field($name);
     }
 
     public function typeToDb($fieldname, $value)
     {
-        return $fieldname === "_id"
-            ? (is_object($value) && $value instanceof MongoId ? $value : new MongoId($value))
-            : parent::typeToDb($fieldname, $value);
+        if($fieldname === "_id")
+            return is_object($value) && $value instanceof MongoId ? $value : new MongoId($value);
+        $type = $this->fieldTypename($fieldname);
+        if($type === "arr" || $type === "array")
+            return (array) $value;
+        elseif($type === "obj" || $type === "object")
+            return (object) $value;
+        return parent::typeToDb($fieldname, $value);
+    }
+
+    public function typeFromDb($fieldname, $value)
+    {
+        $type = $this->fieldTypename($fieldname);
+        if($type === "arr" || $type === "array")
+            return (array) $value;
+        elseif($type === "obj" || $type === "object")
+            return (object) $value;
+        return parent::typeFromDb($fieldname, $value);
     }
 
     public function fieldsToSave()
     {
         return $this->saved_fieldnames;
+    }
+    
+    public function itemSet($name, $value, $unique = false)
+    {
+        Arr::setItem($this->data, $name, $value, $unique);
+    }
+
+    public function itemGet($name, $default = null)
+    {
+        return Arr::getItem($this->data, $name, $default);
+    }
+
+    public function itemUnset($name)
+    {
+        Arr::unsetItem($this->data, $name);
     }
 
     protected function insertQuery(array $cols)

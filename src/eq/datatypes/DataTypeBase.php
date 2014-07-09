@@ -41,6 +41,11 @@ abstract class DataTypeBase
             throw new DataTypeException("Data type class not found: $cname");
     }
 
+    public static final function typename()
+    {
+        return Str::method2var(Str::classBasename(get_called_class()));
+    }
+
     public static final function getTypeForValue($val)
     {
         $types = [
@@ -48,6 +53,7 @@ abstract class DataTypeBase
             'integer' => "int",
             'double' => "float",
             'string' => "str",
+            'array' => "arr",
         ];
         $type = gettype($val);
         return isset($types[$type]) ? $types[$type] : "str";

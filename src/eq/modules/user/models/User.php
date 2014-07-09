@@ -9,6 +9,8 @@ use eq\modules\user\UserModule;
 use eq\web\IIdentity;
 
 /**
+ * TODO: mongodb compatibility
+ *
  * @property int id
  * @property string status
  * @property string name
