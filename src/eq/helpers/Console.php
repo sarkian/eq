@@ -169,6 +169,7 @@ class Console
                 return self::seq(self::FG_MAGENTA).$s.self::seq();
             },
             'string_wrapfunc' => function($s, $cn = "") {
+                // TODO: Cyryllic
                 $s = preg_replace_callback('/[\x00-\x1F\x80-\xFF]/', function($m) {
                     return self::seq(self::FG_MAGENTA)
                         .sprintf('\0%o', ord($m[0])).self::seq(self::FG_GREEN);
@@ -186,6 +187,11 @@ class Console
                 return self::seq(self::FG_MAGENTA).$s.self::seq();
             },
         ]);
+    }
+
+    public static function fullDump($var, $indent = 0)
+    {
+        // TODO: Implement
     }
 
     public static function fmtOut($str)
@@ -468,7 +474,7 @@ class Console
 
     public static function escape($str)
     {
-        foreach(['{', '}', '%', '#', '\\'] as $ch)
+        foreach(['\\', '{', '}', '%', '#'] as $ch)
             $str = str_replace($ch, "\\$ch", $str);
         return $str;
     }

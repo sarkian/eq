@@ -12,6 +12,7 @@ use eq\base\UnknownPropertyException;
 use eq\datatypes\DataTypeBase;
 use eq\db\DbException;
 use eq\helpers\Arr;
+use eq\helpers\C;
 use eq\helpers\Str;
 
 /**
@@ -111,8 +112,8 @@ abstract class ModelBase extends Object
         $model = static::i();
         if($model->load($condition))
             return $model;
-        if(is_array($data) && empty($data) && is_array($condition))
-            $data = $condition;
+        if(is_array($data) && empty($data))
+            $data = is_array($condition) ? $condition : [$model->pk => $condition];
         $model->apply($data);
         if($save)
             $model->save();
@@ -133,13 +134,15 @@ abstract class ModelBase extends Object
             $this->setChanged($name);
             parent::__set($name, $value);
         }
-        $this->field($name);
-        if(!$this->isChange($name))
-            throw new InvalidCallException(
-                "Property is not modifiable on current scenario: "
-                . get_class($this) . "::" . $name);
-        $this->setChanged($name);
-        $this->data[$name] = $value;
+        else {
+            $this->field($name);
+            if(!$this->isChange($name))
+                throw new InvalidCallException(
+                    "Property is not modifiable on current scenario: "
+                    .get_class($this)."::".$name);
+            $this->setChanged($name);
+            $this->data[$name] = $value;
+        }
     }
 
     public function __isset($name)
@@ -334,7 +337,10 @@ abstract class ModelBase extends Object
         foreach($data as $name => $value) {
             if($this->fieldExists($name) && $this->isChange($name)) {
                 $this->setChanged($name);
-                $this->data[$name] = $value;
+                if($this->setterExists($name))
+                    parent::__set($name, $value);
+                else
+                    $this->data[$name] = $value;
             }
         }
         $this->trigger("afterApply", [$data]);
@@ -356,7 +362,10 @@ abstract class ModelBase extends Object
         foreach($data as $name => $value) {
             if($this->fieldExists($name)) {
                 $this->setChanged($name);
-                $this->data[$name] = $value;
+                if($this->setterExists($name))
+                    parent::__set($name, $value);
+                else
+                    $this->data[$name] = $value;
             }
         }
         return $this;
@@ -567,6 +576,13 @@ abstract class ModelBase extends Object
     {
         $type = $this->fieldType($fieldname);
         return $type::defaultValue();
+    }
+
+    public function _dump()
+    {
+        // TODO: use fullDump
+        // TODO: dump changed/loaded
+        var_dump($this->data);
     }
 
     protected function validateUnique($fields)

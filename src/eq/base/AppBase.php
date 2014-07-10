@@ -288,6 +288,11 @@ abstract class AppBase extends ModuleAbstract
         return time() + $this->config("system.time_offset", 0);
     }
 
+    public function date($format)
+    {
+        return date($format, $this->time);
+    }
+
     public function setLocale($locale)
     {
         if(function_exists('bindtextdomain')) {

@@ -37,6 +37,7 @@ class Debug
     {
         $default_func = function($s) { return $s; };
         $opts = Arr::extend($opts, [
+            'full' => false,
             'limit' => 64,
             'typename_wrapfunc' => $default_func,   // bool, int, object, etc.
             'operator_wrapfunc' => $default_func,   // brackets, commas
@@ -70,33 +71,41 @@ class Debug
                 break;
             case "string":
                 $cn = "";
-                if(strlen($var) + 10 > $limit) {
+                if(!$opts['full'] && strlen($var) + 10 > $limit) {
                     $var = substr($var, 0, $limit - 13);
                     $cn = "...";
                 }
                 $str = $typename("string").$operator("(").$string($var, $cn).$operator(")");
                 break;
             case "array":
-                $is_cls = isset($var[0]) && (is_object($var[0])
-                    || (is_string($var[0]) && strlen($var[0]) && Loader::classExists($var[0])));
-                if($is_cls && is_callable($var)) {
-                    if(is_object($var[0])) {
-                        $cls_len = strlen(get_class($var[0]))
-                            + 9 + strlen((string) self::getObjectId($var[0]));
-                        $cls_str = $typename("object").$operator("(").$classname(get_class($var[0]))
-                            .$operator(")").$id("#".self::getObjectId($var[0]));
-                    }
-                    else {
-                        $cls_len = strlen($var[0]);
-                        $cls_str = $classname($var[0]);
-                    }
-                    if($cls_len + 4 + strlen($var[1]) <= $limit) {
-                        $str = $operator("[").$cls_str.$operator(", ")
-                            .$string($var[1]).$operator("]");
-                    }
+                if($opts['full']) {
+                    // TODO: Implement
                 }
-                if(!$str)
-                    $str = $typename("array").$operator("(").$number(count($var)).$operator(")");
+                else {
+                    $is_cls = isset($var[0]) && (is_object($var[0])
+                            || (is_string($var[0]) && strlen($var[0])
+                                && Loader::classExists($var[0])));
+                    if($is_cls && is_callable($var)) {
+                        if(is_object($var[0])) {
+                            $cls_len = strlen(get_class($var[0])) + 9 +
+                                strlen((string) self::getObjectId($var[0]));
+                            $cls_str = $typename("object").$operator("(")
+                                .$classname(get_class($var[0]))
+                                .$operator(")").$id("#".self::getObjectId($var[0]));
+                        }
+                        else {
+                            $cls_len = strlen($var[0]);
+                            $cls_str = $classname($var[0]);
+                        }
+                        if($cls_len + 4 + strlen($var[1]) <= $limit) {
+                            $str = $operator("[").$cls_str.$operator(", ")
+                                .$string($var[1]).$operator("]");
+                        }
+                    }
+                    if(!$str)
+                        $str = $typename("array").$operator("(")
+                            .$number(count($var)).$operator(")");
+                }
                 break;
             case "object":
                 $str = $typename("object").$operator("(").$classname(get_class($var))

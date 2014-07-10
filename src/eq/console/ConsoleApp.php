@@ -261,7 +261,7 @@ class ConsoleApp extends AppBase
             "  @20{{%g--commands%0 }} Show available commands\n".
             "  @20{{%g--actions%0 }} Show available actions\n".
             "  @20{{%g--pure-print%0 }} Print items through space (for autocomplete)\n\n".
-            "%d%3{{ ".EQ::powered()."}}%0",
+            "%d{{ ".EQ::powered()."}}%0",
             $this->argv[0]);
         return $this->printMessage($msg, $err);
     }

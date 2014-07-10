@@ -89,7 +89,7 @@ abstract class Document extends ModelBase
             'type' => "str",
             'default' => null,
             'save' => false,
-        ] : parent::field($name);
+        ] : parent::field($name, $throw, $default);
     }
 
     public function typeToDb($fieldname, $value)
