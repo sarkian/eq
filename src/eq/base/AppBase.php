@@ -433,54 +433,66 @@ abstract class AppBase extends ModuleAbstract
 
     /**
      * @param mixed $msg, ...
+     * @return null
      */
     public static function log($msg)
     {
         \EQ::app()->trigger("log", func_get_args());
+        return null;
     }
 
     /**
      * @param mixed $msg, ...
+     * @return null
      */
     public static function warn($msg)
     {
         \EQ::app()->trigger("warn", func_get_args());
+        return null;
     }
 
     /**
      * @param mixed $msg, ...
+     * @return null
      */
     public static function err($msg)
     {
         \EQ::app()->trigger("err", func_get_args());
+        return null;
     }
 
     /**
      * @param string $msg
+     * @return null
      */
     public static function todo($msg)
     {
         // TODO check for repeats
         if(EQ_DBG)
             \EQ::app()->trigger("todo", $msg);
+        return null;
     }
 
     /**
      * @param string $msg
+     * @return null
      */
     public static function fixme($msg)
     {
         // TODO check for repeats
         if(EQ_DBG)
             \EQ::app()->trigger("fixme", $msg);
+        return null;
     }
 
     /**
      * @param mixed $var, ...
+     * @return null
      */
     public static function dump($var)
     {
         \EQ::app()->trigger("dump", func_get_args());
+        return null;
     }
 
     public static function cache($name = null, $value = null)

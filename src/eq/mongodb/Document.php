@@ -101,7 +101,10 @@ abstract class Document extends ModelBase
             return (array) $value;
         elseif($type === "obj" || $type === "object")
             return (object) $value;
-        return parent::typeToDb($fieldname, $value);
+        elseif($type === "bool" || $type === "boolean")
+            return (bool) $value;
+        else
+            return parent::typeToDb($fieldname, $value);
     }
 
     public function typeFromDb($fieldname, $value)
@@ -111,7 +114,10 @@ abstract class Document extends ModelBase
             return (array) $value;
         elseif($type === "obj" || $type === "object")
             return (object) $value;
-        return parent::typeFromDb($fieldname, $value);
+        elseif($type === "bool" || $type === "boolean")
+            return (bool) $value;
+        else
+            return parent::typeFromDb($fieldname, $value);
     }
 
     public function fieldsToSave()
