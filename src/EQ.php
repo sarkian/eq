@@ -36,6 +36,7 @@ abstract class EQ extends \eq\base\AppBase
         self::setAlias("@app", APPROOT);
         self::setAlias("@runtime", APPROOT.DIRECTORY_SEPARATOR."runtime");
         self::setAlias("@log", APPROOT.DIRECTORY_SEPARATOR."log");
+        self::setAlias("@data", APPROOT.DIRECTORY_SEPARATOR."data");
         eq\base\Loader::init([
             EQROOT."/src",
         ], [], APPROOT."/runtime/loader.cache");

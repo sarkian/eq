@@ -2,7 +2,6 @@
 
 namespace eq\data;
 
-use eq\base\InvalidArgumentException;
 use eq\base\InvalidCallException;
 
 class Provider implements \Iterator, \Countable, \ArrayAccess
@@ -29,10 +28,10 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
         $data = array_values($data);
         if(!$class_name) {
             if(!count($data))
-                throw new InvalidArgumentException("Class name must be specified if data is empty");
+                throw new InvalidCallException("Class name must be specified if data is empty");
             $item = array_shift($data);
             if(!is_object($item))
-                throw new InvalidArgumentException(
+                throw new InvalidCallException(
                     "Data must be contains objects if class name not specified");
             $class_name = get_class($item);
             array_unshift($data, $item);

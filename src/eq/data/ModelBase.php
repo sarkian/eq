@@ -156,8 +156,7 @@ abstract class ModelBase extends Object
     {
         if(!isset($this->fields[$name])) {
             if($throw)
-                throw new UnknownPropertyException(
-                    "Unknown field: ".get_called_class()."::".$name);
+                throw new UnknownPropertyException("Unknown field: ".get_called_class()."::".$name);
             else
                 return $default;
         }

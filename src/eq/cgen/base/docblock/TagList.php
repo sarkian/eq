@@ -303,9 +303,9 @@ class TagList extends DocblockAbstract
     public function assoc($keys, $values, $no_rewrite_keys = false)
     {
         if(!is_int($keys) || !isset($this->assoc_methods[$keys]))
-            throw new InvalidArgumentException("Invalid argument: keys");
+            throw new InvalidArgumentException($this, "assoc", "keys", $keys);
         if(!is_int($values) || !isset($this->assoc_methods[$values]))
-            throw new InvalidArgumentException("Invalid argument: values");
+            throw new InvalidArgumentException($this, "assoc", "values", $values);
         $keys_method = $this->assoc_methods[$keys];
         $values_method = $this->assoc_methods[$values];
         $res = [];

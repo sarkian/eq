@@ -130,9 +130,9 @@ class TaskApp extends AppBase
     {
         // TODO: Implement
         $this->trigger("exception", $e);
-        echo get_class($e)."\n"
+        C::stderr(get_class($e)."\n"
             .$e->getMessage()."\n"
-            .$e->getTraceAsString()."\n";
+            .$e->getTraceAsString());
     }
 
     public function processUncaughtException(Exception $e)

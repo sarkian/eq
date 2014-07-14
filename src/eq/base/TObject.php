@@ -46,8 +46,7 @@ trait TObject
             throw new InvalidCallException(
                 "Getting write-only property: ".get_class($this)."::".$name);
         else
-            throw new UnknownPropertyException(
-                "Getting unknown property: ".get_class($this)."::".$name);
+            throw new UnknownPropertyException($this, $name);
     }
 
     public function __set($name, $value)
@@ -59,8 +58,7 @@ trait TObject
             throw new InvalidCallException(
                 "Setting read-only property: ".get_class($this)."::".$name);
         else
-            throw new UnknownPropertyException(
-                "Setting unkown property: ".get_class($this)."::".$name);
+            throw new UnknownPropertyException($this, $name, true);
     }
 
     public function __isset($name)

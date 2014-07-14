@@ -86,8 +86,12 @@ abstract class AppBase extends ModuleAbstract
         self::$_app = $this;
         $this->processConfig($config);
         self::setAlias("@appsrc", APPROOT."/src/".$this->app_namespace);
-        foreach($this->config("system.src_dirs", []) as $dir)
-            Loader::addDir(realpath(self::getAlias($dir)));
+        foreach($this->config("system.src_dirs", []) as $alias => $dir) {
+            $dir = realpath(self::getAlias($dir));
+            if(is_string($alias) && !strncmp($alias, "@", 1))
+                self::setAlias($alias, $dir);
+            Loader::addDir($dir);
+        }
         ErrorHandler::register();
         $this->default_components = $this->defaultComponents();
         static::$default_static_methods = static::defaultStaticMethods();

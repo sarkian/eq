@@ -87,11 +87,12 @@ class Debug
                                 && Loader::classExists($var[0])));
                     if($is_cls && is_callable($var)) {
                         if(is_object($var[0])) {
-                            $cls_len = strlen(get_class($var[0])) + 9 +
-                                strlen((string) self::getObjectId($var[0]));
+                            $cls_len = strlen(get_class($var[0])) + 9;
+//                                + strlen((string) self::getObjectId($var[0]));
                             $cls_str = $typename("object").$operator("(")
                                 .$classname(get_class($var[0]))
-                                .$operator(")").$id("#".self::getObjectId($var[0]));
+                                .$operator(")");
+//                                .$id("#".self::getObjectId($var[0]));
                         }
                         else {
                             $cls_len = strlen($var[0]);
@@ -109,8 +110,9 @@ class Debug
                 break;
             case "object":
                 $str = $typename("object").$operator("(").$classname(get_class($var))
-                    .$operator(")").$id("#".self::getObjectId($var))
-                    .$operator("(").$refcount(self::getObjectRefcount($var)).$operator(")");
+                    .$operator(")");
+//                    .$id("#".self::getObjectId($var))
+//                    .$operator("(").$refcount(self::getObjectRefcount($var)).$operator(")");
                 if(isset(class_implements($var)['Countable']))
                     $str .= $operator("(").$number(count($var)).$operator(")");
                 break;
@@ -136,6 +138,7 @@ class Debug
 
     public static function getObjectInfo($obj)
     {
+        // TODO: Fix or remove!
         $hash = spl_object_hash($obj);
         if(!isset(self::$_obj_info[$hash])) {
             ob_start();

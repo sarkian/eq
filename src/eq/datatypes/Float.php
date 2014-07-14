@@ -9,8 +9,9 @@ class Float extends DataTypeBase
 
     public static function validate($value)
     {
-        if(\is_float($value)) return true;
-        if(\preg_match('/^(\-|)[0-9]*(\.|)[0-9]*$/', $value))
+        if(is_float($value))
+            return true;
+        if(preg_match('/^(\-|)[0-9]*(\.|)[0-9]*$/', $value))
             return true;
         return false;
     }

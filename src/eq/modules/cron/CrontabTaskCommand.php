@@ -25,7 +25,7 @@ class CrontabTaskCommand
             elseif(is_array($command))
                 $this->args = $command;
             else
-                throw new InvalidArgumentException("Invalid argument type: ".gettype($command));
+                throw new InvalidArgumentException($this, "__construct", "command", $command);
             $this->origin = $origin;
         }
     }

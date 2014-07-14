@@ -2,11 +2,12 @@
 
 namespace eq\base;
 
+use eq\helpers\Str;
+
 abstract class ExceptionBase extends \Exception
 {
 
     protected $code = "";
-    protected $type = "ExceptionBase";
 
     public function __construct($message = "", $code = 0, $previous = null) {
         $this->code = $code;
@@ -19,7 +20,7 @@ abstract class ExceptionBase extends \Exception
     
     public function getType()
     {
-        return $this->type;
+        return Str::classBasename($this);
     }
 
     public function _getTrace()
