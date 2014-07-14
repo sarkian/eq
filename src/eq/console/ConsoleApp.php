@@ -193,7 +193,7 @@ class ConsoleApp extends AppBase
                 $line .= C::seq(C::FG_GRAY)."()".C::seq();
             C::stderr($line."\n");
         }
-        C::renderErr("%d%3{{ ".EQ::powered()."}}%0");
+        C::renderErr("%d{{ ".EQ::powered()."}}%0");
     }
 
     public function processUncaughtException(Exception $e)
@@ -283,7 +283,7 @@ class ConsoleApp extends AppBase
                 $out[] = C::fmt($cmdname, C::FG_GREEN)."\n    ".$descr."\n";
             }
             echo implode("\n", $out);
-            C::renderOut("\n%d%3{{ ".EQ::powered()."}}%0");
+            C::renderOut("\n%d{{ ".EQ::powered()."}}%0");
         }
         return 0;
     }
@@ -335,7 +335,7 @@ class ConsoleApp extends AppBase
             $out[] = implode("\n\n", $actlines);
         }
         echo implode("\n\n\n", $out)."\n";
-        C::renderOut("\n%d%3{{ ".EQ::powered()."}}%0");
+        C::renderOut("\n%d{{ ".EQ::powered()."}}%0");
         return 0;
     }
 
