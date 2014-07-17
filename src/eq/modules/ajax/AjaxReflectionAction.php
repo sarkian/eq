@@ -10,6 +10,8 @@ use EQ;
 class AjaxReflectionAction extends ReflectionAction
 {
 
+    protected $_response_parameter = null;
+
     public function __construct($cname, $name)
     {
         $controller = new $cname();
@@ -40,15 +42,25 @@ class AjaxReflectionAction extends ReflectionAction
         return $res;
     }
 
+    public function argDocType($name)
+    {
+        return $name === $this->getResponseParameter() ? "" : parent::argDocType($name);
+    }
+
     protected function getResponseParameter()
     {
-        $args = $this->getParameters();
-        if(!$args)
-            return false;
-        $cls = $args[0]->getClass();
-        if($cls instanceof \ReflectionClass && $cls->getName() === 'eq\modules\ajax\AjaxResponse')
-            return $args[0]->getName();
-        return false;
+        if($this->_response_parameter === null) {
+            $args = $this->getParameters();
+            if($args) {
+                $cls = $args[0]->getClass();
+                $this->_response_parameter = $cls instanceof \ReflectionClass
+                            && $cls->getName() === 'eq\modules\ajax\AjaxResponse'
+                    ? $args[0]->getName() : false;
+            }
+            else
+                $this->_response_parameter = false;
+        }
+        return $this->_response_parameter;
     }
 
 } 

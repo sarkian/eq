@@ -48,7 +48,7 @@ class ReflectionAction extends \ReflectionMethod
         foreach($this->getParameters() as $i => $param) {
             $name = $param->name;
             if(isset($args[$name])) {
-                $typename = $this->docblock->tag("param", null, "\$$name")->wfirst();
+                $typename = $this->argDocType($name);
                 if($typename) {
                     $type = DataTypeBase::getClass($typename);
                     $params[$i] = $type::filter($args[$name]);
@@ -65,6 +65,11 @@ class ReflectionAction extends \ReflectionMethod
             }
         }
         return $this->invokeArgs($this->instance, $params);
+    }
+
+    public function argDocType($name)
+    {
+        return $this->docblock->tag("param", null, "\$$name")->wfirst();
     }
 
 }
