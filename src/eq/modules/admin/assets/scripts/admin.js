@@ -26,7 +26,7 @@ $(function() {
             closer: false,
             nonblock: false,
             delay: 10000
-        }, o, uo)
+        }, o, uo);
     }
 
     EQ.setNotificationHandler(function(message, type, options) {
@@ -45,8 +45,6 @@ $(function() {
                 o.delay = 1000;
                 break;
             case 'info':
-
-                break;
             case 'notice':
                 o.hide = false;
                 break;

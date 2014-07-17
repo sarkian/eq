@@ -100,6 +100,13 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
         return array_keys($this->by_pk);
     }
 
+    public function column($name)
+    {
+        return array_map(function($obj) use($name) {
+            return $obj->{$name};
+        }, $this->data);
+    }
+
     /**
      * Return the current element
      *

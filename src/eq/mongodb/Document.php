@@ -41,7 +41,7 @@ abstract class Document extends ModelBase
         $res = $model->selectQuery($model->loaded_fieldnames, $condition);
         if($options)
             $model->setOptions($res, $options);
-        return static::createProvider(iterator_to_array($res));
+        return static::provider(iterator_to_array($res));
     }
 
     public static function count(array $condition = [], array $options = [])
@@ -66,6 +66,11 @@ abstract class Document extends ModelBase
         if(isset($options['cast']) && !$options['cast'])
             return $res;
         return array_map([$model->fieldType($model->pk), "fromDb"], $res);
+    }
+
+    public static function paginator(array $condition = [], array $options = [])
+    {
+        return new Paginator(get_called_class(), $condition, $options);
     }
     
     public function getCollectionName()

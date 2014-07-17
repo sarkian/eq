@@ -4,7 +4,6 @@ namespace eq\data;
 
 use EQ;
 use eq\base\InvalidCallException;
-use eq\base\InvalidParamException;
 use eq\base\Loader;
 use eq\base\Object;
 use eq\base\TEvent;
@@ -12,7 +11,6 @@ use eq\base\UnknownPropertyException;
 use eq\datatypes\DataTypeBase;
 use eq\db\DbException;
 use eq\helpers\Arr;
-use eq\helpers\C;
 use eq\helpers\Str;
 
 /**
@@ -31,6 +29,7 @@ use eq\helpers\Str;
  * @property array errors_by_field
  * @property string scenario
  * @property array messages
+ * @property int page_size
  */
 abstract class ModelBase extends Object
 {
@@ -79,7 +78,7 @@ abstract class ModelBase extends Object
      * @param string $scenario
      * @return Provider
      */
-    public static function createProvider($data = [], $scenario = null)
+    public static function provider($data = [], $scenario = null)
     {
         $cname = get_called_class();
         $ns = explode('\\', $cname);
@@ -149,7 +148,7 @@ abstract class ModelBase extends Object
     {
         if(parent::__isset($name))
             return true;
-        return $this->field($name, false) === null;
+        return $this->field($name, false) !== null;
     }
 
     public function field($name, $throw = true, $default = null)
@@ -236,6 +235,11 @@ abstract class ModelBase extends Object
         if(!$this->isLoaded())
             return false;
         return $this->deleteQuery($this->pkCondition());
+    }
+
+    public function getPageSize()
+    {
+        return 10;
     }
 
     public function getVisibleFields()
@@ -699,4 +703,4 @@ abstract class ModelBase extends Object
         return false;
     }
 
-} 
+}

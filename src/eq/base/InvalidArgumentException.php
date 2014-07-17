@@ -9,6 +9,12 @@ class InvalidArgumentException extends ExceptionBase
 
     protected $type = "InvalidArgumentException";
 
+    /**
+     * @param string|object $cls
+     * @param string $method
+     * @param string $arg
+     * @param mixed $value
+     */
     public function __construct($cls, $method, $arg, $value = null)
     {
         $cname = is_object($cls) ? get_class($cls) : $cls;

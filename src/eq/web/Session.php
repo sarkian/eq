@@ -7,16 +7,11 @@ namespace eq\web;
 
         public function __construct($sessvar = array())
         {
-            if(session_id()) return;
-            /*if(EQ::app()->memcache) {
-                ini_set('session.save_handler', 'memcache');
-                ini_set('session.save_path',
-                    'tcp://'.EQ::app()->config['memcache']['host'].':'
-                    .EQ::app()->config['memcache']['port']
-                );
-            }*/
-            ini_set('session.gc_maxlifetime', 2592000);
             ini_set('session.cookie_lifetime', 2592000);
+            ini_set('session.gc_maxlifetime', 2592000);
+            if(session_id())
+                return;
+            session_set_cookie_params(2592000, "/");
             session_name('_sessid');
             session_start();
         }

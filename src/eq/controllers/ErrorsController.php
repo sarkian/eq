@@ -3,7 +3,6 @@
 namespace eq\controllers;
 
 use EQ;
-use eq\modules\clog\Clog;
 use eq\web\Controller;
 
 class ErrorsController extends Controller

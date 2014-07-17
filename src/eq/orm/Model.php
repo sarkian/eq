@@ -40,7 +40,7 @@ abstract class Model extends ModelBase
         $model = static::i();
         $res = $model->executeQuery($model->createQuery()->select($model->loaded_fieldnames)
             ->from($model->table_name)->where($condition, $params)->setOptions($options));
-        return static::createProvider($res->fetchAll());
+        return static::provider($res->fetchAll());
     }
 
     public static function count($condition = "1", array $params = [], array $options = [])
@@ -65,6 +65,11 @@ abstract class Model extends ModelBase
         if(isset($options['cast']) && !$options['cast'])
             return $pks;
         return array_map([$model->fieldType($model->pk), "fromDb"], $pks);
+    }
+
+    public static function paginator($condition = "1", array $params = [], array $options = [])
+    {
+        return new Paginator(get_called_class(), $condition, $params, $options);
     }
 
     public function getTableName()

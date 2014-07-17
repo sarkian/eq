@@ -104,7 +104,11 @@ class Query
 
     public function limit($limit)
     {
-        $this->_query[] = "LIMIT ".(int) $limit;
+        if(is_array($limit))
+            $limit = implode(",", array_map("intval", $limit));
+        else
+            $limit = (int) $limit;
+        $this->_query[] = "LIMIT ".$limit;
         return $this;
     }
 

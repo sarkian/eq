@@ -73,7 +73,7 @@ abstract class NavbarBase extends WidgetBase
     {
         if(!isset($item['perms']) || !$item['perms'] || $item['perms'] === "all")
             return true;
-        $perms = explode(",", $item['perms']);
+        $perms = is_array($item['perms']) ? $item['perms'] : explode(",", $item['perms']);
         array_walk($perms, function(&$str) {
             $str = strtolower(trim($str, " \n\r\t"));
         });

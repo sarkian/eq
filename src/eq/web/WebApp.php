@@ -35,6 +35,7 @@ defined("EQ_ASSETS_DBG") or define("EQ_ASSETS_DBG", EQ_DBG);
  * @property array route_files
  * @property string controller_name
  * @property string action_name
+ * @property HttpException http_exception
  * @method void header()
  * @method string|null cookie(string $name, string $value = null, array $options = [])
  */
@@ -90,7 +91,7 @@ class WebApp extends AppBase
         $this->unbind("beforeRender", [$this, "__beforeRender"]);
         $this->getTheme()->registerAssets();
         foreach($this->config("web.preload_assets", []) as $asset)
-            $this->client_script->addBundle($asset, EQ_DBG);
+            $this->client_script->addBundle($asset, EQ_ASSETS_DBG);
     }
 
     /**

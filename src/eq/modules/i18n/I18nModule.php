@@ -22,6 +22,7 @@ class I18nModule extends ModuleBase
     {
         $this->enabled_locales = $this->config("enabled_locales", ["en_US"]);
         $this->default_locale = $this->config("default_locale", "en_US");
+        $this->addDir($this->location."/locale", "eq");
         $dirs = $this->config("dirs", ["@app/locale" => EQ::app()->app_namespace]);
         foreach($dirs as $dir => $key_prefix)
             $this->addDir($dir, $key_prefix);
