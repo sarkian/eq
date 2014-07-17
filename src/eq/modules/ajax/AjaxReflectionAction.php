@@ -31,13 +31,13 @@ class AjaxReflectionAction extends ReflectionAction
         catch(AjaxErrorException $e) {
             $res->printResponse();
         }
-//        catch(RouteException $e) {
-//            throw new HttpException(400);
-//        }
         catch(\Exception $ex) {
-            $res->setSuccess(false)
-                ->setMessage(EQ_DBG ? $ex->getMessage() : EQ::t("Application error"))
-                ->noRaw()->clear()->printResponse();
+            if($res->isRaw())
+                throw $ex;
+            else
+                $res->setSuccess(false)
+                    ->setMessage(EQ_DBG ? $ex->getMessage() : EQ::t("Application error"))
+                    ->noRaw()->clear()->printResponse();
         }
         return $res;
     }
@@ -63,4 +63,4 @@ class AjaxReflectionAction extends ReflectionAction
         return $this->_response_parameter;
     }
 
-} 
+}

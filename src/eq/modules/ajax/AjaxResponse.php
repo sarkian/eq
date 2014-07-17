@@ -112,6 +112,11 @@ final class AjaxResponse
         return $this;
     }
 
+    public function isRaw()
+    {
+        return $this->raw;
+    }
+
     public function getMessage()
     {
         if(is_string($this->message) && $this->message)
