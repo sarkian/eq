@@ -19,6 +19,7 @@ class PaginatorBase extends WidgetBase
 
     public function __construct($count, $current = 1, $limit = 9)
     {
+        $current > 0 or $current = 1;
         $this->count = $count;
         $this->current = $current;
         $this->limit = $limit;
