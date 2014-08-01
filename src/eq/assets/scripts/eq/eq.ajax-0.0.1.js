@@ -41,11 +41,13 @@
         });
     };
 
-    Ajax.prototype.url = function(path) {
+    Ajax.prototype.url = function(path, params) {
         var page_url = new URI(document.location.href);
         var url = new URI(EQ.data.get('ajax.url_prefix', '/ajax') + '/' + path);
         if(page_url.query.hasOwnProperty('EQ_RECOVERY'))
             url.query.EQ_RECOVERY = null;
+        if(typeof params === 'object')
+            url.query = $.extend(url.query, params);
         return url.toString();
     };
 

@@ -46,6 +46,7 @@ abstract class Document extends ModelBase
 
     public static function count(array $condition = [], array $options = [])
     {
+        $model = static::i();
         $limit = isset($options['limit']) ? $options['limit'] : 0;
         $skip = isset($options['skip']) ? $options['skip'] : 0;
         return static::i()->collection->count($condition, $limit, $skip);

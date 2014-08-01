@@ -117,12 +117,14 @@ class WebApp extends AppBase
 
     public function getControllerName()
     {
-        return $this->controller_name;
+//        return $this->controller_name;
+        return $this->route->controller_name;
     }
 
     public function getActionName()
     {
-        return $this->action_name;
+//        return $this->action_name;
+        return $this->route->action_name;
     }
 
     public function getHttpException()

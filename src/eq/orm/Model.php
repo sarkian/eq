@@ -60,8 +60,8 @@ abstract class Model extends ModelBase
     {
         $model = static::i();
         $pks = $model->executeQuery($model->createQuery()->select([$model->pk])
-            ->from($model->table_name)->where($condition, $params)->setOptions($options))
-            ->fetchAll(PDO::FETCH_COLUMN);
+            ->from($model->table_name)->where($condition, $params)
+            ->setOptions($options))->fetchAll(PDO::FETCH_COLUMN);
         if(isset($options['cast']) && !$options['cast'])
             return $pks;
         return array_map([$model->fieldType($model->pk), "fromDb"], $pks);

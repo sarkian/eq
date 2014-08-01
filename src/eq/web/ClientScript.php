@@ -161,21 +161,24 @@ class ClientScript
     }
 
     /**
-     * @param \eq\web\AssetBundle|string $bundle
+     * @param \eq\web\AssetBundle|\eq\web\AssetBundle[]|string|string[] $bundle
      * @param bool $reload
      * @return \eq\web\ClientScript
      */
     public function addBundle($bundle, $reload = EQ_ASSETS_DBG)
     {
-        if(!$bundle instanceof AssetBundle) {
-            $cname = AssetBundle::getClass($bundle);
-            $bundle = new $cname();
-        }
-        else
-            $cname = get_class($bundle);
-        if(!isset($this->bundles[$cname])) {
-            $bundle->registerAssets($reload);
-            $this->bundles[$cname] = $bundle;
+        $bundles = is_array($bundle) ? $bundle : [$bundle];
+        foreach($bundles as $bundle) {
+            if(!$bundle instanceof AssetBundle) {
+                $cname = AssetBundle::getClass($bundle);
+                $bundle = new $cname();
+            }
+            else
+                $cname = get_class($bundle);
+            if(!isset($this->bundles[$cname])) {
+                $bundle->registerAssets($reload);
+                $this->bundles[$cname] = $bundle;
+            }
         }
         return $this;
     }

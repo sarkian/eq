@@ -2,18 +2,21 @@
 
 namespace eq\web;
 
+    use EQ;
+
     class Session implements \ArrayAccess
     {
 
         public function __construct($sessvar = array())
         {
-            ini_set('session.cookie_lifetime', 2592000);
-            ini_set('session.gc_maxlifetime', 2592000);
-            if(session_id())
-                return;
-            session_set_cookie_params(2592000, "/");
-            session_name('_sessid');
-            session_start();
+            if(!session_id()) {
+                ini_set('session.cookie_lifetime', 2592000);
+                ini_set('session.gc_maxlifetime', 2592000);
+                session_set_cookie_params(2592000, "/");
+                session_name('_sessid');
+                session_start();
+            }
+            EQ::app()->cookie("_sessid", session_id());
         }
         
         public function offsetExists($name)
@@ -28,7 +31,8 @@ namespace eq\web;
 
         public function offsetSet($name, $value)
         {
-            if(!session_id()) self::__construct();
+            if(!session_id())
+                self::__construct();
             $_SESSION[$name] = $value;
         }
 

@@ -647,11 +647,17 @@ abstract class ModelBase extends Object
             ? $rules[$type] : $default;
     }
 
+    public function filterCondition($condition)
+    {
+        return is_array($condition) ? array_intersect_key($condition, $this->fields) : $condition;
+    }
+
     protected function processLoadCondition($condition)
     {
-        if(is_array($condition))
+        if(is_array($condition)) {
             foreach($condition as $name => $value)
                 $condition[$name] = $this->typeToDb($name, $value);
+        }
         else
             $condition = [$this->pk => $this->typeToDb($this->pk, $condition)];
         return $condition;
