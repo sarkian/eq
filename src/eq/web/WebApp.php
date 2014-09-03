@@ -6,12 +6,11 @@ use EQ;
 use eq\base\AppBase;
 use eq\base\ExceptionBase;
 use eq\base\LoaderException;
-use eq\base\ModuleBase;
 use eq\controllers\DebugController;
 use eq\controllers\ErrorsController;
+use eq\modules\user\models\MongoUser;
+use eq\modules\user\models\SqlUser;
 use eq\orm\Model;
-use eq\modules\navigation\NavigationComponent;
-use eq\modules\user\models\User;
 use eq\php\ErrorException;
 use eq\base\UncaughtExceptionException;
 use eq\base\ComponentException;
@@ -31,7 +30,7 @@ defined("EQ_ASSETS_DBG") or define("EQ_ASSETS_DBG", EQ_DBG);
  * @property Session session
  * @property Header header
  * @property Cookie cookie
- * @property IIdentity|Model|User user
+ * @property IIdentity|Model|SqlUser|MongoUser user
  * @property array route_files
  * @property string controller_name
  * @property string action_name

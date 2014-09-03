@@ -4,13 +4,9 @@ namespace eq\modules\user\models;
 
 use EQ;
 use eq\base\TModuleClass;
-use eq\orm\Model;
 use eq\modules\user\UserModule;
-use eq\web\IIdentity;
 
 /**
- * TODO: mongodb compatibility
- *
  * @property int id
  * @property string status
  * @property string name
@@ -26,16 +22,14 @@ use eq\web\IIdentity;
  * @property array|string login_field
  * @property string login_field_name
  * @property string login_field_value
+ *
+ * @property string scenario
+ * @property array fields
  */
-class User extends Model implements IIdentity
+trait TUser
 {
 
     use TModuleClass;
-
-    const SESSION_LIMIT = 29;
-
-    const ROLE_USER = 1;
-    const ROLE_ADMIN = 2;
 
     private static $_fields = [];
 
@@ -95,12 +89,7 @@ class User extends Model implements IIdentity
 
     public function getDbName()
     {
-        return EQ::app()->config("modules.user.db_name");
-    }
-
-    public function getTableName()
-    {
-        return EQ::app()->config("modules.user.table_name", "users");
+        return $this->module->db_name;
     }
 
     public function getRules()
@@ -308,7 +297,8 @@ class User extends Model implements IIdentity
     protected function scenarioRegister()
     {
         $use_invite = $this->module->config("use_invite", false);
-        $invite = $use_invite ? new Invite() : null;
+        $invite = $use_invite
+            ? ($this->module->db_type === "sql" ? new SqlInvite() : new MongoInvite()) : null;
         $pass = "";
         $this->bind("afterApply", function() {
             $this->unbind("afterApply");
@@ -382,6 +372,7 @@ class User extends Model implements IIdentity
     protected function saveSession()
     {
         $data = [];
+        $f = $this->session_fields;
         foreach($this->session_fields as $field)
             $data[$field] = $this->{$field};
         EQ::app()->session['userdata'] = $data;

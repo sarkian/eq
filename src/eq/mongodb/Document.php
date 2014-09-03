@@ -73,7 +73,7 @@ abstract class Document extends ModelBase
     {
         return new Paginator(get_called_class(), $condition, $options);
     }
-    
+
     public function getCollectionName()
     {
         return Str::method2var(Str::classBasename(get_called_class())) . "s";
@@ -82,6 +82,11 @@ abstract class Document extends ModelBase
     public function getPk()
     {
         return "_id";
+    }
+
+    public function setId($value)
+    {
+        $this->data['_id'] = $this->__id = $value;
     }
 
     public function getId()

@@ -14,6 +14,12 @@ use eq\modules\navigation\NavigationModule;
 /**
  * @property string|array login_field
  * @property bool managed_sessions
+ * @property string db_type
+ * @property string db_name
+ * @property string table_name
+ * @property string collection_name
+ * @property string invites_table_name
+ * @property string invites_collection_name
  */
 class UserModule extends ModuleBase
 {
@@ -24,15 +30,36 @@ class UserModule extends ModuleBase
         'ru_RU' => "Авторизация, управление пользователями",
     ];
 
+    private $db_type;
+    private $db_name;
+    private $table_name;
+    private $collection_name;
+    private $invites_table_name;
+    private $invites_collection_name;
+
     private $fields_defaults;
     private $login_field;
     private $managed_sessions = false;
 
     public function getComponents()
     {
-        return [
-            'user' => 'eq\modules\user\models\User',
-        ];
+        if($this->db_type === "sql")
+            return ['user' => 'eq\modules\user\models\SqlUser'];
+        elseif($this->db_type === "mongo")
+            return ['user' => 'eq\modules\user\models\MongoUser'];
+        return [];
+    }
+
+    protected function init()
+    {
+        $this->db_type = strtolower($this->config("db_type", "sql"));
+        if($this->db_type !== "sql" && $this->db_type !== "mongo")
+            throw new InvalidConfigException("Invalid DB type: {$this->db_type}");
+        $this->db_name = $this->config("db_name");
+        $this->table_name = $this->config("table_name", "users");
+        $this->collection_name = $this->config("collection_name", "users");
+        $this->invites_table_name = $this->config("invites_table_name", "invites");
+        $this->invites_collection_name = $this->config("invites_collection_name", "invites");
     }
 
     protected static function preInit()
@@ -93,6 +120,36 @@ class UserModule extends ModuleBase
     public function getUrlPrefix()
     {
         return $this->config("url_prefix", "");
+    }
+
+    public function getDbType()
+    {
+        return $this->db_type;
+    }
+
+    public function getDbName()
+    {
+        return $this->db_name;
+    }
+
+    public function getTableName()
+    {
+        return $this->table_name;
+    }
+
+    public function getCollectionName()
+    {
+        return $this->collection_name;
+    }
+
+    public function getInvitesTableName()
+    {
+        return $this->invites_table_name;
+    }
+
+    public function getInvitesCollectionName()
+    {
+        return $this->invites_collection_name;
     }
 
     public function getFields()

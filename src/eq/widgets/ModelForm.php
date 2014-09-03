@@ -4,7 +4,7 @@ namespace eq\widgets;
 
 use EQ;
 use eq\base\TObject;
-use eq\orm\Model;
+use eq\data\ModelBase;
 use eq\helpers\Str;
 
 class ModelForm extends FormBase
@@ -15,12 +15,12 @@ class ModelForm extends FormBase
     private static $_forms = [];
 
     /**
-     * @var Model model
+     * @var ModelBase model
      */
     protected $model;
     protected $autofocus = false;
 
-    public function __construct(Model $model)
+    public function __construct(ModelBase $model)
     {
         $this->model = $model;
     }
