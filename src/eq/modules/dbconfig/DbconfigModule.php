@@ -3,6 +3,7 @@
 namespace eq\modules\dbconfig;
 
 use EQ;
+use eq\base\InvalidConfigException;
 use eq\base\ModuleBase;
 use eq\db\ConnectionBase;
 use eq\db\Query;
@@ -12,7 +13,6 @@ use eq\modules\dbconfig\datatypes\Value;
 use PDO;
 
 // TODO: cache
-// TODO: mongodb compatibility
 class DbconfigModule extends ModuleBase
 {
 
@@ -20,11 +20,22 @@ class DbconfigModule extends ModuleBase
 
     private $create_table = false;
 
+    protected $db_type;
+
     /**
-     * @var ConnectionBase $db
+     * @var ConnectionBase|\MongoDB
      */
     protected $db;
+
     protected $table;
+
+    protected $use_json = true;
+
+    /**
+     * @var \MongoCollection
+     */
+    protected $collection;
+
     protected $data = [];
     protected $changed = [];
     protected $created = [];
@@ -40,15 +51,31 @@ class DbconfigModule extends ModuleBase
         if(self::$_initialized)
             return;
         self::$_initialized = true;
-        $this->db = EQ::app()->db($this->config("db"));
-        $this->table = $this->config("table", "config");
-        $data = $this->executeQuery($this->db->select(["name", "value"])->from($this->table))
-            ->fetchAll(PDO::FETCH_KEY_PAIR);
-        foreach($data as $name => $value) {
-            $value = unserialize($value);
-            $this->data[$name] = $value;
-            EQ::app()->configWrite($name, $value);
+        $this->use_json = $this->config("use_json", true);
+        $this->db_type = strtolower($this->config("db_type", "sql"));
+        if($this->db_type === "sql") {
+            $this->db = EQ::app()->db($this->config("db_name"));
+            $this->table = $this->config("table_name", "config");
+            $data = $this->executeQuery($this->db->select(["name", "value"])->from($this->table))
+                ->fetchAll(PDO::FETCH_KEY_PAIR);
+            foreach($data as $name => $value) {
+                $value = $this->parse($value);
+                $this->data[$name] = $value;
+                EQ::app()->configWrite($name, $value);
+            }
         }
+        elseif($this->db_type === "mongo") {
+            $this->db = EQ::app()->mongodb($this->config("db_name"));
+            $this->collection = $this->db->selectCollection($this->config("collection_name", "config"));
+            foreach($this->collection->find([], ["name", "value"]) as $rec) {
+                if(!isset($rec['name'], $rec['value']) || !is_string($rec['name']) || !strlen($rec['name']))
+                    continue;
+                $this->data[$rec['name']] = $rec['value'];
+                EQ::app()->configWrite($rec['name'], $rec['value']);
+            }
+        }
+        else
+            throw new InvalidConfigException("Invalid DB type: {$this->db_type}");
         EQ::app()->bind("config.save", [$this, "set"]);
         EQ::app()->bind("config.remove", [$this, "remove"]);
         EQ::app()->bind("shutdown", [$this, "commit"]);
@@ -100,16 +127,26 @@ class DbconfigModule extends ModuleBase
     {
         if(!$this->changed && !$this->created && !$this->removed)
             return;
-        $this->db->beginTransaction();
-        foreach($this->changed as $name => $value)
-            $this->executeQuery($this->db->update($this->table, ['value' => serialize($value)])
-                ->where(['name' => $name]));
-        foreach($this->created as $name => $value)
-            $this->executeQuery($this->db->
-                insert($this->table, ['name' => $name, 'value' => serialize($value)]));
-        foreach($this->removed as $name)
-            $this->executeQuery($this->db->delete($this->table, ['name' => $name]));
-        $this->db->commit();
+        if($this->db_type === "sql") {
+            $this->db->beginTransaction();
+            foreach($this->changed as $name => $value)
+                $this->executeQuery($this->db->update($this->table, ['value' => $this->stringify($value)])
+                    ->where(['name' => $name]));
+            foreach($this->created as $name => $value)
+                $this->executeQuery($this->db
+                    ->insert($this->table, ['name' => $name, 'value' => $this->stringify($value)]));
+            foreach($this->removed as $name)
+                $this->executeQuery($this->db->delete($this->table, ['name' => $name]));
+            $this->db->commit();
+        }
+        elseif($this->db_type === "mongo") {
+            foreach($this->changed as $name => $value)
+                $this->collection->update(['name' => $name], ['name' => $name, 'value' => $value]);
+            foreach($this->created as $name => $value)
+                $this->collection->insert(['name' => $name, 'value' => $value]);
+            foreach($this->removed as $name)
+                $this->collection->remove(['name' => $name]);
+        }
         $this->changed = [];
         $this->created = [];
         $this->removed = [];
@@ -142,6 +179,16 @@ class DbconfigModule extends ModuleBase
             'name' => Name::c(),
             'value' => Value::c(),
         ])->execute();
+    }
+
+    protected function stringify($value)
+    {
+        return $this->use_json ? json_encode($value) : serialize($value);
+    }
+
+    protected function parse($value)
+    {
+        return $this->use_json ? json_decode($value) : unserialize($value);
     }
 
 }
