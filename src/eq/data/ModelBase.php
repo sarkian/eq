@@ -42,6 +42,7 @@ abstract class ModelBase extends Object
     protected $loaded_data = [];
     protected $errors = [];
     protected $errors_by_field = [];
+    protected $_deleted = false;
 
     abstract public function getFields();
 
@@ -234,7 +235,8 @@ abstract class ModelBase extends Object
     {
         if(!$this->isLoaded())
             return false;
-        return $this->deleteQuery($this->pkCondition());
+        $this->_deleted = $this->deleteQuery($this->pkCondition());
+        return $this->_deleted;
     }
 
     public function getPageSize()

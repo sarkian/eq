@@ -50,7 +50,10 @@ class PaginatorBase extends WidgetBase
 
     protected function pageUrl($num)
     {
-        return "?page=$num";
+        $params = ['page' => $num] + $_GET;
+        return "?".implode("&", array_map(function($k, $v) {
+            return $k."=".urlencode($v);
+        }, array_keys($params), array_values($params)));
     }
 
     protected function pageAnchor($num)

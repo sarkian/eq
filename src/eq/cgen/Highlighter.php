@@ -83,7 +83,10 @@ class Highlighter
             T_INT_CAST,
             T_BOOL_CAST,
             T_DOUBLE_CAST,
+            T_STRING_CAST,
             T_EMPTY,
+            T_DEFAULT,
+            T_SWITCH,
         ],
         'default' => [
             T_STRING,

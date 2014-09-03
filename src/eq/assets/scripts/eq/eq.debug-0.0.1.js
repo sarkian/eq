@@ -23,7 +23,12 @@
             root[side] = el('div', {
                 id: 'eq_debug-root-' + side
             }, {});
-            document.body.appendChild(root[side]);
+            if(document && document.body)
+                document.body.appendChild(root[side]);
+            else
+                window.addEventListener('DOMContentLoaded', function() {
+                    document.body.appendChild(root[side]);
+                });
         }
     }
 

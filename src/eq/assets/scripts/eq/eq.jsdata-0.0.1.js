@@ -45,6 +45,14 @@
         val[lastkey] = value;
     };
 
+    Data.prototype.isset = function(key) {
+        return this.get(key, undefined) !== undefined;
+    };
+
+    Data.prototype.unset = function(key) {
+        this.set(key, undefined);
+    };
+
 
     window.eq.Jsdata = Data;
 

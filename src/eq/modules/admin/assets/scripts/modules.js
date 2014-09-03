@@ -8,7 +8,7 @@
         this._checkbox = this._heading.find('input[type=checkbox]');
         this._checkbox.change(function() {
             if(self.canToggle())
-                EQ.ajax.exec('modules.eq:admin.modules.toggle', {data: {module_name: mname}});
+                EQ.ajax.exec('modules.eq:admin.modules.toggle', {module_name: mname});
         });
     };
 
@@ -150,7 +150,7 @@
     });
 
     $(function() {
-//        ModulePanel.update();
+        ModulePanel.update();
     });
 
 })();

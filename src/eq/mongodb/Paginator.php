@@ -44,7 +44,8 @@ class Paginator extends PaginatorBase
         $num > 0 or $num = 1;
         $cls = $this->classname;
         $opts = $this->options;
-        $opts['limit'] = $this->model->page_size;
+        $opts['limit'] = isset($this->options['page_size'])
+            ? $this->options['page_size'] : $this->model->page_size;
         $opts['skip'] = ($num - 1) * $this->model->page_size;
         return $cls::findAll($this->condition, $opts);
     }

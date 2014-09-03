@@ -72,6 +72,11 @@ class Cookie implements \ArrayAccess
         $this->delete($name);
     }
 
+    public function get($name, $default = null)
+    {
+        return isset($_COOKIE[$name]) ? $_COOKIE[$name] : $default;
+    }
+
     public function call($name, $value = null, $options = [])
     {
         if($value === null)

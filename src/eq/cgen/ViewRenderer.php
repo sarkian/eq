@@ -37,6 +37,7 @@ class ViewRenderer
 
     public static function renderTwigFile($file, $vars = [])
     {
+        self::twigEnv()->getLoader()->addPath(dirname($file));
         return self::twigEnv()->render($file, $vars);
     }
 
@@ -63,6 +64,7 @@ class ViewRenderer
             ]);
             self::$_twig_env->addFunction(new \Twig_SimpleFunction("t", ["EQ", "t"]));
             self::$_twig_env->addFunction(new \Twig_SimpleFunction("k", ["EQ", "k"]));
+            self::$_twig_env->addFunction(new \Twig_SimpleFunction("createUrl", [EQ::app(), "createUrl"]));
         }
         return self::$_twig_env;
     }

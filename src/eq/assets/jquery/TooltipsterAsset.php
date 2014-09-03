@@ -4,10 +4,10 @@ namespace eq\assets\jquery;
 
 use eq\web\AssetBundle;
 
-class SelectizeAsset extends AssetBundle
+class TooltipsterAsset extends AssetBundle
 {
 
-    protected $source_path = "@eq/src/eq/assets/scripts/jquery/selectize";
+    protected $source_path = "@eq/src/eq/assets/scripts/jquery/tooltipster";
     protected $base_path = "@www/assets";
     protected $base_url = "@web/assets";
 
@@ -16,19 +16,20 @@ class SelectizeAsset extends AssetBundle
     ];
 
     protected $js = [
-        "selectize.min.js",
-        "selectize.eq-wrap.js",
+        "jquery.tooltipster.min.js",
     ];
 
     protected $_css = [
-        "selectize.css",
+        "tooltipster.css",
     ];
 
-    protected static $theme = "default";
+    protected static $theme = null;
 
-    protected function getCss()
+    public function getCss()
     {
-        return array_merge($this->_css, ["selectize.".static::$theme.".css"]);
+        return static::$theme
+            ? array_merge($this->_css, ["themes/tooltipster-".static::$theme.".css"])
+            : $this->_css;
     }
 
     public static function registerWithTheme($theme, $reload = EQ_ASSETS_DBG)

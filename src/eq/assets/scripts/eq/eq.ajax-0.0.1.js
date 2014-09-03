@@ -29,16 +29,69 @@
 
     Ajax.prototype.init = function() {
         this.container = findContainer();
-        EQ.trigger('ajax.ready');
+        EQ.trigger('ajax.initialized');
+        $(window).bind('popstate', function(e) {
+            EQ.ajax.reload(function() {
+                $(window).scrollTop(0);
+            });
+        });
     };
 
-    Ajax.prototype.reload = function() {
-        EQ.trigger('ajax.reload');
-        var url = new URI(document.location.href);
-        url.query.ajax = true;
-        this.container.load(url.toString(), function() {
+    Ajax.prototype.load = function(url, callback) {
+        EQ.trigger('ajax.load');
+        var uri = new URI(url);
+        uri.query.ajax = true;
+        this.container.load(uri.toString(), function() {
+            if(typeof callback === 'function')
+                callback();
             EQ.trigger('ajax.ready');
         });
+    };
+
+    Ajax.prototype.follow = function(link, callback) {
+        var url;
+        if(typeof link === 'object') {
+            var el;
+            if(link instanceof jQuery) {
+                if(!link.length)
+                    throw 'Empty jQuery object';
+                el = link[0];
+            }
+            else
+                el = link;
+            if(el.hasAttribute('href'))
+                url = el.href;
+            else if(el.hasAttribute('data-href'))
+                url = el.getAttribute('data-href');
+            else
+                throw 'Cant find href attribute';
+        }
+        else
+            url = link;
+//        if(url === window.location.href)
+//            return;
+        EQ.ajax.load(url, function() {
+            if(window.history && history.pushState)
+                history.pushState(null, '', url);
+            if(typeof callback === 'function')
+                if(callback() === false)
+                    return;
+            $(window).scrollTop(0);
+        });
+    };
+
+    Ajax.prototype.bind = function(selector, callback) {
+        return $(selector).click(function(e) {
+            if(e.button == 1)
+                return true;
+            EQ.ajax.follow(this, callback);
+            return false;
+        });
+    };
+
+    Ajax.prototype.reload = function(callback) {
+        EQ.trigger('ajax.reload');
+        EQ.ajax.load(window.location.href, callback);
     };
 
     Ajax.prototype.url = function(path, params) {
@@ -51,16 +104,16 @@
         return url.toString();
     };
 
-    Ajax.prototype.exec = function(path, _options) {
-        var url = EQ.ajax.url(path);
+    Ajax.prototype.exec = function(path, params, _options) {
         var options = $.extend(true, {
-            data: {},
+            is_url: false,
             on_success: null,
             on_error: null,
             on_warning: null,
             reload_on: {success: true, error: false},
             notify_on: {success: false, error: true, warning: true}
         }, _options);
+        var url = options.is_url ? path : EQ.ajax.url(path, params);
         var on_success = function(message, data) {
             if(typeof options.on_success === 'function') {
                 if(options.on_success(message, data) === false)
@@ -81,7 +134,7 @@
             if(options.reload_on.error)
                 EQ.ajax.reload();
         };
-        $.post(url, options.data, 'json').done(function(data) {
+        return $.post(url, params, 'json').done(function(data) {
             if(data.success)
                 on_success(data.message, data.data);
             else
@@ -100,7 +153,8 @@
                     EQ.notify(msg, 'notice');
             }
         }).fail(function(data) {
-            on_error(EQ.t('Application error'), data);
+            if(data.statusText !== 'abort')
+                on_error(EQ.t('Application error'), data);
         });
     };
 

@@ -40,6 +40,8 @@ URIQueryString.prototype.toString = function() {
  
 // Constructor for the URI object.  Parse a string into its components.
 function URI(str) {
+    if(str instanceof URI)
+        return str;
     if (!str) str = "";
     // Based on the regex in RFC2396 Appendix B.
     var parser = /^(?:([^:\/?\#]+):)?(?:\/\/([^\/?\#]*))?([^?\#]*)(?:\?([^\#]*))?(?:\#(.*))?/;
@@ -50,6 +52,11 @@ function URI(str) {
     this.query     = new URIQueryString(result[4] || null);
     this.hash  = new URIQueryString(result[5] || null);
 }
+
+URI.prototype.setQuery = function(query) {
+    this.query = query instanceof URIQueryString ? query : new URIQueryString(query);
+    return this;
+};
 
 // Restore the URI to it's stringy glory.
 URI.prototype.toString = function () {
