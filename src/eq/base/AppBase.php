@@ -67,6 +67,8 @@ abstract class AppBase extends ModuleAbstract
     protected $modules_by_name = [];
     protected $modules_by_class = [];
     protected $_available_modules = null;
+    protected $init_method;
+    protected $ready_method;
 
     protected $locale = "en_US";
 
@@ -102,6 +104,8 @@ abstract class AppBase extends ModuleAbstract
                 $this->loadComponent($name);
         }
         $this->config_permissions = $this->configPermissions();
+        $this->init_method = $this->type."Init";
+        $this->ready_method = $this->type."Ready";
         try {
             $this->loadModules();
             $this->trigger("ready");
@@ -558,8 +562,6 @@ abstract class AppBase extends ModuleAbstract
     {
         $classes = [];
         $modules_o = $this->config("modules", []);
-        $init_method = $this->type."Init";
-        $ready_method = $this->type."Ready";
         foreach($modules_o as $name => $conf) {
             if(!isset($conf['enabled']) || !$conf['enabled'])
                 continue;
@@ -577,11 +579,9 @@ abstract class AppBase extends ModuleAbstract
                 continue;
             $cname = isset($classes[$name]) ? $classes[$name] : ModuleBase::getClass($name, false);
             if($cname) {
-                $this->trigger("modules.$name.init");
-                $this->trigger("modules.$name.{$this->type}Init");
                 $module = $this->loadModule($name, $cname);
-                if(method_exists($module, $init_method))
-                    $module->{$init_method}();
+                if(method_exists($module, $this->init_method))
+                    $module->{$this->init_method}();
                 $module->ready();
                 $this->trigger("modules.$name.ready");
             }
@@ -609,11 +609,11 @@ abstract class AppBase extends ModuleAbstract
         if(isset($this->modules_by_name[$name]))
             return $this->modules_by_name[$name];
         $this->trigger("modules.$name.init");
+        $this->trigger("modules.$name.{$this->type}Init");
         $module = $cname::inst(true);
         $this->processModuleDependencies($module);
         $this->modules_by_name[$name] = $module;
         $this->modules_by_class[$cname] = $module;
-//        $this->config_permissions['modules'][$name] = $module->configPermissions();
         $perms = $module->configPermissions();
         if(is_array($perms)) {
             foreach($module->configPermissions() as $pname => $pvalue)
@@ -629,8 +629,13 @@ abstract class AppBase extends ModuleAbstract
     {
         foreach($module->dependencies as $mname) {
             $cname = ModuleBase::getClass($mname, false);
-            if($cname)
-                $this->loadModule($mname, $cname);
+            if($cname) {
+                $dmodule = $this->loadModule($mname, $cname);
+                if(method_exists($dmodule, $this->init_method))
+                    $dmodule->{$this->init_method}();
+                $dmodule->ready();
+                $this->trigger("modules.$mname.ready");
+            }
             else {
                 $message = \EQ::t("Module not found").": $mname";
                 $module->addError($message);

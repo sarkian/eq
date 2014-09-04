@@ -5,7 +5,6 @@ namespace eq\modules\user\controllers;
 use EQ;
 use eq\base\TModuleClass;
 use eq\web\Controller;
-use eq\web\WebApp;
 
 class UserController extends Controller
 {
@@ -43,7 +42,10 @@ class UserController extends Controller
 
     public function actionLogout()
     {
-        EQ::app()->user->setScenario("logout");
+        if(EQ::app()->validateToken()) {
+            EQ::app()->user->setScenario("logout");
+            EQ::app()->destroyToken();
+        }
         $this->redir($this->module->config("logout_redirect_url", "{main.index}"));
     }
 

@@ -30,6 +30,7 @@ class AjaxModule extends ModuleBase
         });
         EQ::app()->bind("jsdata.register", function(Jsdata $jsdata) {
             $jsdata->set("ajax.url_prefix", $this->config("url_prefix", "/ajax"));
+            $jsdata->set("ajax.token", EQ::app()->token);
         });
     }
 

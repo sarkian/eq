@@ -90,6 +90,7 @@ class UserModule extends ModuleBase
                 ]);
             $module->addItem("site", [
                 'route' => "modules.eq:user.user.logout",
+                'token' => true,
                 'title' => EQ::t("Logout"),
                 'icon' => $use_icons ? "off" : "",
                 'perms' => "user,admin",

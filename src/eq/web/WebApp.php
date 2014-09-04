@@ -8,6 +8,7 @@ use eq\base\ExceptionBase;
 use eq\base\LoaderException;
 use eq\controllers\DebugController;
 use eq\controllers\ErrorsController;
+use eq\helpers\Str;
 use eq\modules\user\models\MongoUser;
 use eq\modules\user\models\SqlUser;
 use eq\orm\Model;
@@ -35,6 +36,7 @@ defined("EQ_ASSETS_DBG") or define("EQ_ASSETS_DBG", EQ_DBG);
  * @property string controller_name
  * @property string action_name
  * @property HttpException http_exception
+ * @property string token
  * @method void header()
  * @method string|null cookie(string $name, string $value = null, array $options = [])
  */
@@ -45,6 +47,7 @@ class WebApp extends AppBase
     protected $action_name;
     protected $http_exception;
     protected $theme;
+    protected $_token = null;
 
     public static function widget($name)
     {
@@ -146,9 +149,51 @@ class WebApp extends AppBase
         return $this->request->root.$this->createUrl($path, $vars, $get_vars);
     }
 
+    public function createUrlT($path, $vars = [], $get_vars = [])
+    {
+        $get_vars['_t'] = $this->token;
+        return $this->route->createUrl($path, $vars, $get_vars);
+    }
+
+    public function createAbsoluteUrlT($path, $vars = [], $get_vars = [])
+    {
+        return $this->request->root.$this->createUrlT($path, $vars, $get_vars);
+    }
+
     public function redirect($url, $status = 302, $message = "Found")
     {
         throw new HttpRedirectException($url, $status, $message);
+    }
+
+    public function getToken()
+    {
+        if($this->_token === null) {
+            if(!$this->session['_EQ_CSRF_TOKEN'])
+                $this->session['_EQ_CSRF_TOKEN'] = Str::randstr();
+            $this->_token = md5($this->session['_EQ_CSRF_TOKEN']);
+        }
+        return $this->_token;
+    }
+
+    public function validateToken()
+    {
+        if(!$this->session['_EQ_CSRF_TOKEN']) {
+            static::warn("CSRF token destroyed or not generated");
+            return false;
+        }
+        $token = isset($_GET['_t']) ? $_GET['_t'] : (isset($_POST['_t']) ? $_POST['_t'] : null);
+        return $token && md5($this->session['_EQ_CSRF_TOKEN']) === $token;
+    }
+
+    public function assertToken()
+    {
+        if(!$this->validateToken())
+            throw new HttpException(400, "Bad Request");
+    }
+
+    public function destroyToken()
+    {
+        unset($this->session['_EQ_CSRF_TOKEN']);
     }
 
     public function run()

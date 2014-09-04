@@ -36,6 +36,8 @@ class ModulesController extends Controller
 
     public function actionToggle(AjaxResponse $res, $module_name)
     {
+        if(!EQ::app()->validateToken())
+            $res->error("Invalid request");
         if(!is_string($module_name) || !$module_name)
             $res->error("Invalid module name");
         $module = EQ::app()->module($module_name, true);

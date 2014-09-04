@@ -29,7 +29,11 @@ class NavigationModule extends ModuleBase
                 $item['route'] = $key;
             }
             if(!isset($item['link'])) {
-                $item['link'] = isset($item['route']) ? EQ::app()->createUrl($item['route']) : "#";
+                $item['link'] = isset($item['route'])
+                    ? (isset($item['token']) && $item['token']
+                        ? EQ::app()->createUrlT($item['route'])
+                        : EQ::app()->createUrl($item['route']))
+                    : "#";
             }
             $items[] = $item;
         }
