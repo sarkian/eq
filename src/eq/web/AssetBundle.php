@@ -121,9 +121,11 @@ class AssetBundle extends Object
                 $files[] = $file;
             $js[] = $file;
         }
-        foreach($files as $file)
-            FileSystem::copy($this->source_path."/$file",
-                $this->base_path."/$file", $reload);
+        if(EQ_ASSETS_CHECK || $reload) {
+            foreach($files as $file)
+                FileSystem::copy($this->source_path."/$file",
+                    $this->base_path."/$file", $reload);
+        }
         foreach($css as $file)
             EQ::app()->client_script->addCssFile(
                 EQ::getAlias($this->base_url."/$file")

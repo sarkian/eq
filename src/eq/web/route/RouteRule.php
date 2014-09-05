@@ -2,6 +2,7 @@
 
 namespace eq\web\route;
 
+use eq\base\Object;
 use eq\base\TObject;
 use eq\datatypes\DataTypeBase;
 use EQ;
@@ -16,10 +17,10 @@ use EQ;
  * @property mixed url_reg
  * @property array url_vars
  */
-class RouteRule
+class RouteRule extends Object
 {
 
-    use TObject;
+//    use TObject;
 
     protected $fname;
     protected $lnum;

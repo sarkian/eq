@@ -21,6 +21,7 @@ use eq\web\route\Route;
 use Exception;
 
 defined("EQ_ASSETS_DBG") or define("EQ_ASSETS_DBG", EQ_DBG);
+defined("EQ_ASSETS_CHECK") or define("EQ_ASSETS_CHECK", true);
 
 /**
  * @property ClientScript client_script
