@@ -15,7 +15,7 @@ use eq\cgen\php\PhpValue;
  * @method static void  unsetValue(string $name, mixed $key)
  * @method static bool  isModified(string $name)
  */
-class Cache
+class Cache extends StaticComponent
 {
 
     /**
@@ -28,7 +28,7 @@ class Cache
         if(!count($args))
             throw new InvalidCallException("Missing argument: name");
         $name = array_shift($args);
-        $cache = EQ::app()->cache->get($name);
+        $cache = static::inst()->get($name);
         if(!method_exists($cache, $fname))
             throw new InvalidCallException("Unknown method: CacheObject::".$fname);
         return call_user_func_array([$cache, $fname], $args);

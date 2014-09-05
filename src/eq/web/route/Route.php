@@ -4,7 +4,6 @@ namespace eq\web\route;
 
 use EQ;
 use eq\base\Cache;
-use eq\base\TEvent;
 use eq\base\TObject;
 use eq\helpers\Str;
 use eq\base\Loader;
@@ -51,10 +50,10 @@ class Route
             $file = new RouteFile($path, $url_prefix, $path_prefix);
             $this->rules = array_merge($this->rules, $file->rules);
             $fdata = [$url_prefix, $path_prefix, filemtime($path), $file->rules_data];
-            Cache::setValue("route", ["files", $path], $fdata);
+            Cache::setValue("route.files", $path, $fdata);
         }
         else {
-            foreach(Cache::getValue("route", ["files", $path, 3]) as $data) {
+            foreach(Cache::getValue("route.files", $path)[3] as $data) {
                 $rule = new RouteRule();
                 $rule->loadData($data);
                 $this->rules[] = $rule;
@@ -164,7 +163,7 @@ class Route
 
     protected function isFileModified($path, $url_prefix, $path_prefix)
     {
-        $fdata = Cache::getValue("route", ["files", $path], []);
+        $fdata = Cache::getValue("route.files", $path, []);
         if(!is_array($fdata) || !$fdata)
             return true;
         if(!isset($fdata[0], $fdata[1], $fdata[2], $fdata[3]))

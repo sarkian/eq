@@ -24,6 +24,10 @@ require_once EQROOT."/src/eq/base/TAlias.php";
 require_once EQROOT."/src/eq/base/ModuleAbstract.php";
 require_once EQROOT."/src/eq/base/AppBase.php";
 
+require_once EQROOT."/src/eq/base/StaticComponent.php";
+require_once EQROOT."/src/eq/base/CacheObject.php";
+require_once EQROOT."/src/eq/base/Cache.php";
+
 
 abstract class EQ extends \eq\base\AppBase
 {

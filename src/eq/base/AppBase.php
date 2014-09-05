@@ -818,7 +818,8 @@ abstract class AppBase extends ModuleAbstract
             if(!Loader::classExists($class))
                 throw new InvalidConfigException(
                     "Component class not found: $name");
-            $this->_components[$name] = new $class($config['config']);
+            $this->_components[$name] = is_subclass_of($class, 'eq\base\StaticComponent')
+                ? $class::inst($config['config']) : new $class($config['config']);
         }
     }
 

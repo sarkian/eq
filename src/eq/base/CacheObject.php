@@ -2,7 +2,6 @@
 
 namespace eq\base;
 
-use eq\helpers\Arr;
 
 class CacheObject
 {
@@ -30,22 +29,22 @@ class CacheObject
 
     public function getValue($key, $default = null)
     {
-        return Arr::getItem($this->data, $key, $default);
+        return isset($this->data[$key]) ? $this->data[$key] : $default;
     }
 
     public function setValue($key, $value)
     {
-        Arr::setItem($this->data, $key, $value);
+        $this->data[$key] = $value;
     }
 
     public function valueExists($key)
     {
-        return Arr::itemExists($this->data, $key);
+        return isset($this->data[$key]);
     }
 
     public function unsetValue($key)
     {
-        Arr::unsetItem($this->data, $key);
+        unset($this->data[$key]);
     }
 
     public function isModified()

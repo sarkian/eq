@@ -31,10 +31,10 @@ abstract class DataTypeBase
         )
             return $type;
         $cbasename = Str::var2method($type);
-        $cname = "\\".EQ::app()->app_namespace.'\datatypes\\'.$cbasename;
+        $cname = EQ::app()->app_namespace.'\datatypes\\'.$cbasename;
         if(Loader::classExists($cname))
             return $cname;
-        $cname = '\\eq\datatypes\\'.$cbasename;
+        $cname = 'eq\datatypes\\'.$cbasename;
         if(Loader::classExists($cname))
             return $cname;
         else
