@@ -72,6 +72,19 @@ abstract class Model extends ModelBase
         return new Paginator(get_called_class(), $condition, $params, $options);
     }
 
+    public static function findRelatedAll(array $condition, array $sort = [])
+    {
+        $opts = [];
+        if($sort)
+            $opts['order'] = $sort;
+        return static::findAll($condition, [], $opts);
+    }
+
+    public static function countRelated(array $condition)
+    {
+        return static::count($condition);
+    }
+
     public function getTableName()
     {
         return Str::method2var(Str::classBasename(get_called_class())) . "s";

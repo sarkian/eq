@@ -5,6 +5,7 @@ namespace eq\data;
 use EQ;
 use eq\base\InvalidCallException;
 use eq\base\Loader;
+use eq\base\NotImplementedException;
 use eq\base\Object;
 use eq\base\TEvent;
 use eq\base\UnknownPropertyException;
@@ -30,6 +31,7 @@ use eq\helpers\Str;
  * @property string scenario
  * @property array messages
  * @property int page_size
+ * @property ModelRelation[] relations
  */
 abstract class ModelBase extends Object
 {
@@ -43,6 +45,11 @@ abstract class ModelBase extends Object
     protected $errors = [];
     protected $errors_by_field = [];
     protected $_deleted = false;
+
+    /**
+     * @var ModelRelation[]
+     */
+    protected $_relations = null;
 
     abstract public function getFields();
 
@@ -62,6 +69,7 @@ abstract class ModelBase extends Object
         }
         if($scenario)
             $this->setScenario($scenario);
+        $this->_relations = $this->relations;
     }
 
     /**
@@ -120,10 +128,63 @@ abstract class ModelBase extends Object
         return $model;
     }
 
+    public static function findRelatedOne(array $condition)
+    {
+        return static::find($condition);
+    }
+
+    /**
+     * @param array $condition
+     * @param array $sort
+     * @return mixed
+     * @throws NotImplementedException
+     */
+    public static function findRelatedAll(array $condition, array $sort = [])
+    {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @param array $condition
+     * @return int
+     * @throws NotImplementedException
+     */
+    public static function countRelated(array $condition)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static function hasOne(ModelBase $parent, array $fields)
+    {
+        return ModelRelation::hasOne($parent, get_called_class(), $fields);
+    }
+
+    public static function hasMany(ModelBase $parent, array $fields, array $sort = [])
+    {
+        return ModelRelation::hasMany($parent, get_called_class(), $fields, $sort);
+    }
+
+    public static function countRelation(ModelBase $parent, array $fields)
+    {
+        return ModelRelation::count($parent, get_called_class(), $fields);
+    }
+
+    public static function customRelation(ModelBase $parent, $func)
+    {
+        return ModelRelation::custom($parent, get_called_class(), $func);
+    }
+
+    public function isRelatedLoaded($name)
+    {
+        return isset($this->_relations[$name]) ? $this->_relations[$name]->isLoaded() : false;
+    }
+
     public function __get($name)
     {
         if($this->getterExists($name))
             return parent::__get($name);
+        if(isset($this->_relations[$name]))
+            return $this->_relations[$name]->getValue();
         $this->field($name);
         return isset($this->data[$name]) ? $this->data[$name] : $this->fieldDefault($name);
     }
@@ -133,6 +194,9 @@ abstract class ModelBase extends Object
         if($this->setterExists($name)) {
             $this->setChanged($name);
             parent::__set($name, $value);
+        }
+        elseif(isset($this->_relations[$name])) {
+            $this->_relations[$name]->setValue($value);
         }
         else {
             $this->field($name);
@@ -148,6 +212,8 @@ abstract class ModelBase extends Object
     public function __isset($name)
     {
         if(parent::__isset($name))
+            return true;
+        if(isset($this->_relations[$name]))
             return true;
         return $this->field($name, false) !== null;
     }
@@ -328,10 +394,15 @@ abstract class ModelBase extends Object
         return $this->errors_by_field;
     }
 
+    public function getRelations()
+    {
+        return [];
+    }
+
     public function apply($data)
     {
         $this->trigger("beforeApply", [$data]);
-        if(isset($data[0])) {
+        if(is_array($data) && isset($data[0])) {
             $fields = $this->fieldnames;
             if(count($data) < count($fields))
                 $fields = array_slice($fields, 0, count($data));

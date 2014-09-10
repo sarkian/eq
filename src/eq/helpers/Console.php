@@ -562,9 +562,11 @@ class Console
         echo "\033[0J";
     }
 
-    public static function clearLine()
+    public static function clearLine($cr = false)
     {
         echo "\033[2K";
+        if($cr)
+            echo "\r";
     }
 
     public static function clearLineBeforeCursor()

@@ -3,6 +3,7 @@
 namespace eq\data;
 
 use eq\base\InvalidCallException;
+use eq\base\NotImplementedException;
 
 class Provider implements \Iterator, \Countable, \ArrayAccess
 {
@@ -244,6 +245,28 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
     public function last()
     {
         return $this->data ? $this->data[max(array_keys($this->data))] : null;
+    }
+
+    // TODO: Relations
+    public function loadRelations()
+    {
+        throw new NotImplementedException();
+        $relations = $this->emptyModel()->relations;
+        foreach($relations as $rel) {
+            if($rel->isCustom())
+                continue;
+
+        }
+    }
+
+    /**
+     * @param string $scenario
+     * @return ModelBase
+     */
+    public function emptyModel($scenario = null)
+    {
+        $cname = $this->class_name;
+        return new $cname($scenario !== null ? $scenario : $this->scenario);
     }
 
 }

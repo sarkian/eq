@@ -63,6 +63,11 @@ class Str
         return $ucfirst ? ucfirst($label) : $label;
     }
 
+    public static function className($class)
+    {
+        return is_object($class) ? get_class($class) : $class;
+    }
+
     public static function classNamespace($class)
     {
         if(is_object($class))

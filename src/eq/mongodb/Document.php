@@ -33,6 +33,7 @@ abstract class Document extends ModelBase
     {
         $this->db = EQ::app()->mongodb($this->db_name);
         $this->collection = $this->db->selectCollection($this->collection_name);
+        parent::__construct($scenario);
     }
 
     public static function findAll(array $condition = [], array $options = [])
@@ -46,7 +47,6 @@ abstract class Document extends ModelBase
 
     public static function count(array $condition = [], array $options = [])
     {
-        $model = static::i();
         $limit = isset($options['limit']) ? $options['limit'] : 0;
         $skip = isset($options['skip']) ? $options['skip'] : 0;
         return static::i()->collection->count($condition, $limit, $skip);
@@ -72,6 +72,22 @@ abstract class Document extends ModelBase
     public static function paginator(array $condition = [], array $options = [])
     {
         return new Paginator(get_called_class(), $condition, $options);
+    }
+
+    public static function findRelatedAll(array $condition, array $sort = [])
+    {
+        $opts = [];
+        if($sort) {
+            $name = array_keys($sort)[0];
+            $ord = strtolower(array_values($sort)[0]);
+            $opts['sort'] = [$name => $ord === "desc" ? -1 : 1];
+        }
+        return static::findAll($condition, $opts);
+    }
+
+    public static function countRelated(array $condition)
+    {
+        return static::count($condition);
     }
 
     public function getCollectionName()

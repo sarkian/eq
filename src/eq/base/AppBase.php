@@ -336,17 +336,19 @@ abstract class AppBase extends ModuleAbstract
         return true;
     }
 
-    public function configSave($key, $value)
+    public function configSave($key, $value, $commit = false)
     {
         if(!$this->configWrite($key, $value)) {
             self::warn("Trying to save read-only config value: $key");
             return false;
         }
         $this->trigger("config.save", $key, $value);
+        if($commit)
+            $this->configCommit();
         return true;
     }
 
-    public function configRemove($key)
+    public function configRemove($key, $commit = false)
     {
         if(!$this->configAccessWrite($key)) {
             self::warn("Trying to remove read-only config value: $key");
@@ -354,7 +356,14 @@ abstract class AppBase extends ModuleAbstract
         }
         Arr::unsetItem($this->_config, $key);
         $this->trigger("config.remove", $key);
+        if($commit)
+            $this->configCommit();
         return true;
+    }
+
+    public function configCommit()
+    {
+        $this->trigger("config.commit");
     }
 
     public function configAppend($key, $value)
@@ -521,14 +530,14 @@ abstract class AppBase extends ModuleAbstract
         return \EQ::app()->config("var.$name", $default);
     }
 
-    public static function varSet($name, $value)
+    public static function varSet($name, $value, $commit = false)
     {
-        return \EQ::app()->configSave("var.$name", $value);
+        return \EQ::app()->configSave("var.$name", $value, $commit);
     }
 
-    public static function varUnset($name)
+    public static function varUnset($name, $commit = false)
     {
-        return \EQ::app()->configRemove("var.$name");
+        return \EQ::app()->configRemove("var.$name", $commit);
     }
 
     protected static function systemStaticMethods()

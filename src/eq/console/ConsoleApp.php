@@ -127,11 +127,16 @@ class ConsoleApp extends AppBase
                 $params[] = $args;
                 break;
             }
-            $type = DataTypeBase::getClass($param->type);
-            if(!is_null($val) && !$type::validate($val))
-                return $this->printMessage(
-                    "Invalid argument value: ".$param->name.(is_scalar($val) ? " ($val)" : ""));
-            $params[] = $type::filter($val);
+            if($def === null && $val === null) {
+                $params[] = null;
+            }
+            else {
+                $type = DataTypeBase::getClass($param->type);
+                if(!is_null($val) && !$type::validate($val))
+                    return $this->printMessage(
+                        "Invalid argument value: ".$param->name.(is_scalar($val) ? " ($val)" : ""));
+                $params[] = $type::filter($val);
+            }
             $i++;
         }
         try {

@@ -135,28 +135,37 @@
             if(options.reload_on.error)
                 EQ.ajax.reload();
         };
-        return $.post(url, params, 'json').done(function(data) {
-            if(data.success)
-                on_success(data.message, data.data);
-            else
-                on_error(data.message, data.data);
-            if(typeof data.warnings !== 'object')
-                return;
-            for(var i in data.warnings) {
-                if(!data.warnings.hasOwnProperty(i))
-                    continue;
-                var msg = data.warnings[i];
-                if(typeof msg !== 'string' || !msg.length)
-                    continue;
-                if(typeof options.on_warning === 'function')
-                    options.on_warning(msg);
-                if(options.notify_on.warning)
-                    EQ.notify(msg, 'notice');
+
+        return $.ajax({
+            type: 'POST',
+            url: url,
+            data: params,
+            dataType: 'json',
+            success: function(data) {
+                if(data.success)
+                    on_success(data.message, data.data);
+                else
+                    on_error(data.message, data.data);
+                if(typeof data.warnings !== 'object')
+                    return;
+                for(var i in data.warnings) {
+                    if(!data.warnings.hasOwnProperty(i))
+                        continue;
+                    var msg = data.warnings[i];
+                    if(typeof msg !== 'string' || !msg.length)
+                        continue;
+                    if(typeof options.on_warning === 'function')
+                        options.on_warning(msg);
+                    if(options.notify_on.warning)
+                        EQ.notify(msg, 'notice');
+                }
+            },
+            error: function(data) {
+                if(data.statusText !== 'abort')
+                    on_error(EQ.t('Application error'), data);
             }
-        }).fail(function(data) {
-            if(data.statusText !== 'abort')
-                on_error(EQ.t('Application error'), data);
         });
+
     };
 
 

@@ -78,6 +78,7 @@ class DbconfigModule extends ModuleBase
             throw new InvalidConfigException("Invalid DB type: {$this->db_type}");
         EQ::app()->bind("config.save", [$this, "set"]);
         EQ::app()->bind("config.remove", [$this, "remove"]);
+        EQ::app()->bind("config.commit", [$this, "commit"]);
         EQ::app()->bind("shutdown", [$this, "commit"]);
     }
 
