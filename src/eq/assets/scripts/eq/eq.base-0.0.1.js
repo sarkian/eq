@@ -159,6 +159,11 @@
             case 'success':
                 type = 'success';
                 break;
+            case 'loadingBegin':
+            case 'loadingEnd':
+            case 'loadingSuccess':
+            case 'loadingError':
+                break;
             default:
                 type = 'info';
         }
@@ -170,6 +175,17 @@
                     break;
                 case 'success':
                     message = EQ.t('Done');
+                    break;
+                case 'loadingBegin':
+                    message = EQ.t('Loading') + '...';
+                    break;
+                case 'loadingEnd':
+                    break;
+                case 'loadingSuccess':
+                    message = EQ.t('Done');
+                    break;
+                case 'loadingError':
+                    message = EQ.t('Error');
                     break;
                 default:
                     return;
@@ -192,6 +208,22 @@
         }
         else
             t.notification_handler(message, type, options);
+    };
+
+    eq.EQ.prototype.notify.loadingBegin = function(msg, options) {
+        this(msg, 'loadingBegin', options);
+    };
+
+    eq.EQ.prototype.notify.loadingEnd = function(options) {
+        this('', 'loadingEnd', options);
+    };
+
+    eq.EQ.prototype.notify.loadingSuccess = function(msg, options) {
+        this(msg, 'loadingSuccess', options);
+    };
+
+    eq.EQ.prototype.notify.loadingError = function(msg, options) {
+        this(msg, 'loadingError', options);
     };
 
     eq.EQ.prototype.wrapJQuery = function() {

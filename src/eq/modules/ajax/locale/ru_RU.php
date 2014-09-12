@@ -11,5 +11,7 @@ return [
     'js' => [
         'Application error' => "Ошибка приложения",
         'Done' => "Готово",
+        'Error' => "Ошибка",
+        'Loading' => "Загрузка",
     ],
 ];

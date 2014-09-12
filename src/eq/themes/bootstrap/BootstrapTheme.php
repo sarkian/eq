@@ -15,7 +15,7 @@ class BootstrapTheme extends ThemeBase
             "bootstrap-base",
 //            "bootstrap-theme",
             "bootstrap-js",
-            "eq.base",
+//            "eq.base",
         ];
     }
 

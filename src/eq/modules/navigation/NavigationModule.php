@@ -11,6 +11,7 @@ class NavigationModule extends ModuleBase
 
     public function renderNav($name)
     {
+        $this->trigger("navRender", [$this]);
         $this->trigger("navRender.$name", [$this]);
         $conf = Arr::extend($this->config("navs.$name", []), [
             'widget' => "Navbar",
@@ -43,19 +44,28 @@ class NavigationModule extends ModuleBase
         return $nav->render();
     }
 
-    public function addItem($name, array $item)
+    public function appendItem($name, array $item)
     {
         if(is_array($name)) {
             foreach($name as $name_)
-                $this->addItem($name, $item);
+                $this->appendItem($name_, $item);
         }
         $this->configAppend("navs.$name.items", [$item]);
+    }
+
+    public function prependItem($name, array $item)
+    {
+        if(is_array($name)) {
+            foreach($name as $name_)
+                $this->prependItem($name_, $item);
+        }
+        $this->configPrepend("navs.$name.items", [$item]);
     }
 
     protected function configPermissions()
     {
         return [
-            'navs' => "append",
+            'navs' => "extend",
             'navs.*' => "all",
         ];
     }

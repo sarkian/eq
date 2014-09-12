@@ -12,10 +12,10 @@ class BootstrapSlateTheme extends BootstrapTheme
         return [
             "jquery",
             "normalize-css",
-            "bootstrap-base",
+//            "bootstrap-base",
             "bootstrap-theme-slate",
             "bootstrap-js",
-            "eq.base",
+//            "eq.base",
         ];
     }
 

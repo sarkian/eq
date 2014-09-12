@@ -374,7 +374,20 @@ abstract class AppBase extends ModuleAbstract
         if(is_array($value))
             $val = array_merge($val, $value);
         else
-            $val[] = $value;
+            array_push($val, $value);
+        Arr::setItem($this->_config, $key, $val);
+        return true;
+    }
+
+    public function configPrepend($key, $value)
+    {
+        if(!$this->configAccessPrepend($key))
+            return false;
+        $val = $this->config($key, []);
+        if(is_array($value))
+            $val = array_merge($value, $val);
+        else
+            array_unshift($val, $value);
         Arr::setItem($this->_config, $key, $val);
         return true;
     }
@@ -382,13 +395,25 @@ abstract class AppBase extends ModuleAbstract
     public function configAccessWrite($key)
     {
         $val = $this->configPermissionsValue($key);
-        return $val === "write" || $val === "all" ? true : false;
+        return $val === "write" || $val === "all";
     }
 
     public function configAccessAppend($key)
     {
         $val = $this->configPermissionsValue($key);
-        return $val === "append" || $val === "all" ? true : false;
+        return $val === "append" || $val === "extend" || $val === "all";
+    }
+
+    public function configAccessPrepend($key)
+    {
+        $val = $this->configPermissionsValue($key);
+        return $val === "prepend" || $val === "extend" || $val === "all";
+    }
+
+    public function configAccessExtend($key)
+    {
+        $val = $this->configPermissionsValue($key);
+        return $val === "extend" || $val === "all";
     }
 
     /**
@@ -560,7 +585,6 @@ abstract class AppBase extends ModuleAbstract
     protected function configPermissions()
     {
         return EQ_RECOVERY ? [] : [
-            'modules.*' => "all",
             'app.*' => "all",
             'site.*' => "all",
             'var.*' => "all",

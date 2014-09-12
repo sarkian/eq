@@ -22,16 +22,18 @@ class Navbar extends NavbarBase
     protected $_file_ = __FILE__;
     protected $_dir_ = __DIR__;
 
+    protected $fixed_padding = "70px";
+
     public function getNavClass()
     {
         $classes = ["navbar", "navbar-default"];
         $fixed = $this->attr("fixed");
-        if(is_null($fixed))
-            $classes[] = "navbar-fixed-top";
-        elseif(is_string($fixed) && strlen($fixed) && !Bool::validate($fixed))
-            $classes[] = "navbar-fixed-".$fixed;
-        elseif(Bool::filter($fixed))
-            $classes[] = "navbar-fixed-top";
+        if($fixed !== false) {
+            is_string($fixed) or $fixed = "top";
+            $classes[] = "navbar-fixed-$fixed";
+            if($fixed === "top" || $fixed === "bottom")
+                EQ::app()->client_script->addCss("body {padding-$fixed: {$this->fixed_padding};}");
+        }
         return implode(" ", $classes);
     }
 

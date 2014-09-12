@@ -107,20 +107,27 @@
 
     Ajax.prototype.exec = function(path, params, _options) {
         var options = $.extend(true, {
+            type: 'POST',
             is_url: false,
             on_success: null,
             on_error: null,
             on_warning: null,
             reload_on: {success: true, error: false},
-            notify_on: {success: false, error: true, warning: true}
+            notify_on: {loading: false, success: false, error: true, warning: true}
         }, _options);
-        var url = options.is_url ? path : EQ.ajax.url(path, params);
+        var url = options.is_url ? path : EQ.ajax.url(path, options.type === 'GET' ? params : {});
         var on_success = function(message, data) {
             if(typeof options.on_success === 'function') {
                 if(options.on_success(message, data) === false)
                     return;
             }
-            if(options.notify_on.success)
+            if(options.notify_on.loading) {
+                if(options.notify_on.success)
+                    EQ.notify.loadingSuccess(message);
+                else
+                    EQ.notify.loadingEnd();
+            }
+            else if(options.notify_on.success)
                 EQ.notify(message, 'success');
             if(options.reload_on.success)
                 EQ.ajax.reload();
@@ -130,14 +137,24 @@
                 if(options.on_error(message, data) === false)
                     return;
             }
-            if(options.notify_on.error)
+            if(options.notify_on.loading) {
+                if(options.notify_on.error)
+                    EQ.notify.loadingError(message);
+                else
+                    EQ.notify.loadingEnd();
+            }
+            else if(options.notify_on.error)
                 EQ.notify(message, 'error');
             if(options.reload_on.error)
                 EQ.ajax.reload();
         };
 
+        if(options.notify_on.loading)
+            EQ.notify.loadingBegin(typeof options.notify_on.loading === 'string'
+                ? options.notify_on.loading : null);
+
         return $.ajax({
-            type: 'POST',
+            type: options.type,
             url: url,
             data: params,
             dataType: 'json',

@@ -58,8 +58,8 @@ class AdminModule extends ModuleBase
         ];
         EQ::app()->bind("modules.eq:navigation.navRender.admin",
         function(NavigationModule $module) {
-            foreach($this->nav_items as $item)
-                $module->addItem("admin", $item);
+            foreach(array_reverse($this->nav_items) as $item)
+                $module->prependItem("admin", $item);
         });
         EQ::app()->bind("beforeRender", function() {
             if(!EQ::app()->user->isAdmin() || !$this->isAdminUrl())

@@ -88,12 +88,22 @@ final class AjaxResponse
     public function push($value)
     {
         if(!is_array($this->data)) {
-            $this->data = [];
             if(!is_null($this->data))
                 EQ::warn("Rewriting data");
+            $this->data = [];
         }
-        foreach(func_get_args() as $value)
-            $this->data[] = $value;
+        foreach(func_get_args() as $value) {
+            if(is_array($value)) {
+                $keys = array_keys($value);
+                if(!$keys || !is_string($keys[0]))
+                    $this->data[] = $value;
+                else
+                    foreach($value as $k => $v)
+                        $this->data[$k] = $v;
+            }
+            else
+                $this->data[] = $value;
+        }
         return $this;
     }
 

@@ -118,6 +118,22 @@ class FileSystem
         return $fname;
     }
 
+    public static function glob($pattern, $flags = 0)
+    {
+        return glob(EQ::getAlias($pattern, $flags));
+    }
+
+    public static function concat($input, $output, $nl = false)
+    {
+        is_array($input) or $input = [$input];
+        $outfile = @fopen(EQ::getAlias($output), "w");
+        if($outfile === false)
+            throw new FileSystemException("Cant open file for writing: $output");
+        foreach($input as $fname)
+            fwrite($outfile, static::fgets($fname).($nl ? "\n" : ""));
+        fclose($outfile);
+    }
+
     public static function copy($src, $dst, $force = false)
     {
         self::_copy(EQ::getAlias($src), EQ::getAlias($dst), $force);

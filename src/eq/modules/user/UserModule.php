@@ -75,20 +75,20 @@ class UserModule extends ModuleBase
         $use_icons = $this->config("use_nav_icons", true);
         EQ::app()->bind("modules.eq:navigation.navRender.$site_nav",
         function(NavigationModule $module) use($use_icons) {
-            $module->addItem("site", [
+            $module->appendItem("site", [
                 'route' => "modules.eq:user.user.login",
                 'title' => EQ::t("Login"),
                 'icon' => $use_icons ? "user" : "",
                 'perms' => "guest",
             ]);
             if($this->config("registration_enabled", true))
-                $module->addItem("site", [
+                $module->appendItem("site", [
                     'route' => "modules.eq:user.user.register",
                     'title' => EQ::t("Register"),
                     'icon' => $use_icons ? "plus" : "",
                     'perms' => "guest",
                 ]);
-            $module->addItem("site", [
+            $module->appendItem("site", [
                 'route' => "modules.eq:user.user.logout",
                 'token' => true,
                 'title' => EQ::t("Logout"),

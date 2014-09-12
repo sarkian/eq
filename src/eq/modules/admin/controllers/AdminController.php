@@ -16,19 +16,10 @@ use eq\php\ErrorException;
 use eq\php\NoticeException;
 use eq\web\Controller;
 
-class AdminController extends Controller
+class AdminController extends AdminControllerBase
 {
 
     use TModuleClass;
-
-    protected $template = "main";
-
-    protected function permissions()
-    {
-        return [
-            'user,guest' => ["deny", "#all"],
-        ];
-    }
 
     public function actionIndex()
     {

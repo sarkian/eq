@@ -72,7 +72,7 @@ class WebApp extends AppBase
     protected function configPermissions()
     {
         return EQ_RECOVERY ? [] : [
-            'modules.*' => "all",
+            'modules.*.enabled' => "all",
             'app.*' => "all",
             'site.*' => "all",
             'var.*' => "all",

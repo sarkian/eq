@@ -15,6 +15,8 @@ $(function() {
         spacing2: 0
     };
 
+    var loading = null;
+
     function opts(o, uo) {
         return $.extend(true, {
 //            type: 'info',
@@ -25,7 +27,9 @@ $(function() {
             hide: true,
             closer: false,
             nonblock: false,
-            delay: 10000
+            delay: 10000,
+            animation: 'fade',
+            animate_speed: 'fast'
         }, o, uo);
     }
 
@@ -50,6 +54,50 @@ $(function() {
                 break;
             case 'error':
                 o.hide = false;
+                break;
+            case 'loadingBegin':
+                if(!loading) {
+                    o.type = 'info';
+                    o.icon = false;
+                    o.hide = false;
+                    o.buttons.closer = false;
+                    loading = new PNotify(opts(o, options));
+                }
+                else {
+                    loading.update({
+                        text: message
+                    });
+                }
+                return;
+            case 'loadingEnd':
+                if(loading) {
+                    loading.remove();
+                    loading = null;
+                }
+                return;
+            case 'loadingSuccess':
+                if(loading) {
+                    loading.update({
+                        text: message,
+                        type: 'success',
+                        icon: 'glyphicon glyphicon-ok-sign',
+                        hide: true,
+                        delay: 1000
+                    });
+                }
+                return;
+            case 'loadingError':
+                if(loading) {
+                    loading.update({
+                        text: message,
+                        type: 'error',
+                        icon: 'glyphicon glyphicon-warning-sign',
+                        hide: true,
+                        delay: 10000,
+                        buttons: {closer: true}
+                    });
+                }
+                return;
         }
         new PNotify(opts(o, options));
     });

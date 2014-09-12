@@ -229,12 +229,17 @@ abstract class ModuleBase extends ModuleAbstract
 
     public final function configWrite($key, $value)
     {
-        EQ::app()->configWrite($this->configKey($key), $value);
+        return EQ::app()->configWrite($this->configKey($key), $value);
     }
 
     public final function configAppend($key, $value)
     {
-        EQ::app()->configAppend($this->configKey($key), $value);
+        return EQ::app()->configAppend($this->configKey($key), $value);
+    }
+
+    public final function configPrepend($key, $value)
+    {
+        return EQ::app()->configPrepend($this->configKey($key), $value);
     }
 
     public final function configAccessWrite($key)
@@ -245,6 +250,16 @@ abstract class ModuleBase extends ModuleAbstract
     public final function configAccessAppend($key)
     {
         return EQ::app()->configAccessAppend($this->configKey($key));
+    }
+
+    public final function configAccessPrepend($key)
+    {
+        return EQ::app()->configAccessPrepend($this->configKey($key));
+    }
+
+    public final function configAccessExtend($key)
+    {
+        return EQ::app()->configAccessExtend($this->configKey($key));
     }
 
     public final function bind($events, $callable)

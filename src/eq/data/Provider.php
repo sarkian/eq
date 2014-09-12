@@ -108,6 +108,23 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
         }, $this->data);
     }
 
+    public function columnByPk($name)
+    {
+        return array_map(function($i) use($name) {
+            return isset($this->data[$i]) ? $this->data[$i]->{$name} : null;
+        }, $this->by_pk);
+    }
+
+    public function map($fn)
+    {
+        return array_map($fn, $this->data);
+    }
+    
+    public function walk($fn)
+    {
+        return array_walk($this->data, $fn);
+    }
+
     /**
      * Return the current element
      *
@@ -229,6 +246,14 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
     public function count()
     {
         return count($this->data);
+    }
+
+    /**
+     * @return ModelBase[]
+     */
+    public function all()
+    {
+        return $this->data;
     }
 
     /**
