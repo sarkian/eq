@@ -103,8 +103,11 @@ class WebApp extends AppBase
      */
     public function getTheme()
     {
-        if(!$this->theme)
-            $this->setTheme($this->config("site.theme", "bootstrap"));
+        if(!$this->theme) {
+            $this->trigger("themeFirstRequest");
+            if(!$this->theme)
+                $this->setTheme($this->config("site.theme", "bootstrap"));
+        }
         return $this->theme;
     }
 

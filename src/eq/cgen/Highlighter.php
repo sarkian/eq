@@ -116,6 +116,10 @@ class Highlighter
             T_IS_NOT_IDENTICAL,
             T_IS_SMALLER_OR_EQUAL,
             T_CONCAT_EQUAL,
+            T_PLUS_EQUAL,
+            T_MINUS_EQUAL,
+            T_MUL_EQUAL,
+            T_DIV_EQUAL,
             '.',
             ',',
             ';',
@@ -132,6 +136,7 @@ class Highlighter
             '<',
             '@',
             '|',
+            '%',
         ],
         'string' => [
             T_CONSTANT_ENCAPSED_STRING,

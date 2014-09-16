@@ -7,6 +7,11 @@ use eq\db\Schema;
 class Arr extends DataTypeBase
 {
 
+    public static function isEmpty($value)
+    {
+        return (bool) $value;
+    }
+
     public static function validate($value)
     {
         return is_array($value);

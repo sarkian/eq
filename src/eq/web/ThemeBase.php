@@ -9,6 +9,7 @@ use eq\helpers\Str;
 
 /**
  * @property array assets
+ * @property string name
  */
 abstract class ThemeBase
 {
@@ -47,6 +48,11 @@ abstract class ThemeBase
     public function getAssets()
     {
         
+    }
+
+    public function getName()
+    {
+        return Str::method2var(substr(Str::classBasename($this), 0, -5));
     }
 
 }

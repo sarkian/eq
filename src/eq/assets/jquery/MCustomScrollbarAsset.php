@@ -17,11 +17,15 @@ class MCustomScrollbarAsset extends AssetBundle
     ];
 
     protected $js = [
-        "jquery.mCustomScrollbar.concat.min.js",
+        "jquery.mCustomScrollbar.min.js",
     ];
 
     protected $css = [
-        "jquery.mCustomScrollbar.min.css",
+        "jquery.mCustomScrollbar.css",
+    ];
+
+    protected $files = [
+        "mCSB_buttons.png",
     ];
 
 } 

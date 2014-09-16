@@ -4,6 +4,7 @@ namespace eq\assets\eq;
 
 use eq\web\AssetBundle;
 
+// TODO: Move into module
 class AjaxAsset extends AssetBundle
 {
 

@@ -35,6 +35,14 @@ abstract class Model extends ModelBase
         parent::__construct($scenario);
     }
 
+    /**
+     * @param string $condition
+     * @param array $params
+     * @param array $options
+     * @return \eq\data\Provider|static[]
+     * @throws SQLException
+     * @throws \Exception
+     */
     public static function findAll($condition = "1", array $params = [], array $options = [])
     {
         $model = static::i();

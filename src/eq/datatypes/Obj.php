@@ -7,6 +7,11 @@ use eq\db\mysql\Schema;
 class Obj extends DataTypeBase
 {
 
+    public static function isEmpty($value)
+    {
+        return (bool) (array) $value;
+    }
+
     public static function validate($value)
     {
         return is_object($value);

@@ -36,6 +36,11 @@ abstract class Document extends ModelBase
         parent::__construct($scenario);
     }
 
+    /**
+     * @param array $condition
+     * @param array $options
+     * @return \eq\data\Provider|static[]
+     */
     public static function findAll(array $condition = [], array $options = [])
     {
         $model = static::i();
@@ -107,7 +112,8 @@ abstract class Document extends ModelBase
 
     public function getId()
     {
-        return isset($this->data['_id']) ? $this->data['_id'] : $this->__id;
+        return isset($this->data['_id']) ? $this->data['_id']
+            : (isset($this->data['id']) ? $this->data['id'] : $this->__id);
     }
 
     public function field($name, $throw = true, $default = null)
@@ -122,7 +128,7 @@ abstract class Document extends ModelBase
     public function typeToDb($fieldname, $value)
     {
         if($fieldname === "_id")
-            return is_object($value) && $value instanceof MongoId ? $value : new MongoId($value);
+            return is_object($value) && $value instanceof MongoId ? $value : new MongoId((string) $value);
         $type = $this->fieldTypename($fieldname);
         if($type === "arr" || $type === "array")
             return (array) $value;
@@ -136,6 +142,8 @@ abstract class Document extends ModelBase
 
     public function typeFromDb($fieldname, $value)
     {
+        if($fieldname === "_id")
+            return (string) $value;
         $type = $this->fieldTypename($fieldname);
         if($type === "arr" || $type === "array")
             return (array) $value;
@@ -152,21 +160,6 @@ abstract class Document extends ModelBase
         return $this->saved_fieldnames;
     }
     
-    public function itemSet($name, $value, $unique = false)
-    {
-        Arr::setItem($this->data, $name, $value, $unique);
-    }
-
-    public function itemGet($name, $default = null)
-    {
-        return Arr::getItem($this->data, $name, $default);
-    }
-
-    public function itemUnset($name)
-    {
-        Arr::unsetItem($this->data, $name);
-    }
-
     protected function insertQuery(array $cols)
     {
         $res = $this->collection->insert($cols);
@@ -208,7 +201,8 @@ abstract class Document extends ModelBase
 
     protected function pkCondition($operator = null)
     {
-        $value = $this->typeToDb($this->pk, $this->{$this->pk});
+        $pk = $this->{$this->pk};
+        $value = $this->typeToDb($this->pk, $pk);
         $condition = $operator === null ? $value : [$operator => $value];
         return [$this->pk => $condition];
     }

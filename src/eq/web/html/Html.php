@@ -48,4 +48,29 @@ class Html
         return $html;
     }
 
+    /**
+     * @param array $attrs, ...
+     * @return array
+     */
+    public static function mergeAttrs($attrs)
+    {
+        $classlist = [];
+        $attrs_all = [];
+        foreach(func_get_args() as $attrs) {
+            if(!is_array($attrs))
+                continue;
+            if(isset($attrs['class'])) {
+                $classlist = array_merge($classlist, is_array($attrs['class']) ?
+                    $attrs['class'] : explode(" ", $attrs['class']));
+                unset($attrs['class']);
+            }
+            $attrs_all[] = $attrs;
+        }
+        $attrs = call_user_func_array("array_merge", $attrs_all);
+        $classlist = array_unique($classlist);
+        if($classlist)
+            $attrs['class'] = implode(" ", $classlist);
+        return $attrs;
+    }
+
 }

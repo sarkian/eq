@@ -1,11 +1,10 @@
 <?php
-/**
- * Last Change: 2014 Apr 05, 17:12
- */
 
 namespace eq\assets\eq;
 
-class BaseAsset extends \eq\web\AssetBundle
+use eq\web\AssetBundle;
+
+class BaseAsset extends AssetBundle
 {
 
     protected $source_path = "@eq/src/eq/assets/scripts/eq";

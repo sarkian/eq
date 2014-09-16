@@ -64,7 +64,7 @@ class UserModule extends ModuleBase
 
     protected static function preInit()
     {
-        EQ::app()->bind("modules.eq:i18n.beforeLoadFiles", function (I18nModule $module) {
+        EQ::app()->bind("modules.eq:i18n.beforeLoadFiles", function(I18nModule $module) {
             $module->addDir(__DIR__."/locale", "user");
         });
     }
@@ -73,22 +73,39 @@ class UserModule extends ModuleBase
     {
         $site_nav = $this->config("site_nav", "site");
         $use_icons = $this->config("use_nav_icons", true);
+        EQ::app()->bind("themeFirstRequest", function() {
+            if($this->config("has_settings", true) && $this->config("account_page.can_set_theme", false)) {
+                $theme = EQ::app()->user->settingsGet("theme");
+                if($theme)
+                    EQ::app()->setTheme($theme);
+            }
+        });
         EQ::app()->bind("modules.eq:navigation.navRender.$site_nav",
-        function(NavigationModule $module) use($use_icons) {
-            $module->appendItem("site", [
+        function(NavigationModule $nav) use($use_icons) {
+            $nav->appendItem("site", [
                 'route' => "modules.eq:user.user.login",
                 'title' => EQ::t("Login"),
                 'icon' => $use_icons ? "user" : "",
                 'perms' => "guest",
             ]);
             if($this->config("registration_enabled", true))
-                $module->appendItem("site", [
+                $nav->appendItem("site", [
                     'route' => "modules.eq:user.user.register",
                     'title' => EQ::t("Register"),
                     'icon' => $use_icons ? "plus" : "",
                     'perms' => "guest",
                 ]);
-            $module->appendItem("site", [
+            if($this->config("account_page.enabled", true)) {
+                $titlefunc = $this->config("account_page.menu_item_title");
+                is_callable($titlefunc) or $titlefunc = function($u) { return $u->name; };
+                $nav->appendItem("site", [
+                    'route' => "modules.eq:user.user.account",
+                    'title' => call_user_func($titlefunc, EQ::app()->user),
+                    'icon' => $use_icons ? "user" : "",
+                    'perms' => "user,admin",
+                ]);
+            }
+            $nav->appendItem("site", [
                 'route' => "modules.eq:user.user.logout",
                 'token' => true,
                 'title' => EQ::t("Logout"),
@@ -206,6 +223,10 @@ class UserModule extends ModuleBase
         if($this->config("use_role", true)) {
             $fields['role'] = $this->field("role");
         }
+        // settings
+        if($this->config("use_settings", true)) {
+            $fields['settings'] = $this->field("settings");
+        }
         $this->managed_sessions = $this->config("managed_sessions", false);
         return $fields;
     }
@@ -263,7 +284,7 @@ class UserModule extends ModuleBase
     {
         return [
             'id' => [
-                'type' => "uintp",
+                'type' => $this->db_type === "mongo" ? "string" : "uintp",
                 'show' => false,
                 'load' => true,
                 'save' => false,
@@ -355,6 +376,14 @@ class UserModule extends ModuleBase
                 'save' => false,
                 'default' => "",
                 'label' => EQ::t("Invite"),
+            ],
+            'settings' => [
+                'type' => "arr",
+                'show' => false,
+                'load' => true,
+                'save' => true,
+                'default' => [],
+                'label' => EQ::t("Settings"),
             ],
         ];
     }

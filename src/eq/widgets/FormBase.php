@@ -14,6 +14,7 @@ use EQ;
  * @property string id
  * @property string method
  * @property array errors
+ * @property array errors_by_field
  */
 class FormBase extends WidgetBase
 {
@@ -51,9 +52,24 @@ class FormBase extends WidgetBase
         $this->labels = $labels;
     }
 
+    public function setErrors(array $errors)
+    {
+        $this->errors = $errors;
+    }
+
+    public function setErrorsByField(array $errors)
+    {
+        $this->errors_by_field = $errors;
+    }
+
     public function getErrors()
     {
         return $this->errors;
+    }
+
+    public function getErrorsByField()
+    {
+        return $this->errors_by_field;
     }
 
     public function addError($message, $field = null)
@@ -107,7 +123,7 @@ class FormBase extends WidgetBase
 
     public function textField($name, $options = [])
     {
-        $options = array_merge($this->inputOptions([
+        $options = Html::mergeAttrs($this->inputOptions([
             'id' => $this->fieldId($name),
             'type' => "text",
             'name' => $this->fieldName($name),
@@ -119,7 +135,7 @@ class FormBase extends WidgetBase
 
     public function passwordField($name, $options = [])
     {
-        $options = array_merge($this->inputOptions([
+        $options = Html::mergeAttrs($this->inputOptions([
             'id' => $this->fieldId($name),
             'type' => "password",
             'name' => $this->fieldName($name),
@@ -131,18 +147,75 @@ class FormBase extends WidgetBase
 
     public function submitButton($text, $options = [])
     {
-        $options = array_merge($this->inputOptions([
+        $options = Html::mergeAttrs($this->inputOptions([
             'type' => "submit",
         ], "submitButton"), $options);
         return Html::tag("button", $options, htmlspecialchars($text));
     }
 
+    public function button($name, $options = [])
+    {
+        $options = Html::mergeAttrs($this->inputOptions([
+            'type' => "button",
+            'id' => $this->fieldId($name),
+            'name' => $this->fieldName($name),
+            'value' => htmlspecialchars($this->fieldValue($name, $this->fieldLabel($name))),
+        ], "button"), $options);
+        return Html::tag("input", $options);
+    }
+
     public function label($name, $options = [], $type = null)
     {
-        $options = array_merge($this->labelOptions([
+        $options = Html::mergeAttrs($this->labelOptions([
             'for' => $this->fieldId($name),
         ], $type, $name), $options);
         return Html::tag("label", $options, $this->fieldLabel($name));
+    }
+
+    public function select($name, $options = [])
+    {
+        $options = Html::mergeAttrs($this->inputOptions([
+            'id' => $this->fieldId($name),
+            'name' => $this->fieldName($name),
+            'value' => htmlspecialchars($this->fieldValue($name)),
+            'variants' => [],
+        ], "select", $name), $options);
+        $variants = $options['variants'];
+        unset($options['variants']);
+        $sel = new HtmlNode("select", $options);
+        foreach($variants as $value => $text)
+            $sel->append($this->renderSelectOption($value, $text, $options['value']));
+        return $sel->render();
+    }
+
+    public function checkBox($name, $options = [])
+    {
+        $options = Html::mergeAttrs($this->inputOptions([
+            'type' => "checkbox",
+            'id' => $this->fieldId($name),
+            'name' => $this->fieldName($name),
+            'value' => $this->fieldValue($name, false),
+        ], "checkBox", $name), $options);
+        if($options['value'])
+            $options['checked'] = "checked";
+        unset($options['value']);
+        return Html::tag("input", $options);
+    }
+
+    public function radioButton($name, $options = [])
+    {
+        // TODO: Implement
+    }
+
+    public function fieldsetBegin($legend = null)
+    {
+        $html = "<fieldset>";
+        return $legend === null ? $html : $html."<legend>".htmlspecialchars($legend)."</legend>";
+    }
+
+    public function fieldsetEnd()
+    {
+        return "</fieldset>";
     }
 
     public function renderField($name, $type = null)
@@ -172,8 +245,28 @@ class FormBase extends WidgetBase
             return $this->{$method}();
         elseif(($method = $this->getInputMethod($type, "RenderLabel")))
             return $this->{$method}($name);
-        else
+        elseif($this->typeCanHasLabel($type) && $this->nameCanHasLabel($name))
             return $this->label($name, [], $type);
+        else
+            return "";
+    }
+
+    protected function nameCanHasLabel($name)
+    {
+        return true;
+    }
+
+    protected function typeCanHasLabel($type)
+    {
+        if($type === null)
+            return true;
+        return in_array($type, [
+            "textField",
+            "numberField",
+            "passwordField",
+            "select",
+            "checkBox",
+        ]);
     }
 
     protected function nameCanHasAutofocus($name)
@@ -221,10 +314,10 @@ class FormBase extends WidgetBase
     {
         $method = $this->getInputMethod($type, "Options");
         if($method)
-            $options = array_merge($options, $this->{$method}($name));
+            $options = Html::mergeAttrs($options, $this->{$method}($name));
         $method = $this->getFieldMethod($name, "Options");
         if($method)
-            $options = array_merge($options, $this->{$method}());
+            $options = Html::mergeAttrs($options, $this->{$method}());
         return $options;
     }
 
@@ -232,10 +325,10 @@ class FormBase extends WidgetBase
     {
         $method = $this->getInputMethod($type, "LabelOptions");
         if($method)
-            $options = array_merge($options, $this->{$method}($name));
+            $options = Html::mergeAttrs($options, $this->{$method}($name));
         $method = $this->getFieldMethod($name, "LabelOptions");
         if($method)
-            $options = array_merge($options, $this->{$method}());
+            $options = Html::mergeAttrs($options, $this->{$method}());
         return $options;
     }
 
@@ -315,6 +408,22 @@ class FormBase extends WidgetBase
     protected function renderError($message, $field = null)
     {
         return Html::tag("li", [], $message);
+    }
+
+    protected function renderSelectOption($value, $opt, $selected)
+    {
+        if(is_array($opt)) {
+            $group = new HtmlNode("optgroup", ['label' => $value]);
+            foreach($opt as $v => $t)
+                $group->append($this->renderSelectOption($v, $t, $selected));
+            return $group->render();
+        }
+        else {
+            $opt = new HtmlNode("option", ['value' => htmlspecialchars($value)], htmlspecialchars($opt));
+            if($value == $selected)
+                $opt->attr("selected", "selected");
+            return $opt->render();
+        }
     }
 
 }

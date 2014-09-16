@@ -44,6 +44,7 @@ namespace eq\web\html;
             if(is_string($this->content)) {
                 if($child instanceof HtmlNode)
                     $child = $child->render();
+                $this->content .= $child;
             }
             elseif(is_array($this->content)) {
                 $this->content[] = $child;

@@ -45,8 +45,6 @@ $trace = method_exists($e, "_getTrace") ? $e->_getTrace() : $e->getTrace();
 </table>
 <hr />
 
-<!--<h4>Stack Trace</h4>-->
-
 <div class="trace-step">
     <div class="trace-step-header no-border">
         <span class="trace-step-location">
@@ -63,6 +61,9 @@ $trace = method_exists($e, "_getTrace") ? $e->_getTrace() : $e->getTrace();
 <!--        <div class="gradient-bottom"></div>-->
     </div>
 </div>
+
+<hr />
+<h4>Call Stack</h4>
 
 <? foreach($trace as $i => $call): ?>
     <div class="trace-step">

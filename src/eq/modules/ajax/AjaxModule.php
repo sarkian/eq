@@ -18,7 +18,7 @@ class AjaxModule extends ModuleBase
 
     public function init()
     {
-        EQ::app()->bind("modules.eq:i18n.beforeLoadFiles", function (I18nModule $module) {
+        EQ::app()->bind("modules.eq:i18n.beforeLoadFiles", function(I18nModule $module) {
             $module->addDir($this->location."/locale");
         });
     }

@@ -297,6 +297,11 @@ abstract class ModelBase extends Object
         return $this;
     }
 
+    public function reload()
+    {
+        $this->load($this->pkCondition());
+    }
+
     public function delete()
     {
         if(!$this->isLoaded())
@@ -399,7 +404,7 @@ abstract class ModelBase extends Object
         return [];
     }
 
-    public function apply($data)
+    public function apply($data, $shown_only = false)
     {
         $this->trigger("beforeApply", [$data]);
         if(is_array($data) && isset($data[0])) {
@@ -411,6 +416,8 @@ abstract class ModelBase extends Object
             $data = array_combine($fields, $data);
         }
         foreach($data as $name => $value) {
+            if($shown_only && !$this->isShow($name))
+                continue;
             if($this->fieldExists($name) && $this->isChange($name)) {
                 $this->setChanged($name);
                 if($this->setterExists($name))
@@ -458,24 +465,42 @@ abstract class ModelBase extends Object
         return $this;
     }
 
+    public function clearErrors()
+    {
+        $this->errors = [];
+        $this->errors_by_field = [];
+        return $this;
+    }
+
+    public function clearFieldErrors($name)
+    {
+        unset($this->errors_by_field[$name]);
+        $this->errors = array_filter($this->errors, function($err) use($name) {
+            return !(isset($err['field']) && $err['field'] === $name);
+        });
+    }
+
     public function validate()
     {
         $this->trigger("beforeValidate");
         if($this->errors)
-            return;
+            return false;
         $unique = [];
         foreach($this->currentRules("change") as $name) {
             $value = $this->{$name};
-            $method = "validate" . Str::var2method($name);
+            $method = "validate".Str::var2method($name);
             if(method_exists($this, $method)) {
                 $err = $this->{$method}($value);
                 if(is_string($err) && strlen($err))
                     $this->addRawError($err, $name);
             }
-            elseif($this->isRequired($name) && $this->typeIsEmpty($name, $value))
-                $this->addError("required", $name);
+            elseif($this->typeIsEmpty($name, $value)) {
+                if($this->isRequired($name))
+                    $this->addError("required", $name);
+            }
             elseif(!$this->typeValidate($name, $value))
                 $this->addError("invalid", $name);
+
             elseif($this->isUnique($name))
                 $unique[$name] = $value;
         }
@@ -483,6 +508,26 @@ abstract class ModelBase extends Object
             $this->validateUnique($unique);
         }
         $this->trigger("afterValidate");
+        return $this->errors ? false : true;
+    }
+
+    public function validateField($name)
+    {
+        // FIXME: copypaste!
+        $value = $this->{$name};
+        $method = "validate".Str::var2method($name);
+        if(method_exists($this, $method)) {
+            $err = $this->{$method}($value);
+            if(is_string($err) && strlen($err))
+                $this->addRawError($err, $name);
+        }
+        elseif($this->isRequired($name) && $this->typeIsEmpty($name, $value))
+            $this->addError("required", $name);
+        elseif(!$this->typeValidate($name, $value))
+            $this->addError("invalid", $name);
+        elseif($this->isUnique($name))
+            $this->validateUnique([$name => $value]);
+        return $this;
     }
 
     public function addError($type, $field)
@@ -513,8 +558,8 @@ abstract class ModelBase extends Object
 
     public function isUnique($field)
     {
-        if($this->fieldProperty($field, "unique") === true)
-            return true;
+//        if($this->fieldProperty($field, "unique") === true)
+//            return true;
         return in_array($field, $this->currentRules("unique"));
     }
 
@@ -609,7 +654,7 @@ abstract class ModelBase extends Object
 
     public function typeValidate($fieldname, $value)
     {
-        $vmethod = "validate" . Str::var2method($fieldname);
+        $vmethod = "validate".Str::var2method($fieldname);
         if(method_exists($this, $vmethod))
             return $this->{$vmethod}($value);
         elseif(property_exists($this, $vmethod) && is_callable($this->{$vmethod}))

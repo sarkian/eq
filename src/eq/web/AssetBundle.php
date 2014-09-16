@@ -76,6 +76,8 @@ class AssetBundle extends Object
 
     public static function getClass($name)
     {
+        if(Loader::classExists($name))
+            return $name;
         $path = explode(".", $name);
         array_push($path, Str::cmd2method(array_pop($path))."Asset");
         $cbasename = implode("\\", $path);
