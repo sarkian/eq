@@ -3,6 +3,7 @@
 namespace eq\modules\user\models;
 
 use EQ;
+use eq\base\NotImplementedException;
 use eq\base\TModuleClass;
 use eq\datatypes\DataTypeBase;
 use eq\modules\user\UserModule;
@@ -71,6 +72,7 @@ trait TUser
     public function notify($message, $type = "info")
     {
         // TODO: Implement
+        throw new NotImplementedException();
     }
 
     public function getFields()

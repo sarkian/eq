@@ -2,6 +2,7 @@
 
 namespace eq\models;
 
+use EQ;
 use eq\web\IIdentity;
 
 class User implements IIdentity
@@ -21,4 +22,10 @@ class User implements IIdentity
     {
         return "guest";
     }
+
+    public function notify($message, $type = "info")
+    {
+        EQ::warn("Not implemented, yet");
+    }
+
 }
