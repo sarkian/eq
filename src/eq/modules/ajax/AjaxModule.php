@@ -11,9 +11,16 @@ use eq\web\Jsdata;
 class AjaxModule extends ModuleBase
 {
 
+    public function configDefaults()
+    {
+        return [
+            'url_prefix' => "/ajax",
+        ];
+    }
+
     public function getUrlPrefix()
     {
-        return $this->config("url_prefix", "/ajax");
+        return $this->config("url_prefix");
     }
 
     public function init()
@@ -29,7 +36,7 @@ class AjaxModule extends ModuleBase
             AjaxAsset::register();
         });
         EQ::app()->bind("jsdata.register", function(Jsdata $jsdata) {
-            $jsdata->set("ajax.url_prefix", $this->config("url_prefix", "/ajax"));
+            $jsdata->set("ajax.url_prefix", $this->config("url_prefix"));
             $jsdata->set("ajax.token", EQ::app()->token);
         });
     }

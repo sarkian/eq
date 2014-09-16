@@ -3,6 +3,7 @@
 namespace eq\base;
 
 use EQ;
+use eq\helpers\Arr;
 use eq\helpers\Str;
 
 /**
@@ -12,6 +13,7 @@ use eq\helpers\Str;
  * @property string shortname
  * @property string namespace
  * @property string location
+ * @property array  config_defaults
  * @property string url_prefix
  * @property array dependencies
  * @property array errors
@@ -28,6 +30,7 @@ abstract class ModuleBase extends ModuleAbstract
 
     private $errors = [];
     private $warnings = [];
+    private $_config_defaults = [];
 
     /**
      * @param string $name
@@ -135,6 +138,9 @@ abstract class ModuleBase extends ModuleAbstract
     private final function __construct($enable = false)
     {
         if($enable) {
+            $this->_config_defaults = $this->configDefaults();
+            if(!is_array($this->_config_defaults))
+                $this->_config_defaults = [];
             $this->init();
             $this->_enabled = true;
         }
@@ -224,6 +230,7 @@ abstract class ModuleBase extends ModuleAbstract
 
     public final function config($key = null, $default = null)
     {
+        $default = Arr::getItem($this->_config_defaults, $key, $default);
         return EQ::app()->config($this->configKey($key), $default);
     }
 
@@ -285,6 +292,11 @@ abstract class ModuleBase extends ModuleAbstract
     public final function route($route)
     {
         return implode(".", ["modules", $this->name, $route]);
+    }
+
+    public function configDefaults()
+    {
+        return [];
     }
 
     public function getUrlPrefix()

@@ -41,6 +41,49 @@ class UserModule extends ModuleBase
     private $login_field;
     private $managed_sessions = false;
 
+    public function configDefaults()
+    {
+        return [
+            'use_password' => true,
+            'password_confirmation' => true,
+            'use_settings' => true,
+            'use_invites' => false,
+            'use_email' => false,
+            'email_confirmation' => false,
+            'email_verification' => false,
+            'use_phone' => false,
+            'use_firstname' => false,
+            'use_lastname' => false,
+            'use_role' => true,
+            'db_type' => "sql",
+            'db_name' => null,
+            'table_name' => "users",
+            'collection_name' => "users",
+            'invites_table_name' => "invites",
+            'invites_collection_name' => "invites",
+            'site_nav' => "site",
+            'use_nav_icons' => true,
+            'registration_enabled' => true,
+            'url_prefix' => "",
+            'fields' => [],
+            'login_field' => "name",
+            'managed_sessions' => false,
+            'login_form_widget' => "ModelForm",
+            'register_form_widget' => "ModelForm",
+            'login_redirect_url' => "{main.index}",
+            'register_redirect_url' => "{main.index}",
+            'logout_redirect_url' => "{main.index}",
+            'account_page' => [
+                'enabled' => true,
+                'can_change' => [],
+                'can_set_theme' => false,
+                'available_themes' => [],
+                'menu_item_title' => null,
+                'form_widget' => "ConfigForm",
+            ],
+        ];
+    }
+
     public function getComponents()
     {
         if($this->db_type === "sql")
@@ -52,14 +95,14 @@ class UserModule extends ModuleBase
 
     protected function init()
     {
-        $this->db_type = strtolower($this->config("db_type", "sql"));
+        $this->db_type = strtolower($this->config("db_type"));
         if($this->db_type !== "sql" && $this->db_type !== "mongo")
             throw new InvalidConfigException("Invalid DB type: {$this->db_type}");
         $this->db_name = $this->config("db_name");
-        $this->table_name = $this->config("table_name", "users");
-        $this->collection_name = $this->config("collection_name", "users");
-        $this->invites_table_name = $this->config("invites_table_name", "invites");
-        $this->invites_collection_name = $this->config("invites_collection_name", "invites");
+        $this->table_name = $this->config("table_name");
+        $this->collection_name = $this->config("collection_name");
+        $this->invites_table_name = $this->config("invites_table_name");
+        $this->invites_collection_name = $this->config("invites_collection_name");
     }
 
     protected static function preInit()
@@ -71,10 +114,10 @@ class UserModule extends ModuleBase
 
     public function webInit()
     {
-        $site_nav = $this->config("site_nav", "site");
-        $use_icons = $this->config("use_nav_icons", true);
+        $site_nav = $this->config("site_nav");
+        $use_icons = $this->config("use_nav_icons");
         EQ::app()->bind("themeFirstRequest", function() {
-            if($this->config("has_settings", true) && $this->config("account_page.can_set_theme", false)) {
+            if($this->config("use_settings") && $this->config("account_page.can_set_theme")) {
                 $theme = EQ::app()->user->settingsGet("theme");
                 if($theme)
                     EQ::app()->setTheme($theme);
@@ -88,14 +131,14 @@ class UserModule extends ModuleBase
                 'icon' => $use_icons ? "user" : "",
                 'perms' => "guest",
             ]);
-            if($this->config("registration_enabled", true))
+            if($this->config("registration_enabled"))
                 $nav->appendItem("site", [
                     'route' => "modules.eq:user.user.register",
                     'title' => EQ::t("Register"),
                     'icon' => $use_icons ? "plus" : "",
                     'perms' => "guest",
                 ]);
-            if($this->config("account_page.enabled", true)) {
+            if($this->config("account_page.enabled")) {
                 $titlefunc = $this->config("account_page.menu_item_title");
                 is_callable($titlefunc) or $titlefunc = function($u) { return $u->name; };
                 $nav->appendItem("site", [
@@ -119,7 +162,7 @@ class UserModule extends ModuleBase
                 'route' => $this->route("admin.index"),
                 'title' => EQ::t("Manage"),
             ];
-            if($this->config("use_invites", false)) {
+            if($this->config("use_invites")) {
                 $items[] = [
                     'route' => $this->route("invites.index"),
                     'title' => EQ::t("Invites"),
@@ -137,7 +180,7 @@ class UserModule extends ModuleBase
 
     public function getUrlPrefix()
     {
-        return $this->config("url_prefix", "");
+        return $this->config("url_prefix");
     }
 
     public function getDbType()
@@ -175,10 +218,10 @@ class UserModule extends ModuleBase
         $fields = [
             'id' => $this->field("id"),
         ];
-        foreach($this->config("fields", []) as $name => $attrs) {
+        foreach($this->config("fields") as $name => $attrs) {
             $fields[$name] = $this->field($name);
         }
-        $this->login_field = $this->config("login_field", "name");
+        $this->login_field = $this->config("login_field");
         if(!$this->login_field)
             throw new InvalidConfigException("Invalid login field");
         if(is_array($this->login_field)) {
@@ -190,44 +233,44 @@ class UserModule extends ModuleBase
         elseif(!isset($fields[$this->login_field]))
             $fields[$this->login_field] = $this->field($this->login_field);
         // email
-        if($this->config("use_email", false)) {
+        if($this->config("use_email")) {
             $fields['email'] = $this->field("email");
-            if($this->config("email_confirmation", false) && !isset($fields['email_confirm']))
+            if($this->config("email_confirmation") && !isset($fields['email_confirm']))
                 $fields['email_confirm'] = $this->field("email_confirm");
-            if($this->config("email_verification", true)) {
+            if($this->config("email_verification")) {
                 // TODO Email verification
             }
         }
         // password
-        if($this->config("use_password", true)) {
+        if($this->config("use_password")) {
             $fields['pass'] = $this->field("pass");
-            if($this->config("password_confirmation", true) && !isset($fields['pass_confirm']))
+            if($this->config("password_confirmation") && !isset($fields['pass_confirm']))
                 $fields['pass_confirm'] = $this->field("pass_confirm");
         }
         // phone
-        if($this->config("use_phone", false)) {
+        if($this->config("use_phone")) {
             $fields['phone'] = $this->field("phone");
         }
         // firstname
-        if($this->config("use_firstname", false)) {
+        if($this->config("use_firstname")) {
             $fields['firstname'] = $this->field("firstname");
         }
         // lastname
-        if($this->config("use_lastname", false)) {
+        if($this->config("use_lastname")) {
             $fields['lastname'] = $this->field("lastname");
         }
         // invite
-        if($this->config("use_invites", false)) {
+        if($this->config("use_invites")) {
             $fields['invite'] = $this->field("invite");
         }
-        if($this->config("use_role", true)) {
+        if($this->config("use_role")) {
             $fields['role'] = $this->field("role");
         }
         // settings
-        if($this->config("use_settings", true)) {
+        if($this->config("use_settings")) {
             $fields['settings'] = $this->field("settings");
         }
-        $this->managed_sessions = $this->config("managed_sessions", false);
+        $this->managed_sessions = $this->config("managed_sessions");
         return $fields;
     }
 

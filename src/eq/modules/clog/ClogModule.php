@@ -31,12 +31,25 @@ class ClogModule extends ModuleBase
     protected $project_root;
     protected $url;
 
+    public function configDefaults()
+    {
+        return [
+            'project_root' => "@app",
+            'retrigger' => false,
+            'urls_blacklist' => ["/favicon.ico", "*.map"],
+            'write_db_queries' => false,
+            'url_prefix' => "/__system__/clog",
+            'key' => "eqclogkey",
+            'task_log_format' => "plain",
+        ];
+    }
+
     protected function init()
     {
         $this->project_root = realpath(EQ::getAlias(
-            $this->config("project_root", "@app")));
+            $this->config("project_root")));
         $this->autobind();
-        if($this->config("retrigger", false)) {
+        if($this->config("retrigger")) {
             EQ::app()->retrigger("log", [$this, "__onLog"]);
             EQ::app()->retrigger("warn", [$this, "__onWarn"]);
             EQ::app()->retrigger("err", [$this, "__onErr"]);
@@ -60,7 +73,7 @@ class ClogModule extends ModuleBase
 
     public function onRequest()
     {
-        foreach($this->config("urls_blacklist", ["/favicon.ico", "*.map"]) as $url) {
+        foreach($this->config("urls_blacklist") as $url) {
             if(fnmatch($url, EQ::app()->request->uri))
                 return;
         }
@@ -161,7 +174,7 @@ class ClogModule extends ModuleBase
 
     public function __onDbQuery($dbname, $query)
     {
-        if(!$this->config("write_db_queries", false))
+        if(!$this->config("write_db_queries"))
             return;
         list($file, $line) = Debug::callLocation(4);
         $this->addMsg("log", "Query to DB '$dbname': $query", $file, $line);
@@ -169,7 +182,7 @@ class ClogModule extends ModuleBase
 
     public function getUrlPrefix()
     {
-        return $this->config("url_prefix", "/__system__/clog");
+        return $this->config("url_prefix");
     }
 
     public function __destruct()
@@ -185,7 +198,7 @@ class ClogModule extends ModuleBase
     protected function checkKey()
     {
         return isset($_SERVER['HTTP_X_EQ_CLOG_KEY'])
-        && $_SERVER['HTTP_X_EQ_CLOG_KEY'] === $this->config("key", "eqclogkey");
+        && $_SERVER['HTTP_X_EQ_CLOG_KEY'] === $this->config("key");
     }
 
     protected function checkLogKey()
@@ -222,7 +235,7 @@ class ClogModule extends ModuleBase
                 $this->webAddMsg($type, $msg, $file, $line);
                 break;
             case "task":
-                $format = strtolower($this->config("task_log_format", "plain"));
+                $format = strtolower($this->config("task_log_format"));
                 if($format === "json")
                     $this->jsonAddMsg($type, $msg, $file, $line);
                 elseif($format === "console" || $format === "terminal" || $format === "term")

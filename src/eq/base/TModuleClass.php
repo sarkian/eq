@@ -68,8 +68,7 @@ trait TModuleClass
 
     public function config($key = null, $default = null)
     {
-        $key = implode(".", ["modules", $this->module_name, $key]);
-        return EQ::app()->config($key, $default);
+        return $this->module->config($key, $default);
     }
 
     public function route($route)

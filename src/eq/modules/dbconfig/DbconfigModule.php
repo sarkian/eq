@@ -41,6 +41,17 @@ class DbconfigModule extends ModuleBase
     protected $created = [];
     protected $removed = [];
 
+    public function configDefaults()
+    {
+        return [
+            'use_json' => true,
+            'db_type' => "sql",
+            'db_name' => null,
+            'table_name' => "config",
+            'collection_name' => "config",
+        ];
+    }
+
     protected static function preInit()
     {
         self::inst(true)->init();
@@ -51,11 +62,11 @@ class DbconfigModule extends ModuleBase
         if(self::$_initialized)
             return;
         self::$_initialized = true;
-        $this->use_json = $this->config("use_json", true);
-        $this->db_type = strtolower($this->config("db_type", "sql"));
+        $this->use_json = $this->config("use_json");
+        $this->db_type = strtolower($this->config("db_type"));
         if($this->db_type === "sql") {
             $this->db = EQ::app()->db($this->config("db_name"));
-            $this->table = $this->config("table_name", "config");
+            $this->table = $this->config("table_name");
             $data = $this->executeQuery($this->db->select(["name", "value"])->from($this->table))
                 ->fetchAll(PDO::FETCH_KEY_PAIR);
             foreach($data as $name => $value) {
@@ -66,7 +77,7 @@ class DbconfigModule extends ModuleBase
         }
         elseif($this->db_type === "mongo") {
             $this->db = EQ::app()->mongodb($this->config("db_name"));
-            $this->collection = $this->db->selectCollection($this->config("collection_name", "config"));
+            $this->collection = $this->db->selectCollection($this->config("collection_name"));
             foreach($this->collection->find([], ["name", "value"]) as $rec) {
                 if(!isset($rec['name'], $rec['value']) || !is_string($rec['name']) || !strlen($rec['name']))
                     continue;

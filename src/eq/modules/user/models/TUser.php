@@ -253,7 +253,7 @@ trait TUser
         $fields = [];
         $fields[] = is_array($this->module->login_field)
             ? $this->module->login_field[0] : $this->module->login_field;
-        if($this->module->config("use_password", true))
+        if($this->module->config("use_password"))
             $fields[] = "pass";
         return [
             'change' => $fields,
@@ -298,11 +298,11 @@ trait TUser
             if($field['required'])
                 $required[] = $name;
         }
-        if($this->config("use_password", true)) {
+        if($this->config("use_password")) {
             $change[] = "pass";
             $change[] = "pass_confirm";
         }
-        if($this->config("use_settings", true)) {
+        if($this->config("use_settings")) {
             $change[] = "settings";
         }
         return [
@@ -349,7 +349,7 @@ trait TUser
 
     protected function scenarioRegister()
     {
-        $use_invite = $this->module->config("use_invite", false);
+        $use_invite = $this->module->config("use_invite");
         $invite = $use_invite
             ? ($this->module->db_type === "mongo" ? new MongoInvite() : new SqlInvite()) : null;
         $pass = "";

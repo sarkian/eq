@@ -32,11 +32,11 @@ class UserController extends Controller
     {
         $this->createTitle(EQ::t("Login"));
         $model = EQ::app()->user->setScenario("login");
-        $form = EQ::widget($this->config("login_form_widget", "ModelForm"), $model);
+        $form = EQ::widget($this->config("login_form_widget"), $model);
         if(EQ::app()->request->isPost()) {
             $model->apply($form->getData(), true);
             if($model->isAuth())
-                $this->redir($this->module->config("login_redirect_url", "{main.index}"));
+                $this->redir($this->module->config("login_redirect_url"));
         }
         $this->render("login", [
             'model' => $model,
@@ -50,20 +50,20 @@ class UserController extends Controller
             EQ::app()->user->setScenario("logout");
             EQ::app()->destroyToken();
         }
-        $this->redir($this->module->config("logout_redirect_url", "{main.index}"));
+        $this->redir($this->module->config("logout_redirect_url"));
     }
 
     public function actionRegister()
     {
-        if(!$this->config("registration_enabled", true))
+        if(!$this->config("registration_enabled"))
             throw new HttpException(404);
         $this->createTitle(EQ::t("Register"));
         $model = EQ::app()->user->setScenario("register");
-        $form = EQ::widget($this->config("register_form_widget", "ModelForm"), $model);
+        $form = EQ::widget($this->config("register_form_widget"), $model);
         if(EQ::app()->request->isPost()) {
             $model->apply($form->getData(), true);
             if($model->isAuth())
-                $this->redir($this->module->config("register_redirect_url", "{main.index}"));
+                $this->redir($this->module->config("register_redirect_url"));
         }
         $this->render("register", [
             'model' => $model,
@@ -73,7 +73,7 @@ class UserController extends Controller
 
     public function actionAccount()
     {
-        if(!$this->config("account_page.enabled", true))
+        if(!$this->config("account_page.enabled"))
             throw new HttpException(404);
         $this->createTitle(EQ::t("Account settings"));
         EQ::app()->client_script->addBundle("eq.ajax");
@@ -107,7 +107,7 @@ class UserController extends Controller
                 'fields' => [],
             ],
         ];
-        $can_change = $this->config("account_page.can_change", []);
+        $can_change = $this->config("account_page.can_change");
         foreach($model->currentRules("change") as $field) {
             if($field === "pass" || $field === "pass_confirm")
                 continue;
@@ -120,7 +120,7 @@ class UserController extends Controller
                 'disabled' => !in_array($field, $can_change),
             ];
         }
-        if($this->config("use_password", true)) {
+        if($this->config("use_password")) {
             $fields['pass'] = [
                 'legend' => EQ::t("Change password"),
                 'fields' => [
@@ -135,7 +135,7 @@ class UserController extends Controller
                 ],
             ];
         }
-        if($this->config("account_page.can_set_theme", false)) {
+        if($this->config("account_page.can_set_theme")) {
             $fields['ui'] = [
                 'legend' => EQ::t("Interface"),
                 'fields' => [
@@ -148,7 +148,7 @@ class UserController extends Controller
                 ],
             ];
         }
-        return EQ::widget($this->config("account_page.form_widget", "ConfigForm"), $fields);
+        return EQ::widget($this->config("account_page.form_widget"), $fields);
     }
 
 }

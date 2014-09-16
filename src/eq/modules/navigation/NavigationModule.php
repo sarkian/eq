@@ -9,6 +9,11 @@ use eq\helpers\Arr;
 class NavigationModule extends ModuleBase
 {
 
+    public function configDefaults()
+    {
+        return [];
+    }
+
     public function renderNav($name)
     {
         $this->trigger("navRender", [$this]);

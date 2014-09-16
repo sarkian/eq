@@ -29,6 +29,11 @@ class AdminModule extends ModuleBase
             self::$removed_modules[] = $mname;
         });
     }
+    
+    public function configDefaults()
+    {
+        return [];
+    }
 
     public function init()
     {
