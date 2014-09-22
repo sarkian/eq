@@ -55,4 +55,9 @@ class Bool extends DataTypeBase
         return Schema::TYPE_BOOL;
     }
 
+    public static function formControl()
+    {
+        return "checkBox";
+    }
+
 }

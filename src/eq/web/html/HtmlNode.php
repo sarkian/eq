@@ -51,9 +51,10 @@ namespace eq\web\html;
             }
         }
         
-        public function render()
+        public function render($pair = false)
         {
-            if(is_string($this->content)) $content = $this->content;
+            if(is_string($this->content))
+                $content = $this->content;
             elseif(is_array($this->content)) {
                 $content = '';
                 foreach($this->content as $node) {
@@ -61,10 +62,12 @@ namespace eq\web\html;
                     else $content .= $node;
                 }
             }
-            else $content = null;
+            else
+                $content = null;
             $content or $content = null;
-            $res = Html::tag($this->name, $this->options, $content, $content ? false : true);
-            if($content) $res .= '</'.$this->name.'>';
+            $res = Html::tag($this->name, $this->options, $content, $content || $pair ? false : true);
+            if($content || $pair)
+                $res .= '</'.$this->name.'>';
             return $res;
         }
 

@@ -683,12 +683,16 @@ abstract class ModelBase extends Object
 
     public function typeFormControl($fieldname)
     {
+        if(isset($this->fields[$fieldname]['form_control']))
+            return $this->fields[$fieldname]['form_control'];
         $type = $this->fieldType($fieldname);
         return $type::formControl();
     }
 
     public function typeFormControlOptions($fieldname)
     {
+        if(isset($this->fields[$fieldname]['form_control_options']))
+            return $this->fields[$fieldname]['form_control_options'];
         $type = $this->fieldType($fieldname);
         return $type::formControlOptions();
     }

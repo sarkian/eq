@@ -150,7 +150,7 @@ class FileSystem
             $files = scandir($src);
             foreach($files as $file) {
                 if($file !== "." && $file !== "..")
-                    self::_copy("$src/$file", "$dst/$file");
+                    self::_copy("$src/$file", "$dst/$file", $force);
             }
         } else {
             self::mkdir(dirname($dst));

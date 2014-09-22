@@ -69,7 +69,7 @@ class Navbar extends NavbarBase
         }
         $anchor = "";
         if(isset($item['icon']) && $item['icon'])
-            $anchor .= Html::tag("span", ['class' => "glyphicon glyphicon-".$item['icon']], "");
+            $anchor .= Html::tag("span", ['class' => $item['icon']], "");
         if(isset($item['title']) && $item['title'])
             $anchor .= $anchor ? "\n".$item['title'] : $item['title'];
         if(!isset($item['link']))

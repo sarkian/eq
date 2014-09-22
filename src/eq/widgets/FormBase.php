@@ -3,6 +3,7 @@
 namespace eq\widgets;
 
 use eq\base\TObject;
+use eq\helpers\Arr;
 use eq\web\html\Html;
 use eq\helpers\Str;
 use eq\web\html\HtmlNode;
@@ -23,12 +24,23 @@ class FormBase extends WidgetBase
 
     private static $_forms = [];
 
+    protected $options = [];
+
     protected $values = [];
     protected $labels = [];
     protected $errors = [];
     protected $errors_by_field = [];
     protected $_id;
     protected $_autofocus = false;
+
+    public function __construct($options = [])
+    {
+        $this->options = Arr::extend($options, [
+            'type' => "normal",
+            'label_width' => 2,
+            'control_width' => 10,
+        ]);
+    }
 
     public function getId()
     {
@@ -121,6 +133,15 @@ class FormBase extends WidgetBase
         return "</form>";
     }
 
+    public function textArea($name, $options = [])
+    {
+        $options = Html::mergeAttrs($this->inputOptions([
+            'id' => $this->fieldId($name),
+            'name' => $this->fieldName($name),
+        ], "textArea", $name), $options);
+        return Html::tag("textarea", $options, htmlspecialchars($this->fieldValue($name)));
+    }
+
     public function textField($name, $options = [])
     {
         $options = Html::mergeAttrs($this->inputOptions([
@@ -185,7 +206,7 @@ class FormBase extends WidgetBase
         $sel = new HtmlNode("select", $options);
         foreach($variants as $value => $text)
             $sel->append($this->renderSelectOption($value, $text, $options['value']));
-        return $sel->render();
+        return $sel->render(true);
     }
 
     public function checkBox($name, $options = [])
@@ -218,9 +239,8 @@ class FormBase extends WidgetBase
         return "</fieldset>";
     }
 
-    public function renderField($name, $type = null)
+    public function renderField($name, $type = null, $options = [])
     {
-        $options = [];
         if(!$this->_autofocus
             && $this->typeCanHasAutofocus($type) && $this->nameCanHasAutofocus($name)
             && (($this->errors_by_field && $this->fieldErrors($name)) || !$this->errors_by_field)
@@ -233,10 +253,11 @@ class FormBase extends WidgetBase
         elseif(($method = $this->getInputMethod($type, "Render")))
             $contents = $this->{$method}($name, $options);
         elseif($type && method_exists($this, $type))
-            $contents = $this->renderLabel($name, $type).$this->{$type}($name, $options);
+            $contents = $this->labelWrap($this->renderLabel($name, $type), $type, $name)
+                .$this->inputWrap($this->{$type}($name, $options), $type, $name);
         else
             throw new WidgetException("Cant render field: $name (type: $type)");
-        return $this->inputWrap($contents, $type, $name);
+        return $this->rowWrap($contents, $type, $name);
     }
 
     public function renderLabel($name, $type = null)
@@ -266,6 +287,7 @@ class FormBase extends WidgetBase
             "passwordField",
             "select",
             "checkBox",
+            "textArea",
         ]);
     }
 
@@ -332,8 +354,19 @@ class FormBase extends WidgetBase
         return $options;
     }
 
-    protected function inputWrap($contents, $type,
-                                 $name = null, &$wrapped = null)
+    protected function labelWrap($contents, $type, $name = null, &$wrapped = null)
+    {
+        $wrapped = false;
+        return $contents;
+    }
+
+    protected function inputWrap($contents, $type, $name = null, &$wrapped = null)
+    {
+        $wrapped = false;
+        return $contents;
+    }
+
+    protected function rowWrap($contents, $type, $name = null, &$wrapped = null)
     {
         $wrapped = true;
         $method = $this->getFieldMethod($name, "Wrap");

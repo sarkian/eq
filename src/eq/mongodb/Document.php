@@ -127,10 +127,10 @@ abstract class Document extends ModelBase
 
     public function typeToDb($fieldname, $value)
     {
-        if($fieldname === "_id")
-            return is_object($value) && $value instanceof MongoId ? $value : new MongoId((string) $value);
         $type = $this->fieldTypename($fieldname);
-        if($type === "arr" || $type === "array")
+        if(($fieldname === "_id" && ($type === "str" || $type === "string")) || $type === "mongoid")
+            return is_object($value) && $value instanceof MongoId ? $value : new MongoId($value);
+        elseif($type === "arr" || $type === "array")
             return (array) $value;
         elseif($type === "obj" || $type === "object")
             return (object) $value;

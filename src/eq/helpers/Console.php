@@ -169,8 +169,8 @@ class Console
                 return self::seq(self::FG_MAGENTA).$s.self::seq();
             },
             'string_wrapfunc' => function($s, $cn = "") {
-                // TODO: Cyryllic
-                $s = preg_replace_callback('/[\x00-\x1F\x80-\xFF]/', function($m) {
+                // \x80-\xFF
+                $s = preg_replace_callback('/[\x00-\x1F]/', function($m) {
                     return self::seq(self::FG_MAGENTA)
                         .sprintf('\0%o', ord($m[0])).self::seq(self::FG_GREEN);
                 }, $s);

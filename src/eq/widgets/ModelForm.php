@@ -5,6 +5,7 @@ namespace eq\widgets;
 use EQ;
 use eq\base\TObject;
 use eq\data\ModelBase;
+use eq\helpers\Arr;
 use eq\helpers\Str;
 
 class ModelForm extends FormBase
@@ -20,9 +21,10 @@ class ModelForm extends FormBase
     protected $model;
     protected $autofocus = false;
 
-    public function __construct(ModelBase $model)
+    public function __construct(ModelBase $model, $options = [])
     {
         $this->model = $model;
+        parent::__construct($options);
     }
 
     public function fieldLabel($name)
@@ -44,7 +46,8 @@ class ModelForm extends FormBase
             if(!$this->model->isShow($field))
                 continue;
             $type = $this->model->typeFormControl($field);
-            $out[] = $this->renderField($field, $type);
+            $opts = $this->model->typeFormControlOptions($field);
+            $out[] = $this->renderField($field, $type, $opts);
         }
         $out[] = $this->submitButton(
             $this->model->currentRules("submit_text",

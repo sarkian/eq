@@ -81,6 +81,12 @@ class UserModule extends ModuleBase
                 'menu_item_title' => null,
                 'form_widget' => "ConfigForm",
             ],
+            'icons' => [
+                'login' => "glyphicon glyphicon-user",
+                'register' => "glyphicon glyphicon-plus",
+                'logout' => "glyphicon glyphicon-off",
+                'account' => "glyphicon glyphicon-user",
+            ],
         ];
     }
 
@@ -128,14 +134,14 @@ class UserModule extends ModuleBase
             $nav->appendItem("site", [
                 'route' => "modules.eq:user.user.login",
                 'title' => EQ::t("Login"),
-                'icon' => $use_icons ? "user" : "",
+                'icon' => $use_icons ? $this->config("icons.login") : "",
                 'perms' => "guest",
             ]);
             if($this->config("registration_enabled"))
                 $nav->appendItem("site", [
                     'route' => "modules.eq:user.user.register",
                     'title' => EQ::t("Register"),
-                    'icon' => $use_icons ? "plus" : "",
+                    'icon' => $use_icons ? $this->config("icons.register") : "",
                     'perms' => "guest",
                 ]);
             if($this->config("account_page.enabled")) {
@@ -144,7 +150,7 @@ class UserModule extends ModuleBase
                 $nav->appendItem("site", [
                     'route' => "modules.eq:user.user.account",
                     'title' => call_user_func($titlefunc, EQ::app()->user),
-                    'icon' => $use_icons ? "user" : "",
+                    'icon' => $use_icons ? $this->config("icons.account") : "",
                     'perms' => "user,admin",
                 ]);
             }
@@ -152,7 +158,7 @@ class UserModule extends ModuleBase
                 'route' => "modules.eq:user.user.logout",
                 'token' => true,
                 'title' => EQ::t("Logout"),
-                'icon' => $use_icons ? "off" : "",
+                'icon' => $use_icons ? $this->config("icons.logout") : "",
                 'perms' => "user,admin",
             ]);
         });

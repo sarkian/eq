@@ -47,7 +47,7 @@ class AdminModule extends ModuleBase
         $this->nav_items = [
             'home' => [
                 'link' => "/",
-                'icon' => "home",
+                'icon' => "glyphicon glyphicon-home",
                 'tooltip' => EQ::t("Back to site"),
             ],
             'modules' => [

@@ -10,7 +10,6 @@ class ConfigForm extends FormBase
 
     protected $fields = [];
     protected $_fields = [];
-    protected $options = [];
 
     protected $_autofocus = true;
 
@@ -21,7 +20,7 @@ class ConfigForm extends FormBase
             if(is_array($field) && isset($field['fields']) && is_array($field['fields']))
                 $this->_fields = array_merge($this->_fields, $field['fields']);
         }
-        $this->options = $options;
+        parent::__construct($options);
     }
 
     public function fieldLabel($name)
