@@ -99,4 +99,9 @@ class ReflectionAction extends \ReflectionMethod
         return implode(" ", $this->options);
     }
 
+    public function call()
+    {
+        return call_user_func_array([$this->command, $this->method], func_get_args());
+    }
+
 }

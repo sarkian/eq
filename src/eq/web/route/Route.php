@@ -12,6 +12,7 @@ use eq\base\Loader;
  * @property bool found
  * @property string controller_name
  * @property string action_name
+ * @property string path
  * @property string controller_class
  * @property string action_method
  * @property array vars
@@ -75,6 +76,11 @@ class Route
     public function getActionName()
     {
         return $this->action_name;
+    }
+
+    public function getPath()
+    {
+        return $this->controller_name.".".$this->action_name;
     }
 
     public function getControllerClass()

@@ -163,6 +163,7 @@
             case 'loadingEnd':
             case 'loadingSuccess':
             case 'loadingError':
+            case 'loadingUpdate':
                 break;
             default:
                 type = 'info';
@@ -186,6 +187,9 @@
                     break;
                 case 'loadingError':
                     message = EQ.t('Error');
+                    break;
+                case 'loadingUpdate':
+                    message = null;
                     break;
                 default:
                     return;

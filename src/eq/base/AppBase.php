@@ -87,7 +87,10 @@ abstract class AppBase extends ModuleAbstract
         $this->bind("exception", [$this, "__onException"]);
         self::$_app = $this;
         $this->processConfig($config);
-        self::setAlias("@appsrc", APPROOT."/src/".$this->app_namespace);
+        date_default_timezone_set($this->config("system.default.timezone", "UTC"));
+        static::setAlias("@appsrc", APPROOT."/src/".$this->app_namespace);
+        static::setAlias("@www", realpath(self::getAlias($this->config("web.content_root"))));
+        static::setAlias("@web", "");
         foreach($this->config("system.src_dirs", []) as $alias => $dir) {
             $dir = realpath(self::getAlias($dir));
             if(is_string($alias) && !strncmp($alias, "@", 1))

@@ -160,6 +160,26 @@ trait TUser
             return false;
     }
 
+    public function isModerator()
+    {
+        if(!$this->isAuth())
+            return false;
+        elseif($this->fieldExists("role"))
+            return $this->role === IIdentity::ROLE_MODERATOR;
+        else
+            return false;
+    }
+
+    public function hasModerRights()
+    {
+        if(!$this->isAuth())
+            return false;
+        elseif($this->fieldExists("role"))
+            return $this->role === IIdentity::ROLE_ADMIN || $this->role === IIdentity::ROLE_MODERATOR;
+        else
+            return false;
+    }
+
     public function getStatus()
     {
         if($this->isAuth())

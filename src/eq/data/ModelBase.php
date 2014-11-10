@@ -50,6 +50,7 @@ abstract class ModelBase extends Object
      * @var ModelRelation[]
      */
     protected $_relations = null;
+    protected $fields = null;
 
     abstract public function getFields();
 
@@ -62,10 +63,12 @@ abstract class ModelBase extends Object
 
     public function __construct($scenario = null)
     {
-        foreach($this->fields as $name => $field) {
+        $fields = $this->fields === null ? $this->getFields() : $this->fields;
+        foreach($fields as $name => $field) {
             $field = $this->normalizeFieldData($field);
             if(isset($field['default']))
                 $this->data[$name] = $field['default'];
+            $this->fields[$name] = $field;
         }
         if($scenario)
             $this->setScenario($scenario);
@@ -154,9 +157,9 @@ abstract class ModelBase extends Object
         throw new NotImplementedException();
     }
 
-    public static function hasOne(ModelBase $parent, array $fields)
+    public static function belongsTo(ModelBase $parent, array $fields)
     {
-        return ModelRelation::hasOne($parent, get_called_class(), $fields);
+        return ModelRelation::belongsTo($parent, get_called_class(), $fields);
     }
 
     public static function hasMany(ModelBase $parent, array $fields, array $sort = [])
@@ -171,7 +174,7 @@ abstract class ModelBase extends Object
 
     public static function customRelation(ModelBase $parent, $func)
     {
-        return ModelRelation::custom($parent, get_called_class(), $func);
+        return ModelRelation::custom($parent, $func);
     }
 
     public function isRelatedLoaded($name)
@@ -218,6 +221,13 @@ abstract class ModelBase extends Object
         return $this->field($name, false) !== null;
     }
 
+    public function propertySet($name, $value)
+    {
+        $this->field($name);
+        $this->setChanged($name);
+        $this->data[$name] = $value;
+    }
+
     public function field($name, $throw = true, $default = null)
     {
         if(!isset($this->fields[$name])) {
@@ -250,7 +260,8 @@ abstract class ModelBase extends Object
         }
         $cols = [];
         foreach($fields as $name)
-            $cols[$name] = $this->typeToDb($name, $this->{$name});
+            $cols[$name] = $this->{$name};
+//            $cols[$name] = $this->typeToDb($name, $this->{$name});
         if($this->loaded_data)
             $res = $this->updateQuery($cols, $this->pkCondition());
         else
@@ -407,14 +418,7 @@ abstract class ModelBase extends Object
     public function apply($data, $shown_only = false)
     {
         $this->trigger("beforeApply", [$data]);
-        if(is_array($data) && isset($data[0])) {
-            $fields = $this->fieldnames;
-            if(count($data) < count($fields))
-                $fields = array_slice($fields, 0, count($data));
-            elseif(count($data) > count($fields))
-                $data = array_slice($data, 0, count($fields));
-            $data = array_combine($fields, $data);
-        }
+        $data = $this->normalizeData($data);
         foreach($data as $name => $value) {
             if($shown_only && !$this->isShow($name))
                 continue;
@@ -428,6 +432,19 @@ abstract class ModelBase extends Object
         }
         $this->trigger("afterApply", [$data]);
         return $this;
+    }
+
+    protected function normalizeData($data)
+    {
+        if(is_array($data) && isset($data[0])) {
+            $fields = $this->fieldnames;
+            if(count($data) < count($fields))
+                $fields = array_slice($fields, 0, count($data));
+            elseif(count($data) > count($fields))
+                $data = array_slice($data, 0, count($fields));
+            $data = array_combine($fields, $data);
+        }
+        return $data;
     }
 
     public function applyLoaded($data)
@@ -495,12 +512,12 @@ abstract class ModelBase extends Object
                     $this->addRawError($err, $name);
             }
             elseif($this->typeIsEmpty($name, $value)) {
-                if($this->isRequired($name))
+                if($this->isRequired($name)) {
                     $this->addError("required", $name);
+                }
             }
             elseif(!$this->typeValidate($name, $value))
                 $this->addError("invalid", $name);
-
             elseif($this->isUnique($name))
                 $unique[$name] = $value;
         }
@@ -542,7 +559,7 @@ abstract class ModelBase extends Object
         if(in_array($error, $this->errors))
             return;
         array_push($this->errors, $error);
-        if($field && isset($this->data[$field]))
+        if($field /* && isset($this->data[$field]) */ )
             $this->errors_by_field[$field][] = $message;
     }
 
@@ -776,12 +793,18 @@ abstract class ModelBase extends Object
 
     protected function processLoadCondition($condition)
     {
+        if(is_array($condition))
+            return $condition;
+        else
+            return [$this->pk => $condition];
+    }
+
+    protected function processCondition($condition)
+    {
         if(is_array($condition)) {
             foreach($condition as $name => $value)
                 $condition[$name] = $this->typeToDb($name, $value);
         }
-        else
-            $condition = [$this->pk => $this->typeToDb($this->pk, $condition)];
         return $condition;
     }
 

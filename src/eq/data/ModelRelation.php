@@ -28,15 +28,16 @@ class ModelRelation
     protected function __construct(ModelBase $parent, $related, $fields, $sort, $func)
     {
         $this->parent = $parent;
-        $this->related = Str::className($related);
+        if($related)
+            $this->related = Str::className($related);
         $this->fields = $fields;
         $this->func = is_string($func) && !strncmp($func, ":", 1)
             ? [$this, substr($func, 1)] : $func;
     }
 
-    public static function hasOne(ModelBase $parent, $related, $fields)
+    public static function belongsTo(ModelBase $parent, $related, $fields)
     {
-        return new ModelRelation($parent, $related, $fields, [], ":_hasOne");
+        return new ModelRelation($parent, $related, $fields, [], ":_belongsTo");
     }
 
     public static function hasMany(ModelBase $parent, $related, $fields, $sort = [])
@@ -49,9 +50,9 @@ class ModelRelation
         return new ModelRelation($parent, $related, $fields, [], ":_count");
     }
 
-    public static function custom(ModelBase $parent, $related, $func)
+    public static function custom(ModelBase $parent, $func)
     {
-        $rel = new ModelRelation($parent, $related, [], [], $func);
+        $rel = new ModelRelation($parent, '', [], [], $func);
         $rel->_custom = true;
         return $rel;
     }
@@ -81,7 +82,7 @@ class ModelRelation
         $this->loaded = true;
     }
 
-    protected function _hasOne()
+    protected function _belongsTo()
     {
         $rclass = $this->related;
         return $rclass::findRelatedOne($this->createCondition());

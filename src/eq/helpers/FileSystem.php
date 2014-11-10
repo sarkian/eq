@@ -8,6 +8,11 @@ use eq\base\FileSystemException;
 class FileSystem
 {
 
+    public static function filterBasename($basename)
+    {
+        return str_replace('/', '', str_replace('\\', '', $basename));
+    }
+
     public static function assertExists($path)
     {
         $path = EQ::getAlias($path);
@@ -118,6 +123,24 @@ class FileSystem
         return $fname;
     }
 
+    public static function uniqfile($dir, $ext = "", $len = 16)
+    {
+        $dir = EQ::getAlias($dir);
+        $fname = Str::randstr($len).$ext;
+        if(!is_dir($dir)) {
+            if(is_file($dir))
+                throw new FileSystemException("Not a directory: $dir");
+            else
+                return $fname;
+        }
+        for(;;) {
+            $fname = Str::randstr($len).$ext;
+            if(!file_exists(Path::join($dir, $fname)))
+                break;
+        }
+        return $fname;
+    }
+
     public static function glob($pattern, $flags = 0)
     {
         return glob(EQ::getAlias($pattern, $flags));
@@ -137,6 +160,26 @@ class FileSystem
     public static function copy($src, $dst, $force = false)
     {
         self::_copy(EQ::getAlias($src), EQ::getAlias($dst), $force);
+    }
+
+    public static function move($src, $dst)
+    {
+        if(!rename(EQ::getAlias($src), EQ::getAlias($dst)))
+            throw new FileSystemException("Cant move $src to $dst");
+    }
+
+    public static function imageJPEG($img, $path, $quality = 100, $mode = 0664)
+    {
+        $path = EQ::getAlias($path);
+        preg_match('/\.[^\.]+$/', $path, $matches);
+        $ext = isset($matches[0]) ? strtolower($matches[0]) : null;
+        if($ext !== ".jpg" && $ext !== ".jpeg")
+            $path = rtrim($path, ".").".jpg";
+        static::mkdir(dirname($path));
+        $res = imagejpeg($img, $path, $quality);
+        if($res)
+            @chmod($path, $mode);
+        return $res;
     }
 
     protected static function _copy($src, $dst, $force = false)

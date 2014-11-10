@@ -4,6 +4,7 @@ namespace eq\modules\user;
 
 use EQ;
 use eq\base\InvalidConfigException;
+use eq\base\Loader;
 use eq\base\ModuleBase;
 use eq\db\mysql\Schema;
 use eq\helpers\Str;
@@ -12,6 +13,9 @@ use eq\modules\i18n\I18nModule;
 use eq\modules\navigation\NavigationModule;
 
 /**
+ *
+ * TODO: Invites does not works
+ *
  * @property string|array login_field
  * @property bool managed_sessions
  * @property string db_type
@@ -92,6 +96,9 @@ class UserModule extends ModuleBase
 
     public function getComponents()
     {
+        $cname = $this->config("class");
+        if($cname && Loader::classExists($cname))
+            return ['user' => $cname];
         if($this->db_type === "sql")
             return ['user' => 'eq\modules\user\models\SqlUser'];
         elseif($this->db_type === "mongo")

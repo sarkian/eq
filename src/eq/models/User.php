@@ -18,6 +18,16 @@ class User implements IIdentity
         return false;
     }
 
+    public function isModerator()
+    {
+        return false;
+    }
+
+    public function hasModerRights()
+    {
+        return false;
+    }
+
     public function getStatus()
     {
         return "guest";

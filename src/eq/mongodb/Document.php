@@ -74,6 +74,23 @@ abstract class Document extends ModelBase
         return array_map([$model->fieldType($model->pk), "fromDb"], $res);
     }
 
+    public static function selectCols(array $cols, array $condition = [], array $options = [])
+    {
+        $model = static::i();
+        $res = $model->selectQuery($cols, $condition);
+        if($options)
+            $model->setOptions($res, $options);
+        $res = iterator_to_array($res);
+        if(isset($options['cast']) && !$options['cast'])
+            return $res;
+        $cols = array_filter($cols, [$model, "fieldExists"]);
+        return array_map(function ($row) use ($cols, $model) {
+            foreach($row as $n => $v)
+                $row[$n] = $model->typeToDb($n, $v);
+            return $row;
+        }, $res);
+    }
+
     public static function paginator(array $condition = [], array $options = [])
     {
         return new Paginator(get_called_class(), $condition, $options);
@@ -118,7 +135,7 @@ abstract class Document extends ModelBase
 
     public function field($name, $throw = true, $default = null)
     {
-        return $name === "_id" && !isset($this->fields['_id']) ? [
+        return ($name === "_id" && !isset($this->fields['_id']) || ($name === "id" && !isset($this->fields['id']))) ? [
             'type' => "str",
             'default' => null,
             'save' => false,
@@ -129,7 +146,8 @@ abstract class Document extends ModelBase
     {
         $type = $this->fieldTypename($fieldname);
         if(($fieldname === "_id" && ($type === "str" || $type === "string")) || $type === "mongoid")
-            return is_object($value) && $value instanceof MongoId ? $value : new MongoId($value);
+            return \eq\datatypes\Mongoid::toDb($value);
+//            return is_object($value) && $value instanceof MongoId ? $value : new MongoId($value);
         elseif($type === "arr" || $type === "array")
             return (array) $value;
         elseif($type === "obj" || $type === "object")
@@ -162,6 +180,7 @@ abstract class Document extends ModelBase
     
     protected function insertQuery(array $cols)
     {
+        $cols = $this->processCondition($cols);
         $res = $this->collection->insert($cols);
         if(!$res || !isset($res['ok']) || !$res['ok'])
             return false;
@@ -171,7 +190,7 @@ abstract class Document extends ModelBase
 
     protected function updateQuery(array $cols, $condition)
     {
-        $res = $this->collection->update($condition, $cols);
+        $res = $this->collection->update($this->processCondition($condition), $this->processCondition($cols));
         if(!$res || !isset($res['ok']) || !$res['ok'])
             return false;
         return true;
@@ -180,7 +199,7 @@ abstract class Document extends ModelBase
     protected function selectQuery(array $cols, $condition, array $options = [])
     {
         $fields = array_combine($cols, array_fill(0, count($cols), true));
-        $res = $this->collection->find($condition, $fields);
+        $res = $this->collection->find($this->processCondition($condition), $fields);
         if($options)
             $this->setOptions($res, $options);
         return $res;
@@ -188,7 +207,7 @@ abstract class Document extends ModelBase
 
     protected function deleteQuery($condition)
     {
-        $res = $this->collection->remove($condition);
+        $res = $this->collection->remove($this->processCondition($condition));
         if(!$res || !isset($res['ok']) || !$res['ok'])
             return false;
         return true;
@@ -235,6 +254,21 @@ abstract class Document extends ModelBase
             $cursor = $cursor->skip($options['skip']);
         if(isset($options['sort']))
             $cursor = $cursor->sort($options['sort']);
+    }
+
+    protected function processCondition($condition)
+    {
+        if(is_array($condition)) {
+            if(isset($condition['id'])) {
+                $condition['_id'] = $condition['id'];
+                unset($condition['id']);
+            }
+            foreach($condition as $name => $value) {
+                if(strncmp($name, '$', 1))
+                    $condition[$name] = $this->typeToDb($name, $value);
+            }
+        }
+        return $condition;
     }
 
 }

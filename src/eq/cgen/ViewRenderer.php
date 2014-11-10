@@ -25,9 +25,7 @@ class ViewRenderer
     {
         ob_start();
         foreach($__input_vars_array__ as $__input_var_name__ => $__input_var_value__) {
-            eval("
-                $$__input_var_name__ = \$__input_vars_array__[\$__input_var_name__];
-            ");
+            $$__input_var_name__ = $__input_vars_array__[$__input_var_name__];
         }
         require $__view_file__;
         $__view_result_string__ = ob_get_contents();
@@ -57,9 +55,13 @@ class ViewRenderer
     public static function twigEnv()
     {
         if(is_null(self::$_twig_env)) {
-            $loader = new \Twig_Loader_Filesystem("/");
+            $paths = ["/"];
+            if(defined("APPROOT") && is_dir(APPROOT."/views"))
+                $paths[] = APPROOT."/views";
+            $loader = new \Twig_Loader_Filesystem($paths);
             self::$_twig_env = new \Twig_Environment($loader, [
                 'cache' => EQ::getAlias("@runtime/twig"),
+                'strict_variables' => true,
                 'debug' => EQ_DBG,
             ]);
             self::$_twig_env->addFunction(new \Twig_SimpleFunction("t", ["EQ", "t"]));

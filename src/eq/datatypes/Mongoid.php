@@ -21,6 +21,12 @@ class Mongoid extends Str
 
     public static function toDb($value)
     {
+        if(is_array($value)) {
+            $f = function($val) use(&$f) {
+                return is_array($val) ? array_map($f, $val) : static::toDb($val);
+            };
+            return $f($value);
+        }
         return is_object($value) && $value instanceof \MongoId ? $value : new \MongoId($value);
     }
 

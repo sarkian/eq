@@ -37,6 +37,15 @@
         });
     };
 
+    Ajax.prototype.loadTo = function(sel, url, callback) {
+        var uri = new URI(url);
+        uri.query.ajax = true;
+        $(sel).load(uri.toString(), function() {
+            if(typeof callback === 'function')
+                callback();
+        });
+    };
+
     Ajax.prototype.load = function(url, callback) {
         EQ.trigger('ajax.load');
         var uri = new URI(url);
@@ -105,14 +114,16 @@
         return url.toString();
     };
 
-    Ajax.prototype.exec = function(path, params, _options) {
+    Ajax.prototype.exec = function(path, params, _options, aopts) {
+        if(typeof _options === 'function')
+            _options = {on_success: _options };
         var options = $.extend(true, {
             type: 'POST',
             is_url: false,
             on_success: null,
             on_error: null,
             on_warning: null,
-            reload_on: {success: true, error: false},
+            reload_on: {success: false, error: false},
             notify_on: {loading: false, success: false, error: true, warning: true}
         }, _options);
         var url = options.is_url ? path : EQ.ajax.url(path, options.type === 'GET' ? params : {});
@@ -153,7 +164,7 @@
             EQ.notify.loadingBegin(typeof options.notify_on.loading === 'string'
                 ? options.notify_on.loading : null);
 
-        return $.ajax({
+        var opts = $.extend(true, {
             type: options.type,
             url: url,
             data: params,
@@ -181,7 +192,9 @@
                 if(data.statusText !== 'abort')
                     on_error(EQ.t('Application error'), data);
             }
-        });
+        }, aopts);
+
+        return $.ajax(opts);
 
     };
 

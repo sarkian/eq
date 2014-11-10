@@ -2,6 +2,7 @@
 
 namespace eq\themes\bootstrap\widgets;
 
+use EQ;
 use eq\web\html\Html;
 use eq\web\html\HtmlNode;
 
@@ -55,11 +56,18 @@ trait TForm
         return ['class' => "control-label"];
     }
 
-    protected function inputWrap($contents, $type, $name = null, &$wrapped = null)
+    protected function inputWrap($contents, $type, $name = null, $options = [], &$wrapped = null)
     {
         $contents = parent::inputWrap($contents, $type, $name, $wrapped);
-        if($wrapped)
-            return $contents;
+        if(isset($options['#addon_prepend']) || isset($options['#addon_append'])) {
+            if(isset($options['#addon_prepend'])) {
+                $contents = Html::tag("div", ['class' => "input-group-addon"], $options['#addon_prepend']).$contents;
+            }
+            if(isset($options['#addon_append'])) {
+                $contents .= Html::tag("div", ['class' => "input-group-addon"], $options['#addon_append']);
+            }
+            $contents = Html::tag("div", ['class' => "input-group"], $contents);
+        }
         if($this->options['type'] === "horizontal") {
             $class = "col-sm-".$this->options['control_width'];
             return Html::tag("div", ['class' => $class], $contents);
@@ -67,9 +75,9 @@ trait TForm
         return $contents;
     }
 
-    protected function rowWrap($contents, $type, $name = null, &$wrapped = null)
+    protected function rowWrap($contents, $type, $name = null, $options = [], &$wrapped = null)
     {
-        $contents = parent::rowWrap($contents, $type, $name, $wrapped);
+        $contents = parent::rowWrap($contents, $type, $name, $options, $wrapped);
         if(!$wrapped) {
             if($this->options['type'] !== "horizontal" && $type === "checkBox")
                 $class = ["checkbox"];
@@ -77,10 +85,10 @@ trait TForm
                 $class = ["form-group"];
             if($name && $this->fieldErrors($name)) {
                 $class[] = "has-error";
-                $class[] = "has-feedback";
-                $contents .= Html::tag("span", [
-                    'class' => ["glyphicon", "glyphicon-remove", "form-control-feedback"],
-                ], "");
+//                $class[] = "has-feedback";
+//                $contents .= Html::tag("span", [
+//                    'class' => ["glyphicon", "glyphicon-remove", "form-control-feedback"],
+//                ], "");
             }
             return Html::tag("div", ['class' => $class], $contents);
         }
@@ -89,17 +97,25 @@ trait TForm
 
     protected function inputCheckBoxRender($name, $options = [])
     {
-        if($this->options['type'] === "horizontal") {
-            $div = new HtmlNode("div", ['class' => "checkbox checkbox-inline"]);
-            $div->append($this->checkBox($name, $options));
-            return $this->labelWrap($this->renderLabel($name, "checkBox"), "checkBox", $name)
-                .$this->inputWrap($div->render(), "checkBox", $name);
-        }
-        else {
-            $label = new HtmlNode("label", $this->labelOptions([], "checkBox", $name));
-            $label->append($this->checkBox($name, $options)." ".htmlspecialchars($this->fieldLabel($name)));
-            return $label->render();
-        }
+        if($this->options['type'] === "horizontal")
+            return $this->renderCheckBoxHorizontal($name, $options);
+        else
+            return $this->renderCheckBoxNormal($name, $options);
+    }
+
+    protected function renderCheckBoxNormal($name, $options = [])
+    {
+        $label = new HtmlNode("label", $this->labelOptions([], "checkBox", $name));
+        $label->append($this->checkBox($name, $options)." ".htmlspecialchars($this->fieldLabel($name)));
+        return $label->render();
+    }
+
+    protected function renderCheckBoxHorizontal($name, $options = [])
+    {
+        $div = new HtmlNode("div", ['class' => "checkbox checkbox-inline"]);
+        $div->append($this->checkBox($name, $options));
+        return $this->labelWrap($this->renderLabel($name, "checkBox"), "checkBox", $name)
+            .$this->inputWrap($div->render(), "checkBox", $name);
     }
 
     protected function errorsContainer()

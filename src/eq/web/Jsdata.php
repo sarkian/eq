@@ -37,4 +37,9 @@ class Jsdata
         Arr::setItem($this->data, $name, $value);
     }
 
+    public function call($name, $value)
+    {
+        Arr::setItem($this->data, $name, $value);
+    }
+
 }

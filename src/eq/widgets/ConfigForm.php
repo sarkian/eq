@@ -67,7 +67,7 @@ class ConfigForm extends FormBase
             $type = $this->fieldType($name);
             $value = EQ::app()->request->post($name);
             if($type === "select") {
-                $variants = $this->fieldParam($name, "variants", []);
+                $variants = $this->fieldParam($name, "#variants", []);
                 $data[$name] = isset($variants[$value]) ? $value : $this->fieldValue($name);
             }
             else
@@ -93,7 +93,7 @@ class ConfigForm extends FormBase
             if($this->fieldIsDisabled($name))
                 $opts['disabled'] = "disabled";
             if($type === "select")
-                $options['variants'] = $this->fieldParam($name, "variants", []);
+                $options['#variants'] = $this->fieldParam($name, "#variants", []);
         }
         return Html::mergeAttrs($opts, parent::inputOptions($options, $type, $name));
     }

@@ -28,8 +28,6 @@ class FormBase extends WidgetBase
 
     protected $values = [];
     protected $labels = [];
-    protected $errors = [];
-    protected $errors_by_field = [];
     protected $_id;
     protected $_autofocus = false;
 
@@ -64,34 +62,14 @@ class FormBase extends WidgetBase
         $this->labels = $labels;
     }
 
-    public function setErrors(array $errors)
-    {
-        $this->errors = $errors;
-    }
-
-    public function setErrorsByField(array $errors)
-    {
-        $this->errors_by_field = $errors;
-    }
-
     public function getErrors()
     {
-        return $this->errors;
+        return [];
     }
 
     public function getErrorsByField()
     {
-        return $this->errors_by_field;
-    }
-
-    public function addError($message, $field = null)
-    {
-        $error = ['message' => $message, 'field' => $field];
-        if(in_array($error, $this->errors))
-            return;
-        array_push($this->errors, $error);
-        if(is_string($field))
-            $this->errors_by_field[$field][] = $message;
+        return [];
     }
 
     public function fieldName($name)
@@ -199,10 +177,11 @@ class FormBase extends WidgetBase
             'id' => $this->fieldId($name),
             'name' => $this->fieldName($name),
             'value' => htmlspecialchars($this->fieldValue($name)),
-            'variants' => [],
+            '#variants' => [],
         ], "select", $name), $options);
-        $variants = $options['variants'];
-        unset($options['variants']);
+        $variants = $options['#variants'];
+        if(is_callable($variants))
+            $variants = $variants();
         $sel = new HtmlNode("select", $options);
         foreach($variants as $value => $text)
             $sel->append($this->renderSelectOption($value, $text, $options['value']));
@@ -226,6 +205,17 @@ class FormBase extends WidgetBase
     public function radioButton($name, $options = [])
     {
         // TODO: Implement
+    }
+
+    public function hidden($name, $options = [])
+    {
+        $options = Html::mergeAttrs($this->inputOptions([
+            'type' => "hidden",
+            'id' => $this->fieldId($name),
+            'name' => $this->fieldName($name),
+            'value' => $this->fieldValue($name),
+        ], "hidden", $name), $options);
+        return Html::tag("input", $options);
     }
 
     public function fieldsetBegin($legend = null)
@@ -252,12 +242,18 @@ class FormBase extends WidgetBase
             $contents = $this->{$method}($options);
         elseif(($method = $this->getInputMethod($type, "Render")))
             $contents = $this->{$method}($name, $options);
-        elseif($type && method_exists($this, $type))
-            $contents = $this->labelWrap($this->renderLabel($name, $type), $type, $name)
-                .$this->inputWrap($this->{$type}($name, $options), $type, $name);
+        else
+            $contents = $this->renderFieldDefault($name, $type, $options);
+        return $this->rowWrap($contents, $type, $name, $options);
+    }
+
+    public function renderFieldDefault($name, $type = null, $options = [])
+    {
+        if($type && method_exists($this, $type))
+            return $this->labelWrap($this->renderLabel($name, $type), $type, $name, $options)
+                .$this->inputWrap($this->{$type}($name, $options), $type, $name, $options);
         else
             throw new WidgetException("Cant render field: $name (type: $type)");
-        return $this->rowWrap($contents, $type, $name);
     }
 
     public function renderLabel($name, $type = null)
@@ -354,21 +350,23 @@ class FormBase extends WidgetBase
         return $options;
     }
 
-    protected function labelWrap($contents, $type, $name = null, &$wrapped = null)
+    protected function labelWrap($contents, $type, $name = null, $options = [], &$wrapped = null)
     {
         $wrapped = false;
         return $contents;
     }
 
-    protected function inputWrap($contents, $type, $name = null, &$wrapped = null)
+    protected function inputWrap($contents, $type, $name = null, $options = [], &$wrapped = null)
     {
         $wrapped = false;
         return $contents;
     }
 
-    protected function rowWrap($contents, $type, $name = null, &$wrapped = null)
+    protected function rowWrap($contents, $type, $name = null, $options = [], &$wrapped = null)
     {
         $wrapped = true;
+        if($contents === null)
+            return "";
         $method = $this->getFieldMethod($name, "Wrap");
         if($method)
             return $this->{$method}($contents);

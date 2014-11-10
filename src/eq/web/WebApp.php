@@ -36,9 +36,11 @@ defined("EQ_ASSETS_CHECK") or define("EQ_ASSETS_CHECK", true);
  * @property array route_files
  * @property string controller_name
  * @property string action_name
+ * @property string route_path
  * @property HttpException http_exception
  * @property string token
  * @method void header()
+ * @method void jsdata(string $name, mixed $value)
  * @method string|null cookie(string $name, string $value = null, array $options = [])
  */
 class WebApp extends AppBase
@@ -82,9 +84,6 @@ class WebApp extends AppBase
     public function __construct($config)
     {
         parent::$_app = $this;
-        self::setAlias("@www",
-            realpath(self::getAlias($this->config("web.content_root"))));
-        self::setAlias("@web", "");
         parent::__construct($config);
         $this->bind("beforeRender", [$this, "__beforeRender"]);
     }
@@ -131,6 +130,11 @@ class WebApp extends AppBase
     {
 //        return $this->action_name;
         return $this->route->action_name;
+    }
+
+    public function getRoutePath()
+    {
+        return $this->route->path;
     }
 
     public function getHttpException()

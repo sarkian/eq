@@ -85,11 +85,7 @@ class UserController extends Controller
             if(isset($data['settings_theme']))
                 $model->settingsSet("theme", $data['settings_theme']);
             $form = $this->createAccountForm($model);
-            if(!$model->save()) {
-                $form->errors = $model->errors;
-                $form->errors_by_field = $model->errors_by_field;
-            }
-            else
+            if($model->save())
                 $this->redir("{modules.eq:user.user.account}");
         }
         $this->render("account", ['form' => $form]);
@@ -142,7 +138,7 @@ class UserController extends Controller
                     'settings_theme' => [
                         'type' => "select",
                         'label' => EQ::t("Theme"),
-                        'variants' => $this->config("account_page.available_themes"),
+                        '#variants' => $this->config("account_page.available_themes"),
                         'value' => $model->settingsGet("theme", EQ::app()->theme->name),
                     ],
                 ],

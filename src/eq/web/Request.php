@@ -25,6 +25,8 @@ class Request extends Object
     protected $method;
     protected $root;
 
+    protected $_files = null;
+
     public function __construct()
     {
         if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']) {
@@ -68,7 +70,9 @@ class Request extends Object
 
     public function isAjax()
     {
-        return isset($_REQUEST['ajax']);
+        return (isset($_SERVER['HTTP_X_REQUESTED_WITH'])
+            && $_SERVER['HTTP_X_REQUESTED_WITH'] === "XMLHttpRequest")
+            || isset($_REQUEST['ajax']);
     }
 
     public function get($name, $default = null)
@@ -84,6 +88,16 @@ class Request extends Object
     public function request($name, $default = null)
     {
         return Arr::getItem($_REQUEST, $name, $default);
+    }
+
+    public function file($name)
+    {
+        return new UploadedFile(isset($_FILES[$name]) ? $_FILES[$name] : []);
+    }
+
+    public function files($name = null)
+    {
+
     }
 
     public function filterGet($name, $type, $default = null)
@@ -102,6 +116,13 @@ class Request extends Object
     {
         $type = DataTypeBase::getClass($type);
         return $type::filter(Arr::getItem($_REQUEST, $name, $default));
+    }
+
+    protected function processFiles()
+    {
+        foreach($_FILES as $file) {
+
+        }
     }
 
 }

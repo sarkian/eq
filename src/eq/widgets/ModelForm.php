@@ -7,6 +7,7 @@ use eq\base\TObject;
 use eq\data\ModelBase;
 use eq\helpers\Arr;
 use eq\helpers\Str;
+use eq\web\html\Html;
 
 class ModelForm extends FormBase
 {
@@ -39,21 +40,41 @@ class ModelForm extends FormBase
 
     public function render()
     {
-        $this->errors = $this->model->errors;
-        $this->errors_by_field = $this->model->errors_by_field;
-        $out = [$this->begin()];
-        foreach($this->model->currentRules("change") as $field) {
-            if(!$this->model->isShow($field))
-                continue;
+        return $this->begin()."\n".$this->renderFields()
+            ."\n".$this->renderSubmitButton()."\n".$this->end();
+    }
+
+    public function renderFields()
+    {
+        $out = [];
+        foreach($this->getShowedFields() as $field) {
             $type = $this->model->typeFormControl($field);
             $opts = $this->model->typeFormControlOptions($field);
             $out[] = $this->renderField($field, $type, $opts);
         }
-        $out[] = $this->submitButton(
-            $this->model->currentRules("submit_text",
-                EQ::t(Str::method2label($this->model->scenario))));
-        $out[] = $this->end();
+        $out[] = Html::tag("input", ['type' => "hidden", 'name' => "_t", 'value' => EQ::app()->token]);
         return implode("\n", $out);
+    }
+
+    public function renderSubmitButton()
+    {
+        return $this->submitButton($this->model->currentRules("submit_text",
+            EQ::t(Str::method2label($this->model->scenario))));
+    }
+
+    public function getShowedFields()
+    {
+        return array_filter($this->model->currentRules("change"), [$this->model, "isShow"]);
+    }
+
+    public function getErrors()
+    {
+        return $this->model->errors;
+    }
+
+    public function getErrorsByField()
+    {
+        return $this->model->errors_by_field;
     }
 
     public function getData()

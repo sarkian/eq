@@ -57,6 +57,12 @@ final class AjaxResponse
         return $this;
     }
 
+    /**
+     * @param string $message
+     * @param bool $leave_data
+     * @param bool $leave_warnings
+     * @throws AjaxErrorException
+     */
     public function error($message = null, $leave_data = false, $leave_warnings = false)
     {
         $this->success = false;

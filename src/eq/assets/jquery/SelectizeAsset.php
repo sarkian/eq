@@ -11,7 +11,7 @@ class SelectizeAsset extends AssetBundle
     protected $base_path = "@www/assets";
     protected $base_url = "@web/assets";
 
-    protected $_depends = [
+    protected $depends = [
         "jquery",
     ];
 

@@ -38,12 +38,13 @@ class Html
         if(!$options)
             return $html;
         foreach($options as $name => $value) {
-            if(is_array($value))
-                $value = implode(" ", $value);
             if(is_int($name))
                 $html .= ' '.$value.'="'.$value.'"';
-            elseif(strlen((string) $value))
+            elseif(is_string($name) && strncmp($name, "#", 1)) {
+                if(is_array($value))
+                    $value = implode(" ", $value);
                 $html .= ' '.$name.'="'.$value.'"';
+            }
         }
         return $html;
     }

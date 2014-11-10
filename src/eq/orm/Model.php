@@ -75,6 +75,22 @@ abstract class Model extends ModelBase
         return array_map([$model->fieldType($model->pk), "fromDb"], $pks);
     }
 
+    public static function selectCols(array $cols, $condition = "1", array $params = [], array $options = [])
+    {
+        $model = static::i();
+        $res = $model->executeQuery(
+            $model->createQuery()->select($cols)->from($model->table_name)->where($condition, $params)
+                ->setOptions($options))->fetchAll();
+        if(isset($options['cast']) && !$options['cast'])
+            return $res;
+        $cols = array_filter($cols, [$model, "fieldExists"]);
+        return array_map(function($row) use($cols, $model) {
+            foreach($row as $n => $v)
+                $row[$n] = $model->typeToDb($n, $v);
+            return $row;
+        }, $res);
+    }
+
     public static function paginator($condition = "1", array $params = [], array $options = [])
     {
         return new Paginator(get_called_class(), $condition, $params, $options);
@@ -139,28 +155,29 @@ abstract class Model extends ModelBase
     protected function insertQuery(array $cols)
     {
         return $this->executeQuery($this->createQuery()
-            ->insert($this->table_name, $cols))->rowCount();
+            ->insert($this->table_name, $this->processCondition($cols)))->rowCount();
     }
 
     protected function updateQuery(array $cols, $condition)
     {
         return $this->executeQuery($this->createQuery()
-                ->update($this->table_name, $cols)->where($condition)
+                ->update($this->table_name, $this->processCondition($cols))
+                ->where($this->processCondition($condition))
         )->rowCount();
     }
 
     protected function selectQuery(array $cols, $condition, array $options = [])
     {
         return $this->executeQuery(
-            $this->createQuery()->select($this->loaded_fieldnames)
-                ->from($this->table_name)->where($condition)->setOptions($options)
+            $this->createQuery()->select($cols)->from($this->table_name)
+                ->where($this->processCondition($condition))->setOptions($options)
         )->fetchAll();
     }
 
     protected function deleteQuery($condition)
     {
         return $this->executeQuery(
-            $this->createQuery()->delete($this->table_name, $condition)
+            $this->createQuery()->delete($this->table_name, $this->processCondition($condition))
         )->rowCount();
     }
 

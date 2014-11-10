@@ -15,7 +15,7 @@ use eq\web\route\RouteException;
 class ReflectionAction extends \ReflectionMethod
 {
 
-    use TObject;
+//    use TObject;
 
     protected $instance;
     protected $_docblock = null;
@@ -69,7 +69,7 @@ class ReflectionAction extends \ReflectionMethod
 
     public function argDocType($name)
     {
-        return $this->docblock->tag("param", null, "\$$name")->wfirst();
+        return $this->getDocblock()->tag("param", null, "\$$name")->wfirst();
     }
 
 }

@@ -87,6 +87,7 @@ class Highlighter
             T_EMPTY,
             T_DEFAULT,
             T_SWITCH,
+            T_LIST,
         ],
         'default' => [
             T_STRING,
@@ -120,6 +121,8 @@ class Highlighter
             T_MINUS_EQUAL,
             T_MUL_EQUAL,
             T_DIV_EQUAL,
+            T_INC,
+            T_DEC,
             '.',
             ',',
             ';',
