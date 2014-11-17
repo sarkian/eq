@@ -154,6 +154,9 @@ class Highlighter
             T_FILE,
             T_LINE,
             T_DIR,
+            T_FUNC_C,
+            T_METHOD_C,
+            T_CLASS_C,
         ],
         'braces' => [
             T_CURLY_OPEN,

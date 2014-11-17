@@ -202,6 +202,8 @@
 
 
     $.fn.selectizeFirst = function(options) {
+        if(!this.length)
+            return false;
         this.selectize(options);
         return this[0].selectize;
     };

@@ -69,6 +69,11 @@ trait TUser
         parent::__set($name, $value);
     }
 
+    public function __isset($name)
+    {
+        return parent::__isset($name);
+    }
+
     public function notify($message, $type = "info")
     {
         // TODO: Implement

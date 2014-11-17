@@ -68,6 +68,7 @@ class ViewRenderer
             self::$_twig_env->addFunction(new \Twig_SimpleFunction("k", ["EQ", "k"]));
             self::$_twig_env->addFunction(new \Twig_SimpleFunction("createUrl", [EQ::app(), "createUrl"]));
             self::$_twig_env->addFunction(new \Twig_SimpleFunction("widget", ["EQ", "widget"]));
+            self::$_twig_env->addGlobal("App", EQ::app());
         }
         return self::$_twig_env;
     }

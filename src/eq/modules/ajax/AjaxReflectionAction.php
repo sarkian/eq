@@ -34,10 +34,13 @@ class AjaxReflectionAction extends ReflectionAction
         catch(\Exception $ex) {
             if($res->isRaw())
                 throw $ex;
-            else
+            else {
+                if($ex instanceof HttpException)
+                    EQ::app()->header->status($ex->getStatus(), $ex->getMessage());
                 $res->setSuccess(false)
                     ->setMessage(EQ_DBG ? $ex->getMessage() : EQ::t("Application error"))
                     ->noRaw()->clear()->printResponse();
+            }
         }
         return $res;
     }

@@ -54,14 +54,16 @@ abstract class WidgetBase
         $classes = array_values(class_parents($this));
         array_unshift($classes, get_called_class());
         foreach($classes as $class) {
-            $fname = Path::join([
+            $fbasename = Path::join([
                 $class::_DIR_,
                 "views",
                 Str::method2cmd(Str::classBasename($class)),
-                "$view.php"
+                $view
             ]);
-            if(file_exists($fname))
-                return $fname;
+            if(file_exists("$fbasename.php"))
+                return "$fbasename.php";
+            elseif(file_exists("$fbasename.twig"))
+                return "$fbasename.twig";
         }
         throw new WidgetException("View file not found: $view");
     }
