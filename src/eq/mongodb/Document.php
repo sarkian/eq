@@ -147,13 +147,18 @@ abstract class Document extends ModelBase
         $type = $this->fieldTypename($fieldname);
         if(($fieldname === "_id" && ($type === "str" || $type === "string")) || $type === "mongoid")
             return \eq\datatypes\Mongoid::toDb($value);
-//            return is_object($value) && $value instanceof MongoId ? $value : new MongoId($value);
         elseif($type === "arr" || $type === "array")
             return (array) $value;
         elseif($type === "obj" || $type === "object")
             return (object) $value;
         elseif($type === "bool" || $type === "boolean")
             return (bool) $value;
+        elseif(is_array($value)) {
+            $f = function($val) use(&$f, $fieldname) {
+                return is_array($val) ? array_map($f, $val) : parent::typeToDb($fieldname, $val);
+            };
+            return $f($value);
+        }
         else
             return parent::typeToDb($fieldname, $value);
     }

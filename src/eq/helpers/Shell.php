@@ -23,14 +23,18 @@ class Shell
             else
                 return false;
         }
+        stream_set_blocking($pipes[1], 0);
+        stream_set_blocking($pipes[2], 0);
         if(!is_null($input))
             fwrite($pipes[0], $input);
         fclose($pipes[0]);
+        while(($s = proc_get_status($proc)) && $s['running']) {}
+        $ret = is_array($s) && isset($s['exitcode']) ? $s['exitcode'] : null;
         $out = stream_get_contents($pipes[1]);
         fclose($pipes[1]);
         $err = trim(stream_get_contents($pipes[2]), " \r\n\t");
         fclose($pipes[2]);
-        $ret = proc_close($proc);
+        $ret !== null or $ret = proc_close($proc);
         if($thr && $ret !== 0)
             throw new ShellExecException("Shell returned $ret: $cmd: $err", $ret);
         return $out;
