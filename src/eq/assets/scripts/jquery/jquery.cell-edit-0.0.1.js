@@ -17,6 +17,7 @@
     jQuery.fn.cellEdit = function(options) {
 
         options = $.extend({
+            tag: '<textarea>',
             initW: 250,
             initH: 50,
             speed: 'fast',
@@ -25,9 +26,10 @@
             onOpen: function(text, elem) {},
             onClose: function(text, elem) {},
             onTextChange: function(text, elem, oldtext) {},
-            textFilter: function(text) { return text; },
+            textFilter: function(text) { return typeof text === 'string' ? text.trim() : text; },
             useDataAttr: null,
-            disabled: false
+            disabled: false,
+            closeOnEnter: false
         }, options);
 
         var self = this;
@@ -62,6 +64,8 @@
         function __kbdClose(event) {
             if(event.keyCode === 27 || (event.keyCode === 13 && event.ctrlKey))
                 __close();
+            if(options.closeOnEnter && event.keyCode === 13)
+                __close();
         }
 
         function __open() {
@@ -73,7 +77,8 @@
             options.onOpen(textBefore, current);
             // var pos = $(this).position();
             var pos = $(this).offset();
-            area = $('<textarea>', {class: options.addclass});
+            area = $(options.tag);
+            area.addClass(options.addclass);
             area.css({
                 position: 'absolute',
                 left: pos.left + 'px',

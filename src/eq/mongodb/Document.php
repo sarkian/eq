@@ -29,25 +29,30 @@ abstract class Document extends ModelBase
 
     protected $__id = null;
 
-    public function __construct($scenario = null)
+    public function __construct($scenario = null, $args = [])
     {
         $this->db = EQ::app()->mongodb($this->db_name);
         $this->collection = $this->db->selectCollection($this->collection_name);
-        parent::__construct($scenario);
+        parent::__construct($scenario, $args);
     }
+
 
     /**
      * @param array $condition
      * @param array $options
+     * @param null $scenario
+     *
+     * @param array $args
+     *
      * @return \eq\data\Provider|static[]
      */
-    public static function findAll(array $condition = [], array $options = [])
+    public static function findAll(array $condition = [], array $options = [], $scenario = null, $args = [])
     {
-        $model = static::i();
+        $model = static::i($scenario, $args);
         $res = $model->selectQuery($model->loaded_fieldnames, $condition);
         if($options)
             $model->setOptions($res, $options);
-        return static::provider(iterator_to_array($res));
+        return static::provider(iterator_to_array($res), $scenario, $args);
     }
 
     public static function count(array $condition = [], array $options = [])
@@ -269,7 +274,7 @@ abstract class Document extends ModelBase
                 unset($condition['id']);
             }
             foreach($condition as $name => $value) {
-                if(strncmp($name, '$', 1))
+                if(strncmp($name, '$', 1) && strpos($name, ".") === false)
                     $condition[$name] = $this->typeToDb($name, $value);
             }
         }

@@ -2,6 +2,8 @@
 
 namespace eq\helpers;
 
+use eq\base\NotImplementedException;
+
 class Str
 {
 
@@ -97,6 +99,21 @@ class Str
             $str .= $c;
         }
         return $str;
+    }
+
+    public static function parseInt($val, $chars = " .,")
+    {
+        $val = trim($val);
+        $re = "/[^0-9" . preg_quote($chars, "/") . "]+/";
+        $val = preg_split($re, $val, 2);
+        $val = preg_replace("/[^0-9]/", "", $val[0]);
+        return (int) $val;
+    }
+
+    public static function parseFloat($val)
+    {
+        // TODO: Implement
+        throw new NotImplementedException();
     }
 
     protected static function _hypLower1($m)

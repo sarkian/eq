@@ -35,7 +35,8 @@ class ModelForm extends FormBase
 
     public function fieldValue($name, $default = "")
     {
-        return htmlspecialchars($this->model->fieldValue($name, $default));
+        $value = $this->model->fieldValue($name, $default);
+        return is_string($value) ? htmlspecialchars($value) : $value;
     }
 
     public function render()

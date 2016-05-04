@@ -56,7 +56,7 @@ class Connection
 
     public function __destruct()
     {
-        $this->close();
+//        $this->close();
     }
 
 } 

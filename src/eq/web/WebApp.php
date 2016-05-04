@@ -39,7 +39,7 @@ defined("EQ_ASSETS_CHECK") or define("EQ_ASSETS_CHECK", true);
  * @property string route_path
  * @property HttpException http_exception
  * @property string token
- * @method void header()
+ * @method void header(string $name, string $value = null)
  * @method void jsdata(string $name, mixed $value)
  * @method string|null cookie(string $name, string $value = null, array $options = [])
  */

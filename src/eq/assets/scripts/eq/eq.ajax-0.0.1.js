@@ -189,8 +189,10 @@
                 }
             },
             error: function(data) {
-                if(data.statusText !== 'abort')
+                if(data.statusText !== 'abort') {
+                    console.error(data.statusText);
                     on_error(EQ.t('Application error'), data);
+                }
             }
         }, aopts);
 

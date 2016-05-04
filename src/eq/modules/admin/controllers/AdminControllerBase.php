@@ -8,10 +8,7 @@ use eq\web\Controller;
 class AdminControllerBase extends Controller
 {
 
-    public function getTemplate()
-    {
-        return EQ::getAlias("@modules.eq:admin/templates/main.php");
-    }
+    protected $template = "@modules.eq:admin/templates/main.php";
 
     protected function permissions()
     {

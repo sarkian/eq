@@ -189,6 +189,8 @@ abstract class Controller
     {
         if(!$this->template)
             return false;
+        if(EQ::isAlias($this->template))
+            return EQ::getAlias($this->template);
         if(file_exists($this->template))
             return $this->template;
         $fname = APPROOT."/templates/{$this->template}.php";

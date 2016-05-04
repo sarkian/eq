@@ -32,7 +32,7 @@ use Glip_Git;
  * @property Cache cache
  * @property Pool db
  * @property \eq\mongodb\Connection mongodb
- * @method static WidgetBase widget(string $name)
+ * @method static WidgetBase widget(string $name, ...)
  * @method static string t($token)
  * @method static string k($token)
  * @method ConnectionBase db(string $name = null)

@@ -10,8 +10,10 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
 
     protected $class_name;
     protected $scenario;
+    protected $pk;
     protected $data = [];
     protected $by_pk = [];
+    protected $by_field = [];
     protected $pos = 0;
 
     /**
@@ -21,7 +23,7 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
      * @throws \eq\base\InvalidArgumentException
      * @throws \eq\base\InvalidCallException
      */
-    public function __construct(array $data, $class_name = null, $scenario = null)
+    public function __construct(array $data, $class_name = null, $scenario = null, $args = [])
     {
         /**
          * @var array|ModelBase[] $data
@@ -39,6 +41,11 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
         }
         if(!is_subclass_of($class_name, 'eq\data\ModelBase'))
             throw new InvalidCallException("'$class_name' is not a subclass of eq\\data\\ModelBase");
+
+        $model = new $class_name();
+        if($model->pk /*&& isset($model->fields[$model->pk])*/)
+            $this->pk = $model->pk;
+
         $this->class_name = $class_name;
         $this->scenario = $scenario;
         $this->data = [];
@@ -48,16 +55,34 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
             if(is_object($item) && get_class($item) === $class_name)
                 $obj = $item;
             else
-                $obj = $class_name::i()->applyLoaded($item);
+                $obj = $class_name::i($scenario, $args)->applyLoaded($item);
             if($scenario)
                 $obj->scenario = $scenario;
             $this->data[$i] = $obj;
-            if($obj->pk && isset($obj->fields[$obj->pk])) {
+//            if($obj->pk && isset($obj->fields[$obj->pk])) {
+            if($this->pk) {
                 $pk = $obj->fieldValue($obj->pk);
                 if(is_int($pk) || (is_string($pk) && strlen($pk)))
                     $this->by_pk[$pk] = $i;
             }
         }
+    }
+
+
+    /**
+     * @param string $field
+     * @param mixed $value
+     *
+     * @return ModelBase|null
+     */
+    public function byField($field, $value) {
+        if(!isset($this->by_field[$field])) {
+            $this->by_field[$field] = [];
+            foreach($this->data as $obj) {
+                $this->by_field[$field][$obj->{$field}] = $obj;
+            }
+        }
+        return isset($this->by_field[$field][$value]) ? $this->by_field[$field][$value] : null;
     }
 
     /**
@@ -86,6 +111,23 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
         }
         $cname = get_called_class();
         return new $cname($res, $this->class_name, $this->scenario);
+    }
+
+    public function addByPk($obj, $update = false)
+    {
+        if(!$this->pk)
+            return;
+        $pk = $obj->{$this->pk};
+        if(isset($this->by_pk[$pk])) {
+            if(!$update)
+                return;
+            $i = $this->by_pk[$pk];
+            $this->data[$i] = $obj;
+        }
+        else {
+            $this->data[] = $obj;
+            $this->by_pk[$pk] = array_keys($this->data, $obj, true)[0];
+        }
     }
 
     public function unsetByPk($pk)
@@ -118,6 +160,11 @@ class Provider implements \Iterator, \Countable, \ArrayAccess
     public function map($fn)
     {
         return array_map($fn, $this->data);
+    }
+
+    public function reduce($fn, $initial = null)
+    {
+        return array_reduce($this->data, $fn, $initial);
     }
     
     public function walk($fn)

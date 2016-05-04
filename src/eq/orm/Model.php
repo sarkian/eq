@@ -29,10 +29,10 @@ abstract class Model extends ModelBase
      */
     protected $db;
 
-    public function __construct($scenario = null)
+    public function __construct($scenario = null, $args = [])
     {
         $this->db = EQ::app()->db($this->db_name);
-        parent::__construct($scenario);
+        parent::__construct($scenario, $args);
     }
 
     /**

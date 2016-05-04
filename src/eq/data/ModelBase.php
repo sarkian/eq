@@ -28,6 +28,7 @@ use eq\helpers\Str;
  * @property array rules
  * @property array errors
  * @property array errors_by_field
+ * @property string first_error
  * @property string scenario
  * @property array messages
  * @property int page_size
@@ -61,7 +62,7 @@ abstract class ModelBase extends Object
     abstract protected function lastInsertId();
     abstract protected function pkCondition();
 
-    public function __construct($scenario = null)
+    public function __construct($scenario = null, $args = [])
     {
         $fields = $this->fields === null ? $this->getFields() : $this->fields;
         foreach($fields as $name => $field) {
@@ -71,18 +72,21 @@ abstract class ModelBase extends Object
             $this->fields[$name] = $field;
         }
         if($scenario)
-            $this->setScenario($scenario);
+            $this->setScenario($scenario, $args);
         $this->_relations = $this->relations;
     }
 
+
     /**
      * @param string $scenario
+     * @param array $args
+     *
      * @return static
      */
-    public static function i($scenario = null)
+    public static function i($scenario = null, $args = [])
     {
         $cname = get_called_class();
-        return new $cname($scenario);
+        return new $cname($scenario, $args);
     }
 
     /**
@@ -90,7 +94,7 @@ abstract class ModelBase extends Object
      * @param string $scenario
      * @return Provider
      */
-    public static function provider($data = [], $scenario = null)
+    public static function provider($data = [], $scenario = null, $args = [])
     {
         $cname = get_called_class();
         $ns = explode('\\', $cname);
@@ -99,7 +103,7 @@ abstract class ModelBase extends Object
         $ns_arr = $subns === "models" ? ["providers", $cbasename] : [$subns, $cbasename];
         $pname = implode('\\', array_diff(array_merge($ns, $ns_arr), [null]));
         Loader::classExists($pname) or $pname = 'eq\data\Provider';
-        return new $pname($data, $cname, $scenario);
+        return new $pname($data, $cname, $scenario, $args);
     }
 
     /**
@@ -317,8 +321,15 @@ abstract class ModelBase extends Object
     {
         if(!$this->isLoaded())
             return false;
+        $this->trigger("beforeDelete");
         $this->_deleted = $this->deleteQuery($this->pkCondition());
+        $this->trigger($this->_deleted ? "deleteSuccess" : "deleteFail");
         return $this->_deleted;
+    }
+
+    public function getData()
+    {
+        return $this->data;
     }
 
     public function getPageSize()
@@ -361,13 +372,14 @@ abstract class ModelBase extends Object
         return $this->scenario;
     }
 
-    public function setScenario($scenario)
+    public function setScenario($scenario, $args = [])
     {
         if(!is_string($scenario) || !strlen($scenario))
             return $this;
         $method = "scenario" . ucfirst($scenario);
         if(method_exists($this, $method))
-            $this->$method();
+            call_user_func_array([$this, $method], $args);
+//            $this->$method();
         $this->scenario = $scenario;
         return $this;
     }
@@ -408,6 +420,11 @@ abstract class ModelBase extends Object
     public function getErrorsByField()
     {
         return $this->errors_by_field;
+    }
+
+    public function getFirstError()
+    {
+        return isset($this->errors[0]['message']) ? $this->errors[0]['message'] : "";
     }
 
     public function getRelations()

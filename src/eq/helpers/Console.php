@@ -152,6 +152,24 @@ class Console
         return fwrite(STDERR, $str);
     }
 
+    public static function ask($msg)
+    {
+        do {
+            static::stdout("$msg [y/n]: ", false);
+            $r = strtolower(static::stdin());
+            if($r === "y")
+                return true;
+            elseif($r === "n")
+                return false;
+        }
+        while(true);
+    }
+
+    public static function input($msg)
+    {
+        // TODO: Implement
+    }
+
     public static function shortDump($var, $indent = 8, $limit = null)
     {
         return str_repeat(" ", $indent).Debug::shortDump($var, [
@@ -637,6 +655,11 @@ class Console
         return DIRECTORY_SEPARATOR == '\\';
     }
 
+    public static function isUnix()
+    {
+        return DIRECTORY_SEPARATOR == '/';
+    }
+    
     protected static function normalizeFmt($fmt_)
     {
         if(!is_array($fmt_))

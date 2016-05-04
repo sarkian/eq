@@ -18,10 +18,10 @@ class PhpScalar
     public function render($indent = 0)
     {
         $indent_str = str_repeat(" ", $indent * 4);
-        if(is_numeric($this->value))
-            return $indent_str.((string) $this->value);
-        elseif(is_string($this->value))
+        if(is_string($this->value))
             return $indent_str."'".str_replace("'", "\\'", $this->value)."'";
+        elseif(is_numeric($this->value))
+            return $indent_str.((string) $this->value);
         elseif(is_bool($this->value))
             return $indent_str.($this->value ? "true" : "false");
         else

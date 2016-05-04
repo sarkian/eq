@@ -11,6 +11,8 @@ use eq\base\Loader;
 abstract class DataTypeBase
 {
 
+    private static $_cache = [];
+
     public function __call($name, $args = [])
     {
         $cls = get_called_class();
@@ -26,17 +28,17 @@ abstract class DataTypeBase
      */
     public static final function getClass($type)
     {
-        if(Loader::classExists($type)
-            && isset(class_parents($type)[get_called_class()])
-        )
-            return $type;
+        if(isset(self::$_cache[$type]))
+            return self::$_cache[$type];
+        if(Loader::classExists($type) && isset(class_parents($type)[get_called_class()]))
+            return self::$_cache[$type] = $type;
         $cbasename = Str::var2method($type);
         $cname = EQ::app()->app_namespace.'\datatypes\\'.$cbasename;
         if(Loader::classExists($cname))
-            return $cname;
+            return self::$_cache[$type] = $cname;
         $cname = 'eq\datatypes\\'.$cbasename;
         if(Loader::classExists($cname))
-            return $cname;
+            return self::$_cache[$type] = $cname;
         else
             throw new DataTypeException("Data type class not found: $cname");
     }

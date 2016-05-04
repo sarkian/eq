@@ -104,6 +104,17 @@ class FileSystem
         return $as_array ? explode("\n", $data) : $data;
     }
 
+    public static function freadlines($fname, $flags = null, $context = null)
+    {
+        $fname = EQ::getAlias($fname);
+        if($flags === null)
+            $flags = FILE_SKIP_EMPTY_LINES|FILE_IGNORE_NEW_LINES;
+        $data = @file($fname, $flags, $context);
+        if($data === false)
+            throw new FileSystemException("Unable to read file: " . $fname);
+        return $data;
+    }
+
     public static function filemtime($fname)
     {
         $fname = EQ::getAlias($fname);

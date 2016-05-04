@@ -173,18 +173,22 @@ class FormBase extends WidgetBase
 
     public function select($name, $options = [])
     {
+        $val = $this->fieldValue($name);
+//        if(is_string($val))
+//            $val = htmlspecialchars($val);
         $options = Html::mergeAttrs($this->inputOptions([
             'id' => $this->fieldId($name),
             'name' => $this->fieldName($name),
-            'value' => htmlspecialchars($this->fieldValue($name)),
+            'value' => $val,
             '#variants' => [],
         ], "select", $name), $options);
         $variants = $options['#variants'];
         if(is_callable($variants))
             $variants = $variants();
         $sel = new HtmlNode("select", $options);
+        $multiple = isset($options['multiple']) && $options['multiple'];
         foreach($variants as $value => $text)
-            $sel->append($this->renderSelectOption($value, $text, $options['value']));
+            $sel->append($this->renderSelectOption($value, $text, $options['value'], $multiple));
         return $sel->render(true);
     }
 
@@ -441,17 +445,17 @@ class FormBase extends WidgetBase
         return Html::tag("li", [], $message);
     }
 
-    protected function renderSelectOption($value, $opt, $selected)
+    protected function renderSelectOption($value, $opt, $selected, $multiple = false)
     {
         if(is_array($opt)) {
             $group = new HtmlNode("optgroup", ['label' => $value]);
             foreach($opt as $v => $t)
-                $group->append($this->renderSelectOption($v, $t, $selected));
+                $group->append($this->renderSelectOption($v, $t, $selected, $multiple));
             return $group->render();
         }
         else {
             $opt = new HtmlNode("option", ['value' => htmlspecialchars($value)], htmlspecialchars($opt));
-            if($value == $selected)
+            if($value == $selected || $multiple && is_array($selected) && in_array($value, $selected))
                 $opt->attr("selected", "selected");
             return $opt->render();
         }
